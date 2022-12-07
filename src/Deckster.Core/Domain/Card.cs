@@ -1,8 +1,7 @@
 namespace Deckster.Core.Domain;
 
-public class Card
+public readonly struct Card
 {
-    public Guid Id { get; } = Guid.NewGuid();
     public int Rank { get; init; }
     public Suit Suit { get; init; }
 
@@ -21,14 +20,24 @@ public class Card
         Suit = suit;
     }
 
-    protected bool Equals(Card? other)
+    public static bool operator == (Card first, Card second)
     {
-        return other != null && Rank == other.Rank && Suit == other.Suit;
+        return first.Equals(second);
+    }
+
+    public static bool operator !=(Card first, Card second)
+    {
+        return !(first == second);
+    }
+
+    private bool Equals(Card other)
+    {
+        return Rank == other.Rank && Suit == other.Suit;
     }
 
     public override bool Equals(object? obj)
     {
-        return Equals(obj as Card);
+        return obj is Card c && Equals(c);
     }
 
     public override int GetHashCode()

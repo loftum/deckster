@@ -1,8 +1,7 @@
-namespace Deckster.Core.CrazyEights;
+namespace Deckster.Core.Games.CrazyEights;
 
 public enum GameState
 {
-    Waiting,
     Running,
     Finished
 }
