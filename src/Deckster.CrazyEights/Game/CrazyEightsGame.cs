@@ -1,9 +1,9 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Security.Cryptography;
 using Deckster.Core.Collections;
 using Deckster.Core.Domain;
+using Deckster.Core.Games;
 
-namespace Deckster.Core.Games.CrazyEights;
+namespace Deckster.CrazyEights.Game;
 
 public class CrazyEightsGame
 {
@@ -13,7 +13,7 @@ public class CrazyEightsGame
     private int _currentPlayerIndex;
     private int _cardsDrawn;
     
-    public Guid Id { get; } = Guid.NewGuid();
+    public Guid Id { get; set; } = Guid.NewGuid();
     public GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
     
     /// <summary>
@@ -72,7 +72,7 @@ public class CrazyEightsGame
         _donePlayers.Clear();
     }
 
-    public ICommandResult PutCardOnDiscardPile(Guid playerId, Card card)
+    public CommandResult PutCardOnDiscardPile(Guid playerId, Card card)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -100,7 +100,7 @@ public class CrazyEightsGame
         return GetPlayerViewOfGame(player);
     }
     
-    public ICommandResult DrawCardFromStockPile(Guid playerId)
+    public CommandResult DrawCardFromStockPile(Guid playerId)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -123,7 +123,7 @@ public class CrazyEightsGame
         return new CardResult(card);
     }
     
-    public ICommandResult Pass(Guid playerId)
+    public CommandResult Pass(Guid playerId)
     {
         if (!TryGetCurrentPlayer(playerId, out _))
         {
@@ -208,7 +208,7 @@ public class CrazyEightsGame
         StockPile.PushRange(reshuffledCards);
     }
 
-    public ICommandResult GetStateFor(Guid userId)
+    public CommandResult GetStateFor(Guid userId)
     {
         var player = Players.FirstOrDefault(p => p.Id == userId);
         if (player == null)

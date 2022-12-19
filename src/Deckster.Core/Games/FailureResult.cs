@@ -1,6 +1,6 @@
-namespace Deckster.Core.Games.CrazyEights;
+namespace Deckster.Core.Games;
 
-public class FailureResult : ICommandResult
+public class FailureResult : CommandResult
 {
     public string Message { get; }
     

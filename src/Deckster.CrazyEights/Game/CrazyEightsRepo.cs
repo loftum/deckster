@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
 
-namespace Deckster.Core.Games.CrazyEights;
+namespace Deckster.CrazyEights.Game;
 
 public class CrazyEightsRepo
 {

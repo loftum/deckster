@@ -1,5 +1,5 @@
 using Deckster.Core.Domain;
-using Deckster.Core.Games.CrazyEights;
+using Deckster.Server.Users;
 
 namespace Deckster.Server.Authentication;
 

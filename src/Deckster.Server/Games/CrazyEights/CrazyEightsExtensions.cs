@@ -1,11 +1,12 @@
-using Deckster.Core.Games.CrazyEights;
+using Deckster.CrazyEights.Game;
 
-namespace Deckster.Server;
+namespace Deckster.Server.Games.CrazyEights;
 
 public static class CrazyEightsExtensions
 {
     public static IServiceCollection AddCrazyEights(this IServiceCollection services)
     {
         services.AddSingleton<CrazyEightsRepo>();
+        return services;
     }
 }

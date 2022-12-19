@@ -1,4 +1,4 @@
-using Deckster.Core.Domain;
+using Deckster.Server.Users;
 
 namespace Deckster.Server.Authentication;
 

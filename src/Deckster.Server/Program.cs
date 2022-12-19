@@ -1,4 +1,7 @@
-using Deckster.Core.Domain;
+using Deckster.CrazyEights;
+using Deckster.Server.Games.CrazyEights;
+using Deckster.Server.Infrastructure;
+using Deckster.Server.Users;
 
 namespace Deckster.Server;
 
@@ -9,18 +12,21 @@ class Program
         try
         {
             using var cts = new CancellationTokenSource();
-            Console.CancelKeyPress += (o, e) => cts.Cancel();
+            Console.CancelKeyPress += (_, _) => cts.Cancel();
             var builder = WebApplication.CreateBuilder(argz);
 
             var services = builder.Services;
             ConfigureServices(services);
 
-            ConfigurePipeline(builder);
+            await using var web = builder.Build();
+            ConfigureWeb(web);
             
-            var app = builder.Build();
-            ConfigurePipeline(app);
+            using var decksterServer = DecksterServerBuilder.Create(DecksterConstants.TcpPort, web.Services)
+                .Use(CrazyEights)
+                .Build();
 
-            await app.RunAsync(cts.Token);
+            await Task.WhenAny(web.RunAsync(cts.Token), decksterServer.RunAsync(cts.Token));
+            
             return 0;
         }
         catch (Exception e)
@@ -30,7 +36,12 @@ class Program
         }
     }
 
-    private static void ConfigurePipeline(WebApplication app)
+    private static Task CrazyEights(DecksterContext context, Func<Task> next)
+    {
+        return Task.CompletedTask;
+    }
+
+    private static void ConfigureWeb(WebApplication app)
     {
         app.MapControllers();
         app.UseAuthentication();
