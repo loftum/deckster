@@ -1,15 +1,24 @@
-﻿namespace Deckster.CrazyEights.SampleClient;
+﻿using System.Diagnostics;
+using System.Text;
+
+namespace Deckster.CrazyEights.SampleClient;
 
 class Program
 {
     public static async Task<int> Main(string[] argz)
     {
+        if (!argz.Any())
+        {
+            PrintUsage();
+            return 0;
+        }
+        
         try
         {
-            var host = argz[0];
-            var accessToken = argz[1];
+            var uri = new Uri(argz[0]);
             using var cts = new CancellationTokenSource();
-            var client = await CrazyEightsClient.ConnectAsync(host,accessToken, cts.Token);
+            var client = await CrazyEightsClient.ConnectAsync(uri, cts.Token);
+            
             var ai = new CrazyEightsAi(client);
             await ai.PlayAsync(cts.Token);
             return 0;
@@ -19,5 +28,14 @@ class Program
             Console.WriteLine(e);
             return 1;
         }
+    }
+
+    private static void PrintUsage()
+    {
+        var usage = new StringBuilder()
+            .AppendLine("Usage:")
+            .AppendLine($"{Process.GetCurrentProcess().ProcessName} <uri>")
+            .AppendLine($"e.g {Process.GetCurrentProcess().ProcessName} deckster://localhost:23023/crazyeights/123456");
+        Console.WriteLine(usage);
     }
 }

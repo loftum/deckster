@@ -7,12 +7,14 @@ public static class StreamExtensions
     public static async Task SendMessageAsync(this Stream stream, byte[] message, CancellationToken cancellationToken = default)
     {
         await stream.WriteAsync(ToBytes(message.Length), cancellationToken);
+        Console.WriteLine($"Writing {System.Text.Encoding.UTF8.GetString(message)}");
+        await stream.WriteAsync(message, cancellationToken);
         await stream.FlushAsync(cancellationToken);
     }
 
     public static byte[] ToBytes(this int length)
     {
-        var bytes = new byte[8];
+        var bytes = new byte[4];
         bytes[3] = (byte) (length >> 24 & 0xff);
         bytes[2] = (byte) (length >> 16 & 0xff);
         bytes[1] = (byte) (length >> 8 & 0xff);
@@ -22,20 +24,32 @@ public static class StreamExtensions
     
     public static async Task<byte[]> ReceiveMessageAsync(this Stream stream, CancellationToken cancellationToken = default)
     {
+        var length = await stream.ReadMessageLengthAsync(cancellationToken);
+        return await stream.ReadMessageAsync(length, cancellationToken);
+    }
+
+    private static async ValueTask<byte[]> ReadMessageAsync(this Stream stream, int length, CancellationToken cancellationToken)
+    {
+        var message = new byte[length];
+        await stream.ReadExactlyAsync(message, cancellationToken);
+        Console.WriteLine($"Receive {System.Text.Encoding.UTF8.GetString(message)}");
+        return message;
+    }
+
+    private static async ValueTask<int> ReadMessageLengthAsync(this Stream stream, CancellationToken cancellationToken)
+    {
         var lengthBytes = new byte[4];
-        var read = await stream.ReadAsync(lengthBytes, 0, 4, cancellationToken);
+        await stream.ReadExactlyAsync(lengthBytes, cancellationToken);
         var length = ToInt(lengthBytes);
-        var messageBytes = new byte[length];
-        read = await stream.ReadAsync(messageBytes, cancellationToken);
-        return messageBytes;
+        return length;
     }
     
-    public static uint ToInt(this byte[] bytes)
+    public static int ToInt(this byte[] bytes)
     {
-        return (uint)(bytes[0] |
-                      bytes[1] << 8 |
-                      bytes[2] << 16 |
-                      bytes[3] << 24);
+        return bytes[0] |
+               bytes[1] << 8 |
+               bytes[2] << 16 |
+               bytes[3] << 24;
     }
 
     public static Task SendJsonAsync<T>(this Stream stream, T message, JsonSerializerOptions options, CancellationToken cancellationToken = default)

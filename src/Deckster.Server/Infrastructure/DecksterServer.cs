@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Sockets;
 using Deckster.Communication;
 using Deckster.Communication.Handshake;
+using Deckster.Core;
 using Deckster.Server.Users;
 
 namespace Deckster.Server.Infrastructure;
@@ -35,7 +36,7 @@ public class DecksterServer : IDisposable
             while (!cancellationToken.IsCancellationRequested)
             {
                 var socket = await _listener.AcceptSocketAsync(cancellationToken);
-                ConnectAsync(socket, cancellationToken);
+                HandleSocketAsync(socket, cancellationToken);
             }
         }
         finally
@@ -45,7 +46,7 @@ public class DecksterServer : IDisposable
         }
     }
 
-    private async void ConnectAsync(Socket socket, CancellationToken cancellationToken)
+    private async void HandleSocketAsync(Socket socket, CancellationToken cancellationToken)
     {
         try
         {
@@ -54,23 +55,8 @@ public class DecksterServer : IDisposable
             var communicator = await HandshakeAsync(socket, cts.Token);
             if (communicator != null)
             {
-                try
-                {
-                    _communicators.Add(communicator);
-                    communicator.OnDisconnected += OnDisconnected;
-                    var context = new DecksterContext
-                    {
-                        Services = _services,
-                        Communicator = communicator
-                    };
-                    await _pipeline(context);
-                }
-                catch (Exception e)
-                {
-                    communicator.OnDisconnected -= OnDisconnected;
-                    Remove(communicator);
-                    _logger.LogError(e, "Unhandled exception in connection pipeline");
-                }
+                communicator.OnDisconnected += OnDisconnected;
+                _communicators.Add(communicator);
             }
         }
         catch (Exception e)
@@ -105,53 +91,44 @@ public class DecksterServer : IDisposable
         
         // 1. Read client hello
         var stream = new NetworkStream(socket);
-        var clientHello = await stream.ReceiveJsonAsync<ClientHelloMessage>(DecksterJson.Options, cancellationToken);
-        if (clientHello == null)
+        var request = await stream.ReceiveJsonAsync<ConnectRequest>(DecksterJson.Options, cancellationToken);
+        if (request == null)
         {
-            _logger.LogError("Invalid client hello");
-            await stream.SendJsonAsync(new ServerHelloFailure {ErrorMessage = "Invalid client hello message"}, DecksterJson.Options, cancellationToken);
+            _logger.LogError("Invalid connect request");
+            await stream.SendJsonAsync(new ConnectResponse { StatusCode = 400, Description = "Invalid request"}, DecksterJson.Options, cancellationToken);
             socket.Dispose();
             return null;
         }
 
-        var user = await _userRepo.GetByTokenAsync(clientHello.AccessToken, cancellationToken);
+        var user = await _userRepo.GetByTokenAsync(request.AccessToken, cancellationToken);
         if (user == null)
         {
-            _logger.LogError("Invalid access token '{token}'. No user found", clientHello.AccessToken);
-            await stream.SendJsonAsync(new ServerHelloFailure {ErrorMessage = "Invalid accesstoken"}, DecksterJson.Options, cancellationToken);
-            socket.Dispose();
-            return null;
-        }
-
-        // 1. Send player data
-        var playerData = new PlayerData
-        {
-            PlayerId = user.Id,
-            Name = user.Name
-        };
-        await stream.SendJsonAsync(playerData, DecksterJson.Options, cancellationToken);
-
-        
-        // 2. Get client port
-        var clientPort = await stream.ReceiveJsonAsync<ClientPortMessage>(DecksterJson.Options, cancellationToken);
-
-        if (clientPort == null)
-        {
-            _logger.LogError("Did not get client port.");
-            await stream.SendJsonAsync(new ServerHelloFailure {ErrorMessage = "Invalid client port"}, DecksterJson.Options, cancellationToken);
+            _logger.LogError("Invalid access token '{token}'. No user found", request.AccessToken);
+            await stream.SendJsonAsync(new ConnectResponse { Description = "Invalid accesstoken"}, DecksterJson.Options, cancellationToken);
             socket.Dispose();
             return null;
         }
 
         // 2. Connect to client
         var clientSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-        await clientSocket.ConnectAsync(endpoint.Address, clientPort.Port, cancellationToken);
-
+        await clientSocket.ConnectAsync(endpoint.Address, request.ClientPort, cancellationToken);
         var clientStream = new NetworkStream(clientSocket);
 
+        var context = new ConnectionContext(socket, stream, clientSocket, clientStream, user, request.Path, _services);
         
-        // 3. Done
-        return new DecksterCommunicator(stream, clientStream, playerData);
+        await _pipeline.Invoke(context);
+        
+
+        await stream.SendJsonAsync(context.Response, DecksterJson.Options, cancellationToken);
+
+        if (context.Response.StatusCode == 200)
+        {
+            return context.GetCommunicator();
+        }
+
+        context.Close();
+
+        return null;
     }
 
     public void Dispose()

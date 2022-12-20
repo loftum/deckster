@@ -11,6 +11,11 @@ public class CrazyEightsAi
 
     public async Task PlayAsync(CancellationToken cancellationToken = default)
     {
-        
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            await Task.Delay(1000, cancellationToken);
+        }
+
+        await _client.DisconnectAsync();
     }
 }

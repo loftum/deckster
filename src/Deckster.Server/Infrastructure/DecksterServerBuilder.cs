@@ -2,7 +2,7 @@ using Deckster.Server.Users;
 
 namespace Deckster.Server.Infrastructure;
 
-public delegate Task DecksterDelegate(DecksterContext context);
+public delegate Task DecksterDelegate(ConnectionContext context);
 
 public class DecksterServerBuilder : IAsyncDisposable
 {
@@ -30,7 +30,7 @@ public class DecksterServerBuilder : IAsyncDisposable
         return this;
     }
     
-    public DecksterServerBuilder Use(Func<DecksterContext, Func<Task>, Task> middleware)
+    public DecksterServerBuilder Use(Func<ConnectionContext, Func<Task>, Task> middleware)
     {
         return Use(next =>
         {
@@ -66,16 +66,12 @@ public class DecksterServerBuilder : IAsyncDisposable
     {
         try
         {
-            // Hack to get named logger
-            var logProvider = services.GetRequiredService<ILoggerProvider>();
-            var log = logProvider.CreateLogger(typeof(TMiddleware).Name);
-
             // Use ActivatorUtilities because:
             // - next must be injected
             // - we don't want to explicitly register middleware as services
             var allParameters = parameters.Any()
-                ? parameters.Append(next).Append(log).ToArray()
-                : new object[] {next, log};
+                ? parameters.Append(next).ToArray()
+                : new object[] {next};
             
             var middleware = ActivatorUtilities.CreateInstance<TMiddleware>(services, allParameters);
             return middleware;
@@ -104,7 +100,7 @@ public class DecksterServerBuilder : IAsyncDisposable
     {
         DecksterDelegate pipeline = _ => throw new Exception("This is not the middleware you are looking for. (Missing terminating middleware)");
 
-        for (var ii = _components.Count; ii >= 0; ii--)
+        for (var ii = _components.Count - 1; ii >= 0; ii--)
         {
             pipeline = _components[ii](pipeline);
         }

@@ -1,3 +1,4 @@
+using Deckster.Communication;
 using Deckster.CrazyEights;
 using Deckster.Server.Games.CrazyEights;
 using Deckster.Server.Infrastructure;
@@ -22,7 +23,7 @@ class Program
             ConfigureWeb(web);
             
             using var decksterServer = DecksterServerBuilder.Create(DecksterConstants.TcpPort, web.Services)
-                .Use(CrazyEights)
+                .UseMiddleware<CrazyEightsMiddleware>()
                 .Build();
 
             await Task.WhenAny(web.RunAsync(cts.Token), decksterServer.RunAsync(cts.Token));
@@ -34,11 +35,6 @@ class Program
             Console.WriteLine(e);
             return 1;
         }
-    }
-
-    private static Task CrazyEights(DecksterContext context, Func<Task> next)
-    {
-        return Task.CompletedTask;
     }
 
     private static void ConfigureWeb(WebApplication app)

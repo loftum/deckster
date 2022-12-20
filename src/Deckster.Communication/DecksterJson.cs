@@ -10,6 +10,6 @@ public static class DecksterJson
         Converters = { new JsonStringEnumConverter() },
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
         AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip
+        ReadCommentHandling = JsonCommentHandling.Skip,
     };
 }

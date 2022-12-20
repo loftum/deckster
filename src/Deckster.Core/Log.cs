@@ -1,4 +1,6 @@
-namespace Deckster.Server;
+using Microsoft.Extensions.Logging;
+
+namespace Deckster.Core;
 
 public static class Log
 {

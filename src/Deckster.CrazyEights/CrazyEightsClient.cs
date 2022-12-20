@@ -37,8 +37,10 @@ public class CrazyEightsClient
             PlayerId = _communicator.PlayerData.PlayerId,
             Card = card
         };
+        
 
-        return await _communicator.SendJsonAsync<PlayerPutCardMessage, CommandResult>(message, Options, cancellationToken);
+        await _communicator.SendJsonAsync(message, Options, cancellationToken);
+        return await _communicator.ReceiveAsync<CommandResult>(Options, cancellationToken);
     }
 
     private Task HandleMessageAsync(byte[] bytes)
@@ -63,9 +65,14 @@ public class CrazyEightsClient
         }
     }
 
-    public static async Task<CrazyEightsClient> ConnectAsync(string host, string accessToken, CancellationToken cancellationToken)
+    public static async Task<CrazyEightsClient> ConnectAsync(Uri uri, CancellationToken cancellationToken)
     {
-        var communicator = await DecksterClient.ConnectAsync(host, DecksterConstants.TcpPort, accessToken, cancellationToken);
+        var communicator = await DecksterClient.ConnectAsync(uri, cancellationToken);
         return new CrazyEightsClient(communicator);
+    }
+
+    public async Task DisconnectAsync()
+    {
+        await _communicator.DisconnectAsync();
     }
 }
