@@ -4,8 +4,8 @@ namespace Deckster.CrazyEights.Game;
 
 public class CrazyEightsPlayer
 {
-    public Guid Id { get; private init; } = Guid.NewGuid();
-    public string Name { get; init; } = "";
+    public Guid Id { get; init; }
+    public string Name { get; init; }
     
     public List<Card> Cards { get; } = new();
 

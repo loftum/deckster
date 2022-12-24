@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System.Net.Sockets;
+using System.Text;
 using System.Text.Json;
 using Deckster.Communication.Handshake;
 using Deckster.Core;
@@ -6,12 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Deckster.Communication;
 
-public class DecksterCommunicator : IDisposable
+public class DecksterCommunicator : IDecksterCommunicator
 {
-    private readonly ILogger _logger = Log.Factory.CreateLogger<DecksterCommunicator>();
+    private readonly ILogger _logger;
     public PlayerData PlayerData { get; }
-    public event Func<byte[], Task>? OnMessage;
-    public event Func<DecksterCommunicator, Task>? OnDisconnected;
+    public event Func<IDecksterCommunicator, Stream, byte[], Task>? OnMessage;
+    public event Func<IDecksterCommunicator, Task>? OnDisconnected;
     
     private readonly Stream _readStream;
     private readonly Stream _writeStream;
@@ -26,6 +27,7 @@ public class DecksterCommunicator : IDisposable
     
     public DecksterCommunicator(Stream readStream, Stream writeStream, PlayerData playerData)
     {
+        _logger =  Log.Factory.CreateLogger($"{nameof(DecksterCommunicator)} {playerData.PlayerId}");
         _logger.LogInformation("Helloooo!");
         _readStream = readStream;
         _writeStream = writeStream;
@@ -48,15 +50,26 @@ public class DecksterCommunicator : IDisposable
                     await DoDisconnectAsync();
                     return;
                 }
-                
+
                 if (OnMessage != null)
                 {
-                    await OnMessage(message);
+                    await OnMessage(this, _readStream, message);
                 }
             }
         }
         catch (TaskCanceledException)
         {
+            _logger.LogInformation("Cancelled. Disconnecting.");
+            await DisconnectAsync();
+        }
+        catch(SocketException e)
+        {
+            _logger.LogInformation("Got SocketException {code} {socketErrorCode} {message}. Disconnecting.", e.ErrorCode, e.SocketErrorCode, e.Message);
+            await DisconnectAsync();
+        }
+        catch(Exception e)
+        {
+            _logger.LogInformation("Got {typ} {message}. Disconnecting.", e.GetType().Name, e.Message);
             await DisconnectAsync();
         }
     }

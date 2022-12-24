@@ -17,7 +17,7 @@ class Program
         {
             var uri = new Uri(argz[0]);
             using var cts = new CancellationTokenSource();
-            var client = await CrazyEightsClient.ConnectAsync(uri, cts.Token);
+            var client = await CrazyEightsClientFactory.ConnectAsync(uri, cts.Token);
             
             var ai = new CrazyEightsAi(client);
             await ai.PlayAsync(cts.Token);

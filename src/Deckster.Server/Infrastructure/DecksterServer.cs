@@ -14,7 +14,7 @@ public class DecksterServer : IDisposable
     private readonly IServiceProvider _services;
     private readonly UserRepo _userRepo;
     private readonly TcpListener _listener;
-    private readonly List<DecksterCommunicator> _communicators = new();
+    private readonly List<IDecksterCommunicator> _communicators = new();
 
     private readonly DecksterDelegate _pipeline;
 
@@ -66,20 +66,20 @@ public class DecksterServer : IDisposable
         }
     }
 
-    private Task OnDisconnected(DecksterCommunicator communicator)
+    private Task OnDisconnected(IDecksterCommunicator communicator)
     {
         communicator.OnDisconnected -= OnDisconnected;
         Remove(communicator);
         return Task.CompletedTask;
     }
 
-    private void Remove(DecksterCommunicator communicator)
+    private void Remove(IDecksterCommunicator communicator)
     {
         _communicators.Remove(communicator);
         communicator.Dispose();
     }
 
-    private async Task<DecksterCommunicator?> HandshakeAsync(Socket socket, CancellationToken cancellationToken = default)
+    private async Task<IDecksterCommunicator?> HandshakeAsync(Socket socket, CancellationToken cancellationToken = default)
     {
         if (socket.RemoteEndPoint is not IPEndPoint endpoint)
         {
@@ -104,7 +104,7 @@ public class DecksterServer : IDisposable
         if (user == null)
         {
             _logger.LogError("Invalid access token '{token}'. No user found", request.AccessToken);
-            await stream.SendJsonAsync(new ConnectResponse { Description = "Invalid accesstoken"}, DecksterJson.Options, cancellationToken);
+            await stream.SendJsonAsync(new ConnectResponse { StatusCode = 400, Description = "Invalid accesstoken"}, DecksterJson.Options, cancellationToken);
             socket.Dispose();
             return null;
         }
@@ -114,7 +114,7 @@ public class DecksterServer : IDisposable
         await clientSocket.ConnectAsync(endpoint.Address, request.ClientPort, cancellationToken);
         var clientStream = new NetworkStream(clientSocket);
 
-        var context = new ConnectionContext(socket, stream, clientSocket, clientStream, user, request.Path, _services);
+        var context = new ConnectionContext(socket, stream, clientSocket, clientStream, request, user, _services);
         
         await _pipeline.Invoke(context);
         

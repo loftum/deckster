@@ -7,7 +7,7 @@ namespace Deckster.CrazyEights.Game;
 
 public class CrazyEightsGame
 {
-    public const int InitialCardsPerPlayer = 5;
+    private const int InitialCardsPerPlayer = 5;
     
     private readonly List<CrazyEightsPlayer> _donePlayers = new();
     private int _currentPlayerIndex;
@@ -36,7 +36,9 @@ public class CrazyEightsGame
     /// </summary>
     public CrazyEightsPlayer[] Players { get; }
 
+    private Suit? _newSuit;
     public Card TopOfPile => DiscardPile.Peek();
+    public Suit CurrentSuit => _newSuit ?? TopOfPile.Suit; 
     
     
     public CrazyEightsPlayer CurrentPlayer => State == GameState.Finished ? CrazyEightsPlayer.Null : Players[_currentPlayerIndex];
@@ -91,10 +93,49 @@ public class CrazyEightsGame
         
         player.Cards.Remove(card);
         DiscardPile.Push(card);
+        _newSuit = null;
         if (!player.Cards.Any())
         {
             _donePlayers.Add(player);
         }
+
+        MoveToNextPlayer();
+        
+        return GetPlayerViewOfGame(player);
+    }
+
+    public CommandResult PutEight(Guid playerId, Card card, Suit newSuit)
+    {
+        if (!TryGetCurrentPlayer(playerId, out var player))
+        {
+            return new FailureResult("It is not your turn");
+        }
+
+        if (!player.HasCard(card))
+        {
+            return new FailureResult($"You don't have '{card}'");
+        }
+
+        if (!CanPut(card))
+        {
+            return _newSuit.HasValue
+                ? new FailureResult($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{_newSuit.Value}')")
+                : new FailureResult($"Cannot put '{card}' on '{TopOfPile}'");
+        }
+
+        if (card.Rank != 8)
+        {
+            return new FailureResult("Card rank must be '8'");
+        }
+        
+        player.Cards.Remove(card);
+        DiscardPile.Push(card);
+        _newSuit = newSuit != card.Suit ? newSuit : null;
+        if (!player.Cards.Any())
+        {
+            _donePlayers.Add(player);
+        }
+
         MoveToNextPlayer();
         
         return GetPlayerViewOfGame(player);
@@ -140,6 +181,7 @@ public class CrazyEightsGame
         {
             Cards = player.Cards,
             TopOfPile = TopOfPile,
+            CurrentSuit = CurrentSuit,
             OtherPlayers = Players.Where(p => p.Id != player.Id).Select(ToOtherPlayer).ToList()
         };
     }
@@ -185,7 +227,7 @@ public class CrazyEightsGame
 
     private bool CanPut(Card card)
     {
-        return TopOfPile.Suit == card.Suit ||
+        return TopOfPile.Suit == CurrentSuit ||
                TopOfPile.Rank == card.Rank ||
                card.Rank == 8;
     }
@@ -208,12 +250,12 @@ public class CrazyEightsGame
         StockPile.PushRange(reshuffledCards);
     }
 
-    public CommandResult GetStateFor(Guid userId)
+    public PlayerViewOfGame GetStateFor(Guid userId)
     {
         var player = Players.FirstOrDefault(p => p.Id == userId);
         if (player == null)
         {
-            return new FailureResult($"There is no player '{userId}'");
+            throw new Exception($"There is no player '{userId}'");
         }
 
         return GetPlayerViewOfGame(player);

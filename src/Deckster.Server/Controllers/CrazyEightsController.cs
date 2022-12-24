@@ -20,19 +20,7 @@ public class CrazyEightsController : Controller
         _user = HttpContext.GetRequiredUser();
     }
 
-    [HttpPut("{gameId}/pile")]
-    public async Task<object> PutCardOnPile(Guid gameId, [FromBody] Card card)
-    {
-        var game = await _repo.GetAsync(gameId);
-        if (game == null)
-        {
-            return NotFound(new FailureResult($"There is no game '{gameId}'"));
-        }
-
-        return game.PutCardOnDiscardPile(_user.Id, card);
-    }
-
-    [HttpGet("state")]
+    [HttpGet("{gameId}/state")]
     public async Task<object> GetState(Guid gameId)
     {
         var game = await _repo.GetAsync(gameId);

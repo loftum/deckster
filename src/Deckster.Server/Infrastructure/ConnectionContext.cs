@@ -15,21 +15,26 @@ public class ConnectionContext
     private DecksterCommunicator? _communicator;
 
     public User User { get; }
-    public string Path { get; }
     public IServiceProvider Services { get; }
+    public ConnectRequest Request { get; }
     public ConnectResponse Response { get; }
     
-    public ConnectionContext(Socket readSocket,
+    public ConnectionContext(
+        Socket readSocket,
         Stream readStream,
         Socket writeSocket,
-        Stream writeStream, User user, string path, IServiceProvider services)
+        Stream writeStream,
+        ConnectRequest request,
+        User user,
+        IServiceProvider services)
     {
         _readSocket = readSocket;
         _readStream = readStream;
         _writeSocket = writeSocket;
         _writeStream = writeStream;
+
+        Request = request;
         User = user;
-        Path = path;
         Services = services;
         Response = new ConnectResponse
         {

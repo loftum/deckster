@@ -1,8 +1,8 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Deckster.Communication;
 using Deckster.Core.Domain;
 using Deckster.Core.Games;
+using Deckster.CrazyEights.Game;
 
 namespace Deckster.CrazyEights;
 
@@ -13,41 +13,66 @@ public class CrazyEightsClient
     public event Func<PlayerDrewCardMessage, Task>? PlayerDrewCard;
     public event Func<PlayerPassedMessage, Task>? PlayerPassed;
     public event Func<ItsYourTurnMessage, Task>? ItsYourTurn;
-    
-    private static readonly JsonSerializerOptions Options = new()
-    {
-        Converters = {new JsonStringEnumConverter()},
-        AllowTrailingCommas = true,
-        ReadCommentHandling = JsonCommentHandling.Skip,
-        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
-    };
-    
-    private readonly DecksterCommunicator _communicator;
+    public event Func<GameStartedMessage, Task>? GameStarted;
 
-    private CrazyEightsClient(DecksterCommunicator communicator)
+    private readonly IDecksterCommunicator _communicator;
+
+    public CrazyEightsClient(IDecksterCommunicator communicator)
     {
         _communicator = communicator;
         communicator.OnMessage += HandleMessageAsync;
     }
 
-    public async Task<CommandResult?> PutCardAsync(Card card, CancellationToken cancellationToken = default)
+    public Task PutCardAsync(Card card, CancellationToken cancellationToken = default)
     {
-        var message = new PlayerPutCardMessage
+        var coammand = new PutCardCommand
         {
-            PlayerId = _communicator.PlayerData.PlayerId,
             Card = card
         };
-        
-
-        await _communicator.SendJsonAsync(message, Options, cancellationToken);
-        return await _communicator.ReceiveAsync<CommandResult>(Options, cancellationToken);
+        return SendAsync<PutCardCommand, CommandResult>(coammand, cancellationToken);
     }
 
-    private Task HandleMessageAsync(byte[] bytes)
+    public Task PutEightAsync(Card card, Suit newSuit, CancellationToken cancellationToken = default)
+    {
+        var command = new PutEightCommand
+        {
+            Card = card,
+            NewSuit = newSuit
+        };
+        return SendAsync<PutEightCommand, CommandResult>(command, cancellationToken);
+    }
+
+    public async Task<Card> DrawCardAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await SendAsync<DrawCardCommand, CardResult>(new DrawCardCommand(), cancellationToken);
+        return result.Card;
+    }
+
+    public Task PassAsync(CancellationToken cancellationToken = default)
+    {
+        return SendAsync<PassCommand, CommandResult>(new PassCommand(), cancellationToken);
+    }
+
+    private async Task<TResult> SendAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken = default)
+        where TCommand : CrazyEightsCommand
+        where TResult : CommandResult
+    {
+        await _communicator.SendJsonAsync<CrazyEightsCommand>(command, DecksterJson.Options, cancellationToken);
+        var result = await _communicator.ReceiveAsync<CommandResult>(DecksterJson.Options, cancellationToken);
+        return result switch
+        {
+            null => throw new Exception("Result is null. Wat"),
+            FailureResult r => throw new Exception(r.Message),
+            TResult r => r,
+            _ => throw new Exception($"Unknown result '{result.GetType().Name}'")
+        };
+    }
+
+    private Task HandleMessageAsync(IDecksterCommunicator communicator, Stream stream, byte[] bytes)
     {
         try
         {
-            var message = JsonSerializer.Deserialize<CrazyEightsMessage>(bytes, Options);
+            var message = JsonSerializer.Deserialize<CrazyEightsMessage>(bytes, DecksterJson.Options);
             return message switch
             {
                 PlayerPutCardMessage m when PlayerPutCard != null => PlayerPutCard(m),
@@ -63,12 +88,6 @@ public class CrazyEightsClient
             Console.WriteLine(e);
             return Task.CompletedTask;
         }
-    }
-
-    public static async Task<CrazyEightsClient> ConnectAsync(Uri uri, CancellationToken cancellationToken)
-    {
-        var communicator = await DecksterClient.ConnectAsync(uri, cancellationToken);
-        return new CrazyEightsClient(communicator);
     }
 
     public async Task DisconnectAsync()
