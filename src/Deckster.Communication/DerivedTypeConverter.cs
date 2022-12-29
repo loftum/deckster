@@ -23,7 +23,6 @@ public class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscrimin
     public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         var node = JsonNode.Parse(ref reader);
-        Console.WriteLine(node.ToJsonString(new JsonSerializerOptions{ WriteIndented = true}));
         var discriminator = node["discriminator"].GetValue<string>();
 
         if (TypeMap.TryGetValue(discriminator, out var type))

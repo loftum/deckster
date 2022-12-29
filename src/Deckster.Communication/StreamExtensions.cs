@@ -7,7 +7,7 @@ public static class StreamExtensions
     public static async Task SendMessageAsync(this Stream stream, byte[] message, CancellationToken cancellationToken = default)
     {
         await stream.WriteAsync(ToBytes(message.Length), cancellationToken);
-        Console.WriteLine($"Writing {System.Text.Encoding.UTF8.GetString(message)}");
+        //Console.WriteLine($"Writing {System.Text.Encoding.UTF8.GetString(message)}");
         await stream.WriteAsync(message, cancellationToken);
         await stream.FlushAsync(cancellationToken);
     }
@@ -32,7 +32,7 @@ public static class StreamExtensions
     {
         var message = new byte[length];
         await stream.ReadExactlyAsync(message, cancellationToken);
-        Console.WriteLine($"Receive {System.Text.Encoding.UTF8.GetString(message)}");
+        //Console.WriteLine($"Receive {System.Text.Encoding.UTF8.GetString(message)}");
         return message;
     }
 

@@ -1,13 +1,16 @@
 using System.Text.Json;
 using Deckster.Communication;
+using Deckster.Core;
 using Deckster.Core.Domain;
 using Deckster.Core.Games;
 using Deckster.CrazyEights.Game;
+using Microsoft.Extensions.Logging;
 
 namespace Deckster.CrazyEights;
 
 public class CrazyEightsClient
 {
+    private readonly ILogger _logger = Log.Factory.CreateLogger<CrazyEightsClient>();
     public event Func<PlayerPutCardMessage, Task>? PlayerPutCard;
     public event Func<PlayerPutEightMessage, Task>? PlayerPutEight;
     public event Func<PlayerDrewCardMessage, Task>? PlayerDrewCard;
@@ -23,13 +26,13 @@ public class CrazyEightsClient
         communicator.OnMessage += HandleMessageAsync;
     }
 
-    public Task PutCardAsync(Card card, CancellationToken cancellationToken = default)
+    public Task<CommandResult> PutCardAsync(Card card, CancellationToken cancellationToken = default)
     {
-        var coammand = new PutCardCommand
+        var command = new PutCardCommand
         {
             Card = card
         };
-        return SendAsync<PutCardCommand, CommandResult>(coammand, cancellationToken);
+        return SendAsync<PutCardCommand, CommandResult>(command, cancellationToken);
     }
 
     public Task PutEightAsync(Card card, Suit newSuit, CancellationToken cancellationToken = default)
@@ -57,7 +60,9 @@ public class CrazyEightsClient
         where TCommand : CrazyEightsCommand
         where TResult : CommandResult
     {
+        _logger.LogInformation("Sending {type}", typeof(TCommand));
         await _communicator.SendAsync(command, DecksterJson.Options, cancellationToken);
+        _logger.LogInformation("Waiting for response");
         var result = await _communicator.ReceiveAsync<CommandResult>(DecksterJson.Options, cancellationToken);
         return result switch
         {

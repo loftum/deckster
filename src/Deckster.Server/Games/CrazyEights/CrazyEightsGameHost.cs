@@ -79,6 +79,7 @@ public class CrazyEightsGameHost
 
     private async Task PutCardAsync(IDecksterCommunicator communicator, PutCardCommand command)
     {
+        _logger.LogInformation("Player put card: {player}: {card}", communicator.PlayerData.Name, command.Card);
         var result = _game.PutCardOnDiscardPile(communicator.PlayerData.PlayerId, command.Card);
         await HandleResultAsync(communicator, command, result);
     }

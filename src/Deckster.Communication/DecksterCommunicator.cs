@@ -48,7 +48,10 @@ public class DecksterCommunicator : IDecksterCommunicator
             while (!_cts.Token.IsCancellationRequested)
             {
                 var message = await _readStream.ReceiveMessageAsync(_cts.Token);
-                _logger.LogInformation("Got message {m}", Encoding.UTF8.GetString(message));
+                if (_logger.IsEnabled(LogLevel.Trace))
+                {
+                    _logger.LogTrace("Got message {m}", Encoding.UTF8.GetString(message));    
+                }
 
                 if (message.SequenceEqual(Disconnect))
                 {
