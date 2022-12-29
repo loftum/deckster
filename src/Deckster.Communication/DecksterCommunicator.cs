@@ -11,10 +11,13 @@ public class DecksterCommunicator : IDecksterCommunicator
 {
     private readonly ILogger _logger;
     public PlayerData PlayerData { get; }
-    public event Func<IDecksterCommunicator, Stream, byte[], Task>? OnMessage;
+    public event Func<IDecksterCommunicator, byte[], Task>? OnMessage;
     public event Func<IDecksterCommunicator, Task>? OnDisconnected;
-    
+
+    private readonly Socket _readSocket;
     private readonly Stream _readStream;
+
+    private readonly Socket _writeSocket;
     private readonly Stream _writeStream;
     
     private Task? _readTask;
@@ -25,11 +28,13 @@ public class DecksterCommunicator : IDecksterCommunicator
 
     private bool _isConnected = true;
     
-    public DecksterCommunicator(Stream readStream, Stream writeStream, PlayerData playerData)
+    public DecksterCommunicator(Socket readSocket, Stream readStream, Socket writeSocket, Stream writeStream, PlayerData playerData)
     {
         _logger =  Log.Factory.CreateLogger($"{nameof(DecksterCommunicator)} {playerData.PlayerId}");
         _logger.LogInformation("Helloooo!");
+        _readSocket = readSocket;
         _readStream = readStream;
+        _writeSocket = writeSocket;
         _writeStream = writeStream;
         PlayerData = playerData;
         _readTask = ReadMessages();
@@ -51,9 +56,11 @@ public class DecksterCommunicator : IDecksterCommunicator
                     return;
                 }
 
-                if (OnMessage != null)
+                var handler = OnMessage;
+
+                if (handler != null)
                 {
-                    await OnMessage(this, _readStream, message);
+                    await handler(this, message);
                 }
             }
         }
@@ -88,6 +95,21 @@ public class DecksterCommunicator : IDecksterCommunicator
         _isConnected = false;
     }
     
+    public Task SendAsync<TRequest>(TRequest message, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    {
+        return _writeStream.SendJsonAsync(message, options, cancellationToken);
+    }
+
+    public Task<T?> ReceiveAsync<T>(JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    {
+        return _writeStream.ReceiveJsonAsync<T>(options, cancellationToken);
+    }
+
+    public Task RespondAsync<TResponse>(TResponse response, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    {
+        return _readStream.SendJsonAsync(response, options, cancellationToken);
+    }
+    
     public async Task DisconnectAsync()
     {
         await _writeStream.SendMessageAsync(Disconnect);
@@ -101,21 +123,13 @@ public class DecksterCommunicator : IDecksterCommunicator
         {
             _cts.Cancel();
             _readTask = null;
+            _readSocket.Disconnect(false);
+            _writeSocket.Disconnect(false);
             _readStream.Dispose();
             _writeStream.Dispose();
             _cts.Dispose();    
         }
         
         GC.SuppressFinalize(this);
-    }
-
-    public Task SendJsonAsync<TRequest>(TRequest message, JsonSerializerOptions options, CancellationToken cancellationToken = default)
-    {
-        return _writeStream.SendJsonAsync(message, options, cancellationToken);
-    }
-
-    public Task<T?> ReceiveAsync<T>(JsonSerializerOptions options, CancellationToken cancellationToken = default)
-    {
-        return _writeStream.ReceiveJsonAsync<T>(options, cancellationToken);
     }
 }

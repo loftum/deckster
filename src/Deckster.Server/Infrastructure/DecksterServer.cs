@@ -114,16 +114,21 @@ public class DecksterServer : IDisposable
         await clientSocket.ConnectAsync(endpoint.Address, request.ClientPort, cancellationToken);
         var clientStream = new NetworkStream(clientSocket);
 
-        var context = new ConnectionContext(socket, stream, clientSocket, clientStream, request, user, _services);
+        var playerData = new PlayerData
+        {
+            Name = user.Name,
+            PlayerId = user.Id
+        };
+        var communicator = new DecksterCommunicator(socket, stream, clientSocket, clientStream, playerData);
+
+        var context = new ConnectionContext(communicator, request, user, _services);
         
         await _pipeline.Invoke(context);
-        
-
-        await stream.SendJsonAsync(context.Response, DecksterJson.Options, cancellationToken);
 
         if (context.Response.StatusCode == 200)
         {
-            return context.GetCommunicator();
+            await communicator.RespondAsync(context.Response, DecksterJson.Options, cancellationToken);
+            return communicator;
         }
 
         context.Close();

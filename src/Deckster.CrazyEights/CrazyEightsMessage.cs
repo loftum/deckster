@@ -1,19 +1,14 @@
 using Deckster.Communication;
 using Deckster.Core.Domain;
+using Deckster.Core.Games;
 using Deckster.CrazyEights.Game;
 
 namespace Deckster.CrazyEights;
 
 [JsonDerived<CrazyEightsMessage>]
-[JsonDerived<PlayerPutCardMessage>]
-[JsonDerived<PlayerPutEightMessage>]
-[JsonDerived<PlayerDrewCardMessage>]
-[JsonDerived<PlayerPassedMessage>]
-[JsonDerived<ItsYourTurnMessage>]
-[JsonDerived<GameStartedMessage>]
-public abstract class CrazyEightsMessage
+public abstract class CrazyEightsMessage : IHaveDiscriminator
 {
-    
+    public string Discriminator => GetType().Name;
 }
 
 public class PlayerPutCardMessage : CrazyEightsMessage

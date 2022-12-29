@@ -1,13 +1,16 @@
 using Deckster.Communication;
 using Deckster.Core.Domain;
+using Deckster.Core.Games;
 
 namespace Deckster.CrazyEights;
 
-[JsonDerived<PutCardCommand>]
-[JsonDerived<PutEightCommand>]
-[JsonDerived<DrawCardCommand>]
-[JsonDerived<PassCommand>]
-public abstract class CrazyEightsCommand
+[JsonDerived<CrazyEightsCommand>]
+public abstract class CrazyEightsCommand : IHaveDiscriminator
+{
+    public string Discriminator => GetType().Name;
+}
+
+public class StartCommand : CrazyEightsCommand
 {
     
 }

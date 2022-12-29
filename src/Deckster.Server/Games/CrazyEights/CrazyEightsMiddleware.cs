@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using Deckster.Communication.Handshake;
+using Deckster.CrazyEights;
 using Deckster.CrazyEights.Game;
 using Deckster.Server.Infrastructure;
 
@@ -25,7 +27,7 @@ public class CrazyEightsMiddleware : IDecksterMiddleware
             : _next(context);
     }
 
-    private async Task DoInvokeAsync(ConnectionContext context)
+    private Task DoInvokeAsync(ConnectionContext context)
     {
         var what = context.Request.Path.Split('/').Last();
 
@@ -33,39 +35,46 @@ public class CrazyEightsMiddleware : IDecksterMiddleware
         {
             var newHost = new CrazyEightsGameHost(_gameRepo);
             _hosts[newHost.Id] = newHost;
-            newHost.Add(context.GetCommunicator());
+            newHost.Add(context.Communicator);
             context.Response.Description = $"New game created: {newHost.Id}";
-            return;
+            return Task.CompletedTask;
         }
 
-        if (what == "training")
+        if (what == "practice")
         {
             var newHost = new CrazyEightsGameHost(_gameRepo);
             _hosts[newHost.Id] = newHost;
-            newHost.Add(context.GetCommunicator());
+            newHost.Add(context.Communicator);
 
             for (var ii = 0; ii < 3; ii++)
             {
-                
+                var communicator = new InProcessDecksterCommunicator(new PlayerData
+                {
+                    PlayerId = Guid.NewGuid(),
+                    Name = $"Player {ii}"
+                });
+                var ai = new CrazyEightsAi(new CrazyEightsClient(communicator));
+                newHost.Add(communicator.Target);
             }
             
             context.Response.Description = $"New game created: {newHost.Id}";
-            return;
+            return Task.CompletedTask;
         }
 
         if (!Guid.TryParse(what, out var id))
         {
             context.Response.StatusCode = 400;
             context.Response.Description = $"Invalid game id '{what}'";
-            return;
+            return Task.CompletedTask;
         }
         if (!_hosts.TryGetValue(id, out var host))
         {
             context.Response.StatusCode = 404;
             context.Response.Description = $"Could not find game '{what}'";
-            return;
+            return Task.CompletedTask;
         }
         
-        host.Add(context.GetCommunicator());
+        host.Add(context.Communicator);
+        return Task.CompletedTask;
     }
 }

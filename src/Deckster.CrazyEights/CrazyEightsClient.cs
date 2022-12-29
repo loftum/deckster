@@ -57,7 +57,7 @@ public class CrazyEightsClient
         where TCommand : CrazyEightsCommand
         where TResult : CommandResult
     {
-        await _communicator.SendJsonAsync<CrazyEightsCommand>(command, DecksterJson.Options, cancellationToken);
+        await _communicator.SendAsync(command, DecksterJson.Options, cancellationToken);
         var result = await _communicator.ReceiveAsync<CommandResult>(DecksterJson.Options, cancellationToken);
         return result switch
         {
@@ -68,7 +68,7 @@ public class CrazyEightsClient
         };
     }
 
-    private Task HandleMessageAsync(IDecksterCommunicator communicator, Stream stream, byte[] bytes)
+    private Task HandleMessageAsync(IDecksterCommunicator communicator, byte[] bytes)
     {
         try
         {

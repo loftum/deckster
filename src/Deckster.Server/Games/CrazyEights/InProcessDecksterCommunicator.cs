@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Text.Json;
 using Deckster.Communication;
 using Deckster.Communication.Handshake;
@@ -9,10 +10,10 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
     public InProcessDecksterCommunicator Target { get; }
     
     public PlayerData PlayerData { get; }
-    public event Func<IDecksterCommunicator, Stream, byte[], Task>? OnMessage;
+    public event Func<IDecksterCommunicator, byte[], Task>? OnMessage;
     public event Func<IDecksterCommunicator, Task>? OnDisconnected;
 
-    private readonly MemoryStream _writeStream = new();
+    private readonly ConcurrentQueue<object> _responses = new();
 
     public InProcessDecksterCommunicator(PlayerData playerData)
     {
@@ -32,21 +33,42 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
         return handler != null ? handler.Invoke(this) : Task.CompletedTask;
     }
 
-    public Task SendJsonAsync<TRequest>(TRequest message, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public async Task SendAsync<TRequest>(TRequest message, JsonSerializerOptions options, CancellationToken cancellationToken = default)
     {
         var handler = Target.OnMessage;
-        _writeStream.Seek(0, SeekOrigin.Begin);
-        JsonSerializer.Serialize(_writeStream, message, options);
-        return handler == null ? Task.CompletedTask : handler.Invoke(Target, _writeStream, _writeStream.ToArray());
+        if (handler == null)
+        {
+            return;
+        }
+
+        using var memoryStream = new MemoryStream();
+        await JsonSerializer.SerializeAsync(memoryStream, message, options, cancellationToken);
+        
+        await handler.Invoke(Target, memoryStream.ToArray());
     }
 
-    public Task<T?> ReceiveAsync<T>(JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public async Task<T?> ReceiveAsync<T>(JsonSerializerOptions options, CancellationToken cancellationToken = default)
     {
-        _writeStream.Seek(0, SeekOrigin.Begin);
-        var message = JsonSerializer.Deserialize<T>(_writeStream, options);
-        return Task.FromResult(message);
+        object? val;
+        while (!_responses.TryDequeue(out val))
+        {
+            await Task.Delay(10, cancellationToken);
+        }
+
+        if (val is T t)
+        {
+            return t;
+        }
+
+        return default;
     }
-    
+
+    public Task RespondAsync<TResponse>(TResponse response, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    {
+        _responses.Enqueue(response);
+        return Task.CompletedTask;
+    }
+
     public void Dispose()
     {
         

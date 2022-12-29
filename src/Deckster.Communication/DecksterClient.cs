@@ -15,11 +15,11 @@ public static class DecksterClient
         cts.CancelAfter(TimeSpan.FromSeconds(5 * Math.PI));
         
         var address = await GetIpAddressAsync(host, cts.Token);
-        var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+        var writeSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
 
         // Connect to server
-        await socket.ConnectAsync(address, port, cts.Token);
-        var stream = new NetworkStream(socket);
+        await writeSocket.ConnectAsync(address, port, cts.Token);
+        var writeStream = new NetworkStream(writeSocket);
 
         // Listen for connections from server
         var listener = new TcpListener(IPAddress.Any, 0);
@@ -36,9 +36,9 @@ public static class DecksterClient
                 ClientPort = localPort,
                 Path = path
             };
-            await stream.SendJsonAsync(hello, DecksterJson.Options, cts.Token);
+            await writeStream.SendJsonAsync(hello, DecksterJson.Options, cts.Token);
 
-            var response = await stream.ReceiveJsonAsync<ConnectResponse>(DecksterJson.Options, cts.Token);
+            var response = await writeStream.ReceiveJsonAsync<ConnectResponse>(DecksterJson.Options, cts.Token);
 
             if (response == null)
             {
@@ -51,7 +51,7 @@ public static class DecksterClient
                     var readSocket = await listener.AcceptSocketAsync(cts.Token);
                     listener.Stop();
                     var readStream = new NetworkStream(readSocket);
-                    var communicator = new DecksterCommunicator(readStream, stream, response.PlayerData);
+                    var communicator = new DecksterCommunicator(readSocket, readStream, writeSocket, writeStream, response.PlayerData);
                     return communicator;
                 default:
                     throw new Exception($"Could not connect: '{response.StatusCode}: {response.Description}'");
@@ -59,7 +59,7 @@ public static class DecksterClient
         }
         catch
         {
-            socket.Dispose();
+            writeSocket.Dispose();
             throw;
         }
         finally
