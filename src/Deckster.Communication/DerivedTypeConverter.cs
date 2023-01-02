@@ -41,9 +41,4 @@ public class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscrimin
     {
         JsonSerializer.Serialize<object>(writer, value, options);
     }
-
-    private struct DiscriminatorHolder : IHaveDiscriminator
-    {
-        public string Discriminator { get; set; }
-    }
 }
