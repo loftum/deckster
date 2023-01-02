@@ -19,14 +19,14 @@ public class CrazyEightsClient
     public event Action<GameStartedMessage>? GameStarted;
     public event Action<GameEndedMessage>? GameEnded;
 
-    private readonly IDecksterCommunicator _communicator;
-    public PlayerData PlayerData => _communicator.PlayerData;
+    private readonly IDecksterChannel _channel;
+    public PlayerData PlayerData => _channel.PlayerData;
 
-    public CrazyEightsClient(IDecksterCommunicator communicator)
+    public CrazyEightsClient(IDecksterChannel channel)
     {
-        _communicator = communicator;
-        _logger = Log.Factory.CreateLogger(communicator.PlayerData.Name);
-        communicator.OnMessage += HandleMessageAsync;
+        _channel = channel;
+        _logger = Log.Factory.CreateLogger(channel.PlayerData.Name);
+        channel.OnMessage += HandleMessageAsync;
     }
 
     public Task<CommandResult> PutCardAsync(Card card, CancellationToken cancellationToken = default)
@@ -66,9 +66,9 @@ public class CrazyEightsClient
         where TResult : CommandResult
     {
         _logger.LogTrace("Sending {type}", typeof(TCommand));
-        await _communicator.SendAsync(command, cancellationToken);
+        await _channel.SendAsync(command, cancellationToken);
         _logger.LogTrace("Waiting for response");
-        var result = await _communicator.ReceiveAsync<CommandResult>(cancellationToken);
+        var result = await _channel.ReceiveAsync<CommandResult>(cancellationToken);
         return result switch
         {
             null => throw new Exception("Result is null. Wat"),
@@ -78,7 +78,7 @@ public class CrazyEightsClient
         };
     }
 
-    private async void HandleMessageAsync(IDecksterCommunicator communicator, byte[] bytes)
+    private async void HandleMessageAsync(IDecksterChannel channel, byte[] bytes)
     {
         try
         {
@@ -89,7 +89,7 @@ public class CrazyEightsClient
                     GameStarted?.Invoke(m);
                     break;
                 case GameEndedMessage m:
-                    await _communicator.DisconnectAsync();
+                    await _channel.DisconnectAsync();
                     GameEnded?.Invoke(m);
                     break;
                 case PlayerPutCardMessage m:
@@ -119,6 +119,6 @@ public class CrazyEightsClient
 
     public async Task DisconnectAsync()
     {
-        await _communicator.DisconnectAsync();
+        await _channel.DisconnectAsync();
     }
 }

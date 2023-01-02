@@ -17,7 +17,7 @@ public class CrazyEightsGameHost
 
     private CrazyEightsGame? _game;
     private readonly CrazyEightsRepo _repo;
-    private readonly ConcurrentDictionary<Guid, IDecksterCommunicator> _communicators = new();
+    private readonly ConcurrentDictionary<Guid, IDecksterChannel> _communicators = new();
     
     public CrazyEightsGameHost(CrazyEightsRepo repo)
     {
@@ -25,26 +25,26 @@ public class CrazyEightsGameHost
         _repo = repo;
     }
 
-    public void Add(IDecksterCommunicator communicator)
+    public void Add(IDecksterChannel channel)
     {
         if (IsStarted)
         {
             return;
         }
 
-        communicator.OnMessage += OnMessage;
-        communicator.OnDisconnected += OnDisconnected;
-        _communicators[communicator.PlayerData.PlayerId] = communicator;
+        channel.OnMessage += OnMessage;
+        channel.OnDisconnected += OnDisconnected;
+        _communicators[channel.PlayerData.PlayerId] = channel;
     }
 
-    private Task OnDisconnected(IDecksterCommunicator communicator)
+    private Task OnDisconnected(IDecksterChannel channel)
     {
-        _logger.LogInformation("{player} disconnected", communicator.PlayerData.Name);
-        _communicators.Remove(communicator.PlayerData.PlayerId, out _);
+        _logger.LogInformation("{player} disconnected", channel.PlayerData.Name);
+        _communicators.Remove(channel.PlayerData.PlayerId, out _);
         return Task.CompletedTask;
     }
 
-    private async void OnMessage(IDecksterCommunicator c, byte[] bytes)
+    private async void OnMessage(IDecksterChannel c, byte[] bytes)
     {
         var message = DecksterJson.Deserialize<CrazyEightsCommand>(bytes);
         await (message switch
@@ -58,39 +58,39 @@ public class CrazyEightsGameHost
         });
     }
 
-    private async Task PassAsync(IDecksterCommunicator communicator, PassCommand command)
+    private async Task PassAsync(IDecksterChannel channel, PassCommand command)
     {
-        var result = _game.Pass(communicator.PlayerData.PlayerId);
-        await HandleResultAsync(communicator, command, result);
+        var result = _game.Pass(channel.PlayerData.PlayerId);
+        await HandleResultAsync(channel, command, result);
     }
 
-    private async Task DrawCardAsync(IDecksterCommunicator communicator, DrawCardCommand command)
+    private async Task DrawCardAsync(IDecksterChannel channel, DrawCardCommand command)
     {
-        _logger.LogInformation("{player} draws card", communicator.PlayerData.Name);
-        var result = _game.DrawCardFromStockPile(communicator.PlayerData.PlayerId);
-        await HandleResultAsync(communicator, command, result);
+        _logger.LogInformation("{player} draws card", channel.PlayerData.Name);
+        var result = _game.DrawCardFromStockPile(channel.PlayerData.PlayerId);
+        await HandleResultAsync(channel, command, result);
     }
 
-    private async Task PutEightAsync(IDecksterCommunicator communicator, PutEightCommand command)
+    private async Task PutEightAsync(IDecksterChannel channel, PutEightCommand command)
     {
-        var result = _game.PutEight(communicator.PlayerData.PlayerId, command.Card, command.NewSuit);
-        await HandleResultAsync(communicator, command, result);
+        var result = _game.PutEight(channel.PlayerData.PlayerId, command.Card, command.NewSuit);
+        await HandleResultAsync(channel, command, result);
     }
 
-    private async Task PutCardAsync(IDecksterCommunicator communicator, PutCardCommand command)
+    private async Task PutCardAsync(IDecksterChannel channel, PutCardCommand command)
     {
-        _logger.LogInformation("{player} put card {card}", communicator.PlayerData.Name, command.Card);
-        var result = _game.PutCardOnDiscardPile(communicator.PlayerData.PlayerId, command.Card);
+        _logger.LogInformation("{player} put card {card}", channel.PlayerData.Name, command.Card);
+        var result = _game.PutCardOnDiscardPile(channel.PlayerData.PlayerId, command.Card);
         
-        await HandleResultAsync(communicator, command, result);
+        await HandleResultAsync(channel, command, result);
     }
     
-    private async Task HandleResultAsync(IDecksterCommunicator communicator, CrazyEightsCommand command, CommandResult result)
+    private async Task HandleResultAsync(IDecksterChannel channel, CrazyEightsCommand command, CommandResult result)
     {
-        await communicator.RespondAsync(result);
+        await channel.RespondAsync(result);
         if (result is SuccessResult)
         {
-            var playerData = communicator.PlayerData;
+            var playerData = channel.PlayerData;
             await BroadcastFromAsync(playerData.PlayerId, CreateBroadcastMessage(playerData.PlayerId, command));
             switch (_game.State)
             {
@@ -109,7 +109,7 @@ public class CrazyEightsGameHost
                 default:
                 {
                     var currentPlayerId = _game.CurrentPlayer.Id;
-                    if (currentPlayerId == communicator.PlayerData.PlayerId)
+                    if (currentPlayerId == channel.PlayerData.PlayerId)
                     {
                         return;
                     }
@@ -139,7 +139,7 @@ public class CrazyEightsGameHost
         };
     }
 
-    private async Task<CommandResult> StartAsync(IDecksterCommunicator communicator, StartCommand command)
+    private async Task<CommandResult> StartAsync(IDecksterChannel channel, StartCommand command)
     {
         if (IsStarted)
         {

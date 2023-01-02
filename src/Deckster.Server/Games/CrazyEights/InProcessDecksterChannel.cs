@@ -6,26 +6,26 @@ using Deckster.Client.Core;
 
 namespace Deckster.Server.Games.CrazyEights;
 
-public class InProcessDecksterCommunicator : IDecksterCommunicator
+public class InProcessDecksterChannel : IDecksterChannel
 {
-    public InProcessDecksterCommunicator Target { get; }
+    public InProcessDecksterChannel Target { get; }
     
     public PlayerData PlayerData { get; }
-    public event Action<IDecksterCommunicator, byte[]>? OnMessage;
-    public event Func<IDecksterCommunicator, Task>? OnDisconnected;
+    public event Action<IDecksterChannel, byte[]>? OnMessage;
+    public event Func<IDecksterChannel, Task>? OnDisconnected;
 
     private readonly ConcurrentQueue<object> _responses = new();
 
     private readonly ILogger _logger;
 
-    public InProcessDecksterCommunicator(PlayerData playerData)
+    public InProcessDecksterChannel(PlayerData playerData)
     {
         PlayerData = playerData;
-        Target = new InProcessDecksterCommunicator(playerData, this);
+        Target = new InProcessDecksterChannel(playerData, this);
         _logger = Log.Factory.CreateLogger($"{playerData.Name} (client)");
     }
 
-    private InProcessDecksterCommunicator(PlayerData playerData, InProcessDecksterCommunicator target)
+    private InProcessDecksterChannel(PlayerData playerData, InProcessDecksterChannel target)
     {
         PlayerData = playerData;
         Target = target;

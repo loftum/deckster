@@ -6,12 +6,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Communication;
 
-public class DecksterCommunicator : IDecksterCommunicator
+public class DecksterChannel : IDecksterChannel
 {
     private readonly ILogger _logger;
     public PlayerData PlayerData { get; }
-    public event Action<IDecksterCommunicator, byte[]>? OnMessage;
-    public event Func<IDecksterCommunicator, Task>? OnDisconnected;
+    public event Action<IDecksterChannel, byte[]>? OnMessage;
+    public event Func<IDecksterChannel, Task>? OnDisconnected;
 
     private readonly Socket _readSocket;
     private readonly Stream _readStream;
@@ -27,9 +27,9 @@ public class DecksterCommunicator : IDecksterCommunicator
 
     private bool _isConnected = true;
     
-    public DecksterCommunicator(Socket readSocket, Stream readStream, Socket writeSocket, Stream writeStream, PlayerData playerData)
+    public DecksterChannel(Socket readSocket, Stream readStream, Socket writeSocket, Stream writeStream, PlayerData playerData)
     {
-        _logger =  Log.Factory.CreateLogger($"{nameof(DecksterCommunicator)} {playerData.Name}");
+        _logger =  Log.Factory.CreateLogger($"{nameof(DecksterChannel)} {playerData.Name}");
         _logger.LogInformation("Helloooo!");
         _readSocket = readSocket;
         _readStream = readStream;

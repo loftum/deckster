@@ -14,7 +14,7 @@ public class DecksterServer : IDisposable
     private readonly IServiceProvider _services;
     private readonly UserRepo _userRepo;
     private readonly TcpListener _listener;
-    private readonly List<IDecksterCommunicator> _communicators = new();
+    private readonly List<IDecksterChannel> _communicators = new();
 
     private readonly DecksterDelegate _pipeline;
 
@@ -66,20 +66,20 @@ public class DecksterServer : IDisposable
         }
     }
 
-    private Task OnDisconnected(IDecksterCommunicator communicator)
+    private Task OnDisconnected(IDecksterChannel channel)
     {
-        communicator.OnDisconnected -= OnDisconnected;
-        Remove(communicator);
+        channel.OnDisconnected -= OnDisconnected;
+        Remove(channel);
         return Task.CompletedTask;
     }
 
-    private void Remove(IDecksterCommunicator communicator)
+    private void Remove(IDecksterChannel channel)
     {
-        _communicators.Remove(communicator);
-        communicator.Dispose();
+        _communicators.Remove(channel);
+        channel.Dispose();
     }
 
-    private async Task<IDecksterCommunicator?> HandshakeAsync(Socket socket, CancellationToken cancellationToken = default)
+    private async Task<IDecksterChannel?> HandshakeAsync(Socket socket, CancellationToken cancellationToken = default)
     {
         if (socket.RemoteEndPoint is not IPEndPoint endpoint)
         {
@@ -119,7 +119,7 @@ public class DecksterServer : IDisposable
             Name = user.Name,
             PlayerId = user.Id
         };
-        var communicator = new DecksterCommunicator(socket, stream, clientSocket, clientStream, playerData);
+        var communicator = new DecksterChannel(socket, stream, clientSocket, clientStream, playerData);
 
         var context = new ConnectionContext(communicator, request, user, _services);
         

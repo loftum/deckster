@@ -6,7 +6,7 @@ namespace Deckster.Client.Communication;
 
 public static class DecksterClient
 {
-    public static async Task<DecksterCommunicator> ConnectAsync(Uri uri, CancellationToken cancellationToken = default)
+    public static async Task<DecksterChannel> ConnectAsync(Uri uri, CancellationToken cancellationToken = default)
     {
         var (host, port, accessToken, path) = Extract(uri);
 
@@ -51,7 +51,7 @@ public static class DecksterClient
                     var readSocket = await listener.AcceptSocketAsync(cts.Token);
                     listener.Stop();
                     var readStream = new NetworkStream(readSocket);
-                    var communicator = new DecksterCommunicator(readSocket, readStream, writeSocket, writeStream, response.PlayerData);
+                    var communicator = new DecksterChannel(readSocket, readStream, writeSocket, writeStream, response.PlayerData);
                     return communicator;
                 default:
                     throw new Exception($"Could not connect: '{response.StatusCode}: {response.Description}'");

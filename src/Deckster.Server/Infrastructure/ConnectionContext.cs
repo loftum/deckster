@@ -6,19 +6,19 @@ namespace Deckster.Server.Infrastructure;
 
 public class ConnectionContext
 {
-    public IDecksterCommunicator Communicator { get; }
+    public IDecksterChannel Channel { get; }
     public User User { get; }
     public IServiceProvider Services { get; }
     public ConnectRequest Request { get; }
     public ConnectResponse Response { get; }
     
     public ConnectionContext(
-        IDecksterCommunicator communicator,
+        IDecksterChannel channel,
         ConnectRequest request,
         User user,
         IServiceProvider services)
     {
-        Communicator = communicator;
+        Channel = channel;
         Request = request;
         User = user;
         Services = services;
@@ -37,6 +37,6 @@ public class ConnectionContext
 
     public void Close()
     {
-        Communicator.Dispose();
+        Channel.Dispose();
     }
 }

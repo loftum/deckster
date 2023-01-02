@@ -36,7 +36,7 @@ public class CrazyEightsMiddleware : IDecksterMiddleware
         {
             var newHost = new CrazyEightsGameHost(_gameRepo);
             _hosts[newHost.Id] = newHost;
-            newHost.Add(context.Communicator);
+            newHost.Add(context.Channel);
             context.Response.Description = $"New game created: {newHost.Id}";
             return Task.CompletedTask;
         }
@@ -45,11 +45,11 @@ public class CrazyEightsMiddleware : IDecksterMiddleware
         {
             var newHost = new CrazyEightsGameHost(_gameRepo);
             _hosts[newHost.Id] = newHost;
-            newHost.Add(context.Communicator);
+            newHost.Add(context.Channel);
 
             for (var ii = 0; ii < 3; ii++)
             {
-                var communicator = new InProcessDecksterCommunicator(new PlayerData
+                var communicator = new InProcessDecksterChannel(new PlayerData
                 {
                     PlayerId = Guid.NewGuid(),
                     Name = $"Player {ii}"
@@ -75,7 +75,7 @@ public class CrazyEightsMiddleware : IDecksterMiddleware
             return Task.CompletedTask;
         }
         
-        host.Add(context.Communicator);
+        host.Add(context.Channel);
         return Task.CompletedTask;
     }
 }

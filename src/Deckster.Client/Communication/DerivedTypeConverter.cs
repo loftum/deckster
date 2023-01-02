@@ -5,7 +5,7 @@ using Deckster.Client.Core.Games;
 
 namespace Deckster.Client.Communication;
 
-public class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscriminator
+internal class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscriminator
 {
     private static readonly Dictionary<string, Type> TypeMap;
 
