@@ -1,11 +1,12 @@
 using System.Collections.Concurrent;
-using Deckster.Communication;
-using Deckster.Communication.Handshake;
-using Deckster.Core;
-using Deckster.Core.Domain;
-using Deckster.Core.Games;
+using Deckster.Client.Communication;
+using Deckster.Client.Communication.Handshake;
+using Deckster.Client.Core;
+using Deckster.Client.Core.Domain;
+using Deckster.Client.Core.Games;
+using Deckster.Client.CrazyEights;
+using Deckster.Client.CrazyEights.Game;
 using Deckster.CrazyEights;
-using Deckster.CrazyEights.Game;
 
 namespace Deckster.Server.Games.CrazyEights;
 

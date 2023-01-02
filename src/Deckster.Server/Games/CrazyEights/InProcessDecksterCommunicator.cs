@@ -1,8 +1,8 @@
 using System.Collections.Concurrent;
 using System.Text.Json;
-using Deckster.Communication;
-using Deckster.Communication.Handshake;
-using Deckster.Core;
+using Deckster.Client.Communication;
+using Deckster.Client.Communication.Handshake;
+using Deckster.Client.Core;
 
 namespace Deckster.Server.Games.CrazyEights;
 

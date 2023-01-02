@@ -1,4 +1,4 @@
-using Deckster.Communication;
+using Deckster.Client.Communication;
 using Deckster.CrazyEights;
 using Deckster.Server.Games.CrazyEights;
 using Deckster.Server.Infrastructure;

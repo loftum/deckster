@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text;
+using Deckster.Client.CrazyEights;
 
 namespace Deckster.CrazyEights.SampleClient;
 

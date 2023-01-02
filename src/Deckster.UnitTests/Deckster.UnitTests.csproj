@@ -13,8 +13,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\Deckster.Communication\Deckster.Communication.csproj" />
-      <ProjectReference Include="..\Deckster.Core\Deckster.Core.csproj" />
+      <ProjectReference Include="..\Deckster.Client\Deckster.Client.csproj" />
     </ItemGroup>
 
 </Project>

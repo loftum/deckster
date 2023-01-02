@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Sockets;
-using Deckster.Communication;
-using Deckster.Communication.Handshake;
-using Deckster.Core;
+using Deckster.Client.Communication;
+using Deckster.Client.Communication.Handshake;
+using Deckster.Client.Core;
 using Deckster.Server.Users;
 
 namespace Deckster.Server.Infrastructure;

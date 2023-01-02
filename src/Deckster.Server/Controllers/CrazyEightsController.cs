@@ -1,6 +1,5 @@
-using Deckster.Core.Domain;
-using Deckster.Core.Games;
-using Deckster.CrazyEights.Game;
+using Deckster.Client.Core.Games;
+using Deckster.Client.CrazyEights.Game;
 using Deckster.Server.Authentication;
 using Deckster.Server.Users;
 using Microsoft.AspNetCore.Mvc;

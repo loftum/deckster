@@ -1,4 +1,4 @@
-using Deckster.Core.Domain;
+using Deckster.Client.Core.Domain;
 using NUnit.Framework;
 
 namespace Deckster.UnitTests;
