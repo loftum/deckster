@@ -4,7 +4,7 @@ using Deckster.Client.Communication.Handshake;
 
 namespace Deckster.Client.Communication;
 
-public static class DecksterClient
+internal static class DecksterClient
 {
     public static async Task<DecksterChannel> ConnectAsync(Uri uri, CancellationToken cancellationToken = default)
     {

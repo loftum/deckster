@@ -1,4 +1,4 @@
-namespace Deckster.Client.Core.Collections;
+namespace Deckster.Server.Games.CrazyEights;
 
 public static class StackExtensions
 {

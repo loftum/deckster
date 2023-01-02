@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Deckster.Client;
 using Deckster.Client.Communication.Handshake;
 using Deckster.Client.CrazyEights;
 using Deckster.CrazyEights;

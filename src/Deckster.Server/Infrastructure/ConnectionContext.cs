@@ -1,3 +1,4 @@
+using Deckster.Client;
 using Deckster.Client.Communication;
 using Deckster.Client.Communication.Handshake;
 using Deckster.Server.Users;

@@ -1,6 +1,8 @@
+using Deckster.Client;
 using Deckster.Client.Core;
 using Deckster.Client.Core.Domain;
 using Deckster.Client.CrazyEights;
+using Deckster.Client.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.CrazyEights.SampleClient;
@@ -45,7 +47,11 @@ public class CrazyEightsAi
         try
         {
             var cards = message.PlayerViewOfGame.Cards;
-            _logger.LogInformation("It's my turn. Top: {top} ({suit}). I have: {cards} ({turn})", message.PlayerViewOfGame.TopOfPile, message.PlayerViewOfGame.CurrentSuit, string.Join(", ", cards), turn);
+            _logger.LogInformation("It's my turn. Top: {top} ({suit}). I have: {cards} ({turn})",
+                message.PlayerViewOfGame.TopOfPile,
+                message.PlayerViewOfGame.CurrentSuit.Display(),
+                string.Join(", ", cards),
+                turn);
             _view = message.PlayerViewOfGame;
             
             if (TryGetCard(out var card))

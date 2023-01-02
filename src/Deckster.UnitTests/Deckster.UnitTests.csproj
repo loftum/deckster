@@ -14,6 +14,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Deckster.Client\Deckster.Client.csproj" />
+      <ProjectReference Include="..\Deckster.Server\Deckster.Server.csproj" />
     </ItemGroup>
 
 </Project>

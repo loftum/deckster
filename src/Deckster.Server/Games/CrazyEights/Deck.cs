@@ -1,4 +1,6 @@
-﻿namespace Deckster.Client.Core.Domain;
+﻿using Deckster.Client.Core.Domain;
+
+namespace Deckster.Server.Games.CrazyEights;
 
 public class Deck
 {

@@ -1,4 +1,4 @@
-namespace Deckster.Client.Communication.Handshake;
+namespace Deckster.Client;
 
 public class PlayerData
 {

@@ -47,7 +47,7 @@ public readonly struct Card
 
     public override string ToString()
     {
-        return $"{Map(Rank)} of {Suit}";
+        return $"{Map(Rank)}{Suit.Display()}";
     }
 
     private static string Map(int rank)
@@ -55,11 +55,11 @@ public readonly struct Card
         return rank switch
         {
             0 => "Joker",
-            1 => "Ace",
+            1 => "A",
             >= 2 and < 11 => $"{rank}",
-            11 => "Jack",
-            12 => "Queen",
-            13 => "King",
+            11 => "J",
+            12 => "Q",
+            13 => "K",
             _ => throw new ArgumentOutOfRangeException(nameof(rank), "Invalid rank '{rank}'")
         };
     }

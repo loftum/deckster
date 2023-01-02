@@ -1,9 +1,8 @@
 using System.Text.Json;
 using Deckster.Client.Communication;
-using Deckster.Client.Communication.Handshake;
-using Deckster.Client.Core;
 using Deckster.Client.Core.Domain;
 using Deckster.Client.Core.Games;
+using Deckster.Client.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.CrazyEights;

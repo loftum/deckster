@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace Deckster.Client.Core;
+namespace Deckster.Client.Logging;
 
 public static class Log
 {

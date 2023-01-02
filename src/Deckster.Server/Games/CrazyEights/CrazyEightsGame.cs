@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Core.Collections;
 using Deckster.Client.Core.Domain;
 using Deckster.Client.Core.Games;
 using Deckster.Client.CrazyEights;

@@ -2,6 +2,7 @@
 using System.Text;
 using Deckster.Client.Communication.Handshake;
 using Deckster.Client.Core;
+using Deckster.Client.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Communication;
