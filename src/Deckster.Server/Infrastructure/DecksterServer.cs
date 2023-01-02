@@ -91,11 +91,11 @@ public class DecksterServer : IDisposable
         
         // 1. Read client hello
         var stream = new NetworkStream(socket);
-        var request = await stream.ReceiveJsonAsync<ConnectRequest>(DecksterJson.Options, cancellationToken);
+        var request = await stream.ReceiveJsonAsync<ConnectRequest>(cancellationToken);
         if (request == null)
         {
             _logger.LogError("Invalid connect request");
-            await stream.SendJsonAsync(new ConnectResponse { StatusCode = 400, Description = "Invalid request"}, DecksterJson.Options, cancellationToken);
+            await stream.SendJsonAsync(new ConnectResponse { StatusCode = 400, Description = "Invalid request"}, cancellationToken);
             socket.Dispose();
             return null;
         }
@@ -104,7 +104,7 @@ public class DecksterServer : IDisposable
         if (user == null)
         {
             _logger.LogError("Invalid access token '{token}'. No user found", request.AccessToken);
-            await stream.SendJsonAsync(new ConnectResponse { StatusCode = 400, Description = "Invalid accesstoken"}, DecksterJson.Options, cancellationToken);
+            await stream.SendJsonAsync(new ConnectResponse { StatusCode = 400, Description = "Invalid accesstoken"}, cancellationToken);
             socket.Dispose();
             return null;
         }
@@ -127,7 +127,7 @@ public class DecksterServer : IDisposable
 
         if (context.Response.StatusCode == 200)
         {
-            await communicator.RespondAsync(context.Response, DecksterJson.Options, cancellationToken);
+            await communicator.RespondAsync(context.Response, cancellationToken);
             return communicator;
         }
 

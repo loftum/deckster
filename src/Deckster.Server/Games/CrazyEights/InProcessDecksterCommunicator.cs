@@ -10,7 +10,7 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
     public InProcessDecksterCommunicator Target { get; }
     
     public PlayerData PlayerData { get; }
-    public event Func<IDecksterCommunicator, byte[], Task>? OnMessage;
+    public event Action<IDecksterCommunicator, byte[]>? OnMessage;
     public event Func<IDecksterCommunicator, Task>? OnDisconnected;
 
     private readonly ConcurrentQueue<object> _responses = new();
@@ -33,7 +33,7 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
         return handler != null ? handler.Invoke(this) : Task.CompletedTask;
     }
 
-    public async Task SendAsync<TRequest>(TRequest message, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public async Task SendAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default)
     {
         var handler = Target.OnMessage;
         if (handler == null)
@@ -42,12 +42,11 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
         }
 
         using var memoryStream = new MemoryStream();
-        await JsonSerializer.SerializeAsync(memoryStream, message, options, cancellationToken);
-        
-        await handler.Invoke(Target, memoryStream.ToArray());
+        await JsonSerializer.SerializeAsync(memoryStream, message, DecksterJson.Options, cancellationToken);
+        handler.Invoke(Target, memoryStream.ToArray());
     }
 
-    public async Task<T?> ReceiveAsync<T>(JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public async Task<T?> ReceiveAsync<T>(CancellationToken cancellationToken = default)
     {
         object? val;
         while (!_responses.TryDequeue(out val))
@@ -63,7 +62,7 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
         return default;
     }
 
-    public Task RespondAsync<TResponse>(TResponse response, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)
     {
         _responses.Enqueue(response);
         return Task.CompletedTask;

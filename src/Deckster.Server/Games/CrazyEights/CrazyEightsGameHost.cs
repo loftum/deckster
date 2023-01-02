@@ -44,10 +44,10 @@ public class CrazyEightsGameHost
         return Task.CompletedTask;
     }
 
-    private Task OnMessage(IDecksterCommunicator c, byte[] bytes)
+    private async void OnMessage(IDecksterCommunicator c, byte[] bytes)
     {
-        var message = JsonSerializer.Deserialize<CrazyEightsCommand>(bytes, DecksterJson.Options);
-        return message switch
+        var message = DecksterJson.Deserialize<CrazyEightsCommand>(bytes);
+        await (message switch
         {
             PutCardCommand m => PutCardAsync(c, m),
             PutEightCommand m => PutEightAsync(c, m),
@@ -55,7 +55,7 @@ public class CrazyEightsGameHost
             PassCommand m => PassAsync(c, m),
             StartCommand m => StartAsync(c, m),
             _ => Task.CompletedTask
-        };
+        });
     }
 
     private async Task PassAsync(IDecksterCommunicator communicator, PassCommand command)
@@ -73,33 +73,48 @@ public class CrazyEightsGameHost
     private async Task PutEightAsync(IDecksterCommunicator communicator, PutEightCommand command)
     {
         var result = _game.PutEight(communicator.PlayerData.PlayerId, command.Card, command.NewSuit);
-        await communicator.RespondAsync(result, DecksterJson.Options);
+        await communicator.RespondAsync(result);
         await HandleResultAsync(communicator, command, result);
     }
 
     private async Task PutCardAsync(IDecksterCommunicator communicator, PutCardCommand command)
     {
-        _logger.LogInformation("Player put card: {player}: {card}", communicator.PlayerData.Name, command.Card);
+        _logger.LogInformation("{player} put card {card}", communicator.PlayerData.Name, command.Card);
         var result = _game.PutCardOnDiscardPile(communicator.PlayerData.PlayerId, command.Card);
         await HandleResultAsync(communicator, command, result);
     }
     
     private async Task HandleResultAsync(IDecksterCommunicator communicator, CrazyEightsCommand command, CommandResult result)
     {
-        await communicator.RespondAsync(result, DecksterJson.Options);
+        await communicator.RespondAsync(result);
         if (result is SuccessResult)
         {
             var playerData = communicator.PlayerData;
-            await BroadCastFrom(playerData.PlayerId, CreateBroadcastMessage(playerData.PlayerId, command));
-            var state = _game.GetStateFor(_game.CurrentPlayer.Id);
-            await _communicators[_game.CurrentPlayer.Id].SendAsync<CrazyEightsMessage>(new ItsYourTurnMessage { PlayerViewOfGame = state }, DecksterJson.Options);
+            await BroadcastFromAsync(playerData.PlayerId, CreateBroadcastMessage(playerData.PlayerId, command));
+            switch (_game.State)
+            {
+                case GameState.Finished:
+                    await Task.WhenAll(_communicators.Select(c => c.Value.SendAsync(
+                        new GameEndedMessage
+                        {
+                            PlayerViewOfGame = _game.GetStateFor(c.Value.PlayerData.PlayerId)
+                        }))
+                    );
+                    break;
+                default:
+                {
+                    var state = _game.GetStateFor(_game.CurrentPlayer.Id);
+                    await _communicators[_game.CurrentPlayer.Id].SendAsync<CrazyEightsMessage>(new ItsYourTurnMessage { PlayerViewOfGame = state });
+                    break;
+                }
+            }
         }
     }
 
-    private Task BroadCastFrom<TMessage>(Guid playerId, TMessage message) where TMessage : CrazyEightsMessage
+    private Task BroadcastFromAsync<TMessage>(Guid playerId, TMessage message) where TMessage : CrazyEightsMessage
     {
         var communiactors = _communicators.Values.Where(c => c.PlayerData.PlayerId != playerId);
-        return Task.WhenAll(communiactors.Select(c => c.SendAsync<CrazyEightsMessage>(message, DecksterJson.Options)));
+        return Task.WhenAll(communiactors.Select(c => c.SendAsync<CrazyEightsMessage>(message)));
     }
     
     private static CrazyEightsMessage CreateBroadcastMessage(Guid playerId, CrazyEightsCommand command)
@@ -132,12 +147,12 @@ public class CrazyEightsGameHost
             Name = c.Value.PlayerData.Name,
         }).ToArray();
         _game = new CrazyEightsGame(Deck.Default, players);
-        
+
         await Task.WhenAll(_communicators.Select(c => c.Value.SendAsync(
             new GameStartedMessage
             {
                 PlayerViewOfGame = _game.GetStateFor(c.Value.PlayerData.PlayerId)
-            }, DecksterJson.Options, cancellationToken))
+            }, cancellationToken))
         );
         
         var currentPlayerId = _game.CurrentPlayer.Id;
@@ -145,6 +160,6 @@ public class CrazyEightsGameHost
         await _communicators[currentPlayerId].SendAsync(new ItsYourTurnMessage
         {
             PlayerViewOfGame = _game.GetStateFor(currentPlayerId)
-        }, DecksterJson.Options, cancellationToken);
+        }, cancellationToken);
     }
 }

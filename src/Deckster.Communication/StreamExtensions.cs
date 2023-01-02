@@ -1,3 +1,4 @@
+using System.Text;
 using System.Text.Json;
 
 namespace Deckster.Communication;
@@ -52,16 +53,26 @@ public static class StreamExtensions
                bytes[3] << 24;
     }
 
-    public static Task SendJsonAsync<T>(this Stream stream, T message, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public static Task SendJsonAsync<T>(this Stream stream, T message, CancellationToken cancellationToken = default)
     {
         using var memoryStream = new MemoryStream();
-        JsonSerializer.Serialize(memoryStream, message, options);
+        JsonSerializer.Serialize(memoryStream, message, DecksterJson.Options);
         return stream.SendMessageAsync(memoryStream.ToArray(), cancellationToken);
     }
     
-    public static async Task<T?> ReceiveJsonAsync<T>(this Stream stream, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public static async Task<T?> ReceiveJsonAsync<T>(this Stream stream, CancellationToken cancellationToken = default)
     {
         var message = await stream.ReceiveMessageAsync(cancellationToken);
-        return JsonSerializer.Deserialize<T>(message, options);
+        try
+        {
+            var value = JsonSerializer.Deserialize<T>(message, DecksterJson.Options);
+            return value;
+        }
+        catch
+        {
+            Console.WriteLine("HELLOOOO!");
+            Console.WriteLine($"Could not read '{Encoding.UTF8.GetString(message)}'");
+            throw;
+        }
     }
 }

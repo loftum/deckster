@@ -18,4 +18,9 @@ public static class DecksterJson
         AllowTrailingCommas = true,
         ReadCommentHandling = JsonCommentHandling.Skip,
     };
+
+    public static T? Deserialize<T>(byte[] bytes)
+    {
+        return JsonSerializer.Deserialize<T>(bytes, Options);
+    }
 }

@@ -10,7 +10,7 @@ public static class CrazyEightsClientFactory
         var client = new CrazyEightsClient(communicator);
         if (uri.AbsolutePath.EndsWith("practice"))
         {
-            await communicator.SendAsync(new StartCommand(), DecksterJson.Options, cancellationToken);
+            await communicator.SendAsync(new StartCommand(), cancellationToken);
         }
         return client;
     }

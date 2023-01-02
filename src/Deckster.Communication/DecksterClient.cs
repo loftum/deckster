@@ -36,9 +36,9 @@ public static class DecksterClient
                 ClientPort = localPort,
                 Path = path
             };
-            await writeStream.SendJsonAsync(hello, DecksterJson.Options, cts.Token);
+            await writeStream.SendJsonAsync(hello, cts.Token);
 
-            var response = await writeStream.ReceiveJsonAsync<ConnectResponse>(DecksterJson.Options, cts.Token);
+            var response = await writeStream.ReceiveJsonAsync<ConnectResponse>(cts.Token);
 
             if (response == null)
             {

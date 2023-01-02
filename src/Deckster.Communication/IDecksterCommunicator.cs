@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Deckster.Communication.Handshake;
 
 namespace Deckster.Communication;
@@ -6,10 +5,10 @@ namespace Deckster.Communication;
 public interface IDecksterCommunicator : IDisposable
 {
     PlayerData PlayerData { get; }
-    event Func<IDecksterCommunicator, byte[], Task>? OnMessage;
+    event Action<IDecksterCommunicator, byte[]>? OnMessage;
     event Func<IDecksterCommunicator, Task>? OnDisconnected;
     Task DisconnectAsync();
-    Task SendAsync<TRequest>(TRequest message, JsonSerializerOptions options, CancellationToken cancellationToken = default);
-    Task<T?> ReceiveAsync<T>(JsonSerializerOptions options, CancellationToken cancellationToken = default);
-    Task RespondAsync<TResponse>(TResponse response, JsonSerializerOptions options, CancellationToken cancellationToken = default);
+    Task SendAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default);
+    Task<T?> ReceiveAsync<T>(CancellationToken cancellationToken = default);
+    Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default);
 }

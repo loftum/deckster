@@ -1,6 +1,5 @@
 ﻿using System.Net.Sockets;
 using System.Text;
-using System.Text.Json;
 using Deckster.Communication.Handshake;
 using Deckster.Core;
 using Microsoft.Extensions.Logging;
@@ -11,7 +10,7 @@ public class DecksterCommunicator : IDecksterCommunicator
 {
     private readonly ILogger _logger;
     public PlayerData PlayerData { get; }
-    public event Func<IDecksterCommunicator, byte[], Task>? OnMessage;
+    public event Action<IDecksterCommunicator, byte[]>? OnMessage;
     public event Func<IDecksterCommunicator, Task>? OnDisconnected;
 
     private readonly Socket _readSocket;
@@ -30,7 +29,7 @@ public class DecksterCommunicator : IDecksterCommunicator
     
     public DecksterCommunicator(Socket readSocket, Stream readStream, Socket writeSocket, Stream writeStream, PlayerData playerData)
     {
-        _logger =  Log.Factory.CreateLogger($"{nameof(DecksterCommunicator)} {playerData.PlayerId}");
+        _logger =  Log.Factory.CreateLogger($"{nameof(DecksterCommunicator)} {playerData.Name}");
         _logger.LogInformation("Helloooo!");
         _readSocket = readSocket;
         _readStream = readStream;
@@ -58,13 +57,7 @@ public class DecksterCommunicator : IDecksterCommunicator
                     await DoDisconnectAsync();
                     return;
                 }
-
-                var handler = OnMessage;
-
-                if (handler != null)
-                {
-                    await handler(this, message);
-                }
+                OnMessage?.Invoke(this, message);
             }
         }
         catch (TaskCanceledException)
@@ -98,24 +91,25 @@ public class DecksterCommunicator : IDecksterCommunicator
         _isConnected = false;
     }
     
-    public Task SendAsync<TRequest>(TRequest message, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public Task SendAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default)
     {
-        return _writeStream.SendJsonAsync(message, options, cancellationToken);
+        return _writeStream.SendJsonAsync(message, cancellationToken);
     }
 
-    public Task<T?> ReceiveAsync<T>(JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public Task<T?> ReceiveAsync<T>(CancellationToken cancellationToken = default)
     {
-        return _writeStream.ReceiveJsonAsync<T>(options, cancellationToken);
+        return _writeStream.ReceiveJsonAsync<T>(cancellationToken);
     }
 
-    public Task RespondAsync<TResponse>(TResponse response, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)
     {
-        return _readStream.SendJsonAsync(response, options, cancellationToken);
+        return _readStream.SendJsonAsync(response, cancellationToken);
     }
     
     public async Task DisconnectAsync()
     {
         await _writeStream.SendMessageAsync(Disconnect);
+        _cts.Cancel();
         await DoDisconnectAsync();
     }
 

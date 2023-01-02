@@ -43,3 +43,8 @@ public class GameStartedMessage : CrazyEightsMessage
 {
     public PlayerViewOfGame PlayerViewOfGame { get; init; }
 }
+
+public class GameEndedMessage : CrazyEightsMessage
+{
+    public PlayerViewOfGame PlayerViewOfGame { get; init; }
+}

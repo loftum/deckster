@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Deckster.Communication;
+using Deckster.Communication.Handshake;
 using Deckster.Core;
 using Deckster.Core.Domain;
 using Deckster.Core.Games;
@@ -10,19 +11,22 @@ namespace Deckster.CrazyEights;
 
 public class CrazyEightsClient
 {
-    private readonly ILogger _logger = Log.Factory.CreateLogger<CrazyEightsClient>();
-    public event Func<PlayerPutCardMessage, Task>? PlayerPutCard;
-    public event Func<PlayerPutEightMessage, Task>? PlayerPutEight;
-    public event Func<PlayerDrewCardMessage, Task>? PlayerDrewCard;
-    public event Func<PlayerPassedMessage, Task>? PlayerPassed;
-    public event Func<ItsYourTurnMessage, Task>? ItsYourTurn;
-    public event Func<GameStartedMessage, Task>? GameStarted;
+    private readonly ILogger _logger;
+    public event Action<PlayerPutCardMessage>? PlayerPutCard;
+    public event Action<PlayerPutEightMessage>? PlayerPutEight;
+    public event Action<PlayerDrewCardMessage>? PlayerDrewCard;
+    public event Action<PlayerPassedMessage>? PlayerPassed;
+    public event Action<ItsYourTurnMessage>? ItsYourTurn;
+    public event Action<GameStartedMessage>? GameStarted;
+    public event Action<GameEndedMessage>? GameEnded;
 
     private readonly IDecksterCommunicator _communicator;
+    public PlayerData PlayerData => _communicator.PlayerData;
 
     public CrazyEightsClient(IDecksterCommunicator communicator)
     {
         _communicator = communicator;
+        _logger = Log.Factory.CreateLogger(communicator.PlayerData.Name);
         communicator.OnMessage += HandleMessageAsync;
     }
 
@@ -60,10 +64,10 @@ public class CrazyEightsClient
         where TCommand : CrazyEightsCommand
         where TResult : CommandResult
     {
-        _logger.LogInformation("Sending {type}", typeof(TCommand));
-        await _communicator.SendAsync(command, DecksterJson.Options, cancellationToken);
-        _logger.LogInformation("Waiting for response");
-        var result = await _communicator.ReceiveAsync<CommandResult>(DecksterJson.Options, cancellationToken);
+        _logger.LogTrace("Sending {type}", typeof(TCommand));
+        await _communicator.SendAsync(command, cancellationToken);
+        _logger.LogTrace("Waiting for response");
+        var result = await _communicator.ReceiveAsync<CommandResult>(cancellationToken);
         return result switch
         {
             null => throw new Exception("Result is null. Wat"),
@@ -73,25 +77,42 @@ public class CrazyEightsClient
         };
     }
 
-    private Task HandleMessageAsync(IDecksterCommunicator communicator, byte[] bytes)
+    private async void HandleMessageAsync(IDecksterCommunicator communicator, byte[] bytes)
     {
         try
         {
             var message = JsonSerializer.Deserialize<CrazyEightsMessage>(bytes, DecksterJson.Options);
-            return message switch
+            switch (message)
             {
-                PlayerPutCardMessage m when PlayerPutCard != null => PlayerPutCard(m),
-                PlayerPutEightMessage m when PlayerPutEight != null => PlayerPutEight(m),
-                PlayerDrewCardMessage m when PlayerDrewCard != null => PlayerDrewCard(m),
-                PlayerPassedMessage m when PlayerPassed != null => PlayerPassed(m),
-                ItsYourTurnMessage m when ItsYourTurn != null => ItsYourTurn(m),
-                _ => Task.CompletedTask
-            };
+                case GameStartedMessage m:
+                    GameStarted?.Invoke(m);
+                    break;
+                case GameEndedMessage m:
+                    await _communicator.DisconnectAsync();
+                    GameEnded?.Invoke(m);
+                    break;
+                case PlayerPutCardMessage m:
+                    PlayerPutCard?.Invoke(m);
+                    break;
+                case PlayerPutEightMessage m: 
+                    PlayerPutEight?.Invoke(m);
+                    break;
+                case PlayerDrewCardMessage m: 
+                    PlayerDrewCard?.Invoke(m);
+                    break;
+                case PlayerPassedMessage m:
+                    PlayerPassed?.Invoke(m);
+                    break;
+                case ItsYourTurnMessage m:
+                    ItsYourTurn?.Invoke(m);
+                    break;
+                default:
+                    return;
+            }
         }
         catch (Exception e)
         {
             Console.WriteLine(e);
-            return Task.CompletedTask;
         }
     }
 

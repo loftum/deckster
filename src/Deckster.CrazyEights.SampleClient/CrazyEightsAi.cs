@@ -7,29 +7,37 @@ namespace Deckster.CrazyEights.SampleClient;
 
 public class CrazyEightsAi
 {
-    private readonly ILogger _logger = Log.Factory.CreateLogger(nameof(CrazyEightsAi));
+    private readonly ILogger _logger;
     
     private PlayerViewOfGame _view = new();
     private readonly CrazyEightsClient _client;
+    private bool _gameEnded;
 
     public CrazyEightsAi(CrazyEightsClient client)
     {
         _client = client;
+        _logger = Log.Factory.CreateLogger(client.PlayerData.Name);
         client.PlayerPassed += PlayerPassed;
         client.PlayerDrewCard += PlayerDrewCard;
         client.PlayerPutCard += PlayerPutCard;
         client.PlayerPutEight += PlayerPutEight;
         client.ItsYourTurn += ItsMyTurn;
         client.GameStarted += GameStarted;
+        client.GameEnded += GameEnded;
     }
 
-    private Task GameStarted(GameStartedMessage message)
+    private void GameEnded(GameEndedMessage message)
+    {
+        _logger.LogInformation("Game ended");
+        _gameEnded = true;
+    }
+
+    private void GameStarted(GameStartedMessage message)
     {
         _view = message.PlayerViewOfGame;
-        return Task.CompletedTask;
     }
 
-    private async Task ItsMyTurn(ItsYourTurnMessage message)
+    private async void ItsMyTurn(ItsYourTurnMessage message)
     {
         var cards = message.PlayerViewOfGame.Cards;
         _logger.LogInformation("It's my turn. I have: {cards}", string.Join(", ", cards));
@@ -73,33 +81,29 @@ public class CrazyEightsAi
         return false;
     }
 
-    private Task PlayerPutEight(PlayerPutEightMessage message)
+    private void PlayerPutEight(PlayerPutEightMessage message)
     {
-        _logger.LogInformation("Player put eight: {playerId}: {card}", message.PlayerId, message.Card);
-        return Task.CompletedTask;
+        _logger.LogTrace("{playerId} put eight {card}", message.PlayerId, message.Card);
     }
 
-    private Task PlayerPutCard(PlayerPutCardMessage message)
+    private void PlayerPutCard(PlayerPutCardMessage message)
     {
-        _logger.LogInformation("Player put card: {playerId}: {card}", message.PlayerId, message.Card);
-        return Task.CompletedTask;
+        _logger.LogTrace("{playerId} put {card}", message.PlayerId, message.Card);
     }
 
-    private Task PlayerDrewCard(PlayerDrewCardMessage message)
+    private void PlayerDrewCard(PlayerDrewCardMessage message)
     {
         _logger.LogInformation("Player drew card: {playerId}", message.PlayerId);
-        return Task.CompletedTask;
     }
 
-    private Task PlayerPassed(PlayerPassedMessage message)
+    private void PlayerPassed(PlayerPassedMessage message)
     {
         _logger.LogInformation("Player passed: {playerId}", message.PlayerId);
-        return Task.CompletedTask;
     }
 
     public async Task PlayAsync(CancellationToken cancellationToken)
     {
-        while (!cancellationToken.IsCancellationRequested)
+        while (!cancellationToken.IsCancellationRequested && !_gameEnded)
         {
             await Task.Delay(500, cancellationToken);
         }
