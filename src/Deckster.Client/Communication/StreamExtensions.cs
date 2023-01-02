@@ -1,36 +1,25 @@
 using System.Text;
 using System.Text.Json;
+using Deckster.Client.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Communication;
 
 public static class StreamExtensions
 {
+    private static readonly ILogger Logger = Log.Factory.CreateLogger(nameof(StreamExtensions));
+    
     public static async Task SendMessageAsync(this Stream stream, byte[] message, CancellationToken cancellationToken = default)
     {
-        await stream.WriteAsync(ToBytes(message.Length), cancellationToken);
-        //Console.WriteLine($"Writing {System.Text.Encoding.UTF8.GetString(message)}");
+        await stream.WriteAsync(message.Length.ToBytes(), cancellationToken);
+        if (Logger.IsEnabled(LogLevel.Trace))
+        {
+            Logger.LogTrace("Writing '{message}'", Encoding.UTF8.GetString(message));    
+        }
         await stream.WriteAsync(message, cancellationToken);
         await stream.FlushAsync(cancellationToken);
     }
 
-    public static byte[] ToBytes(this int length)
-    {
-        var bytes = new byte[4];
-        bytes[3] = (byte) (length >> 24 & 0xff);
-        bytes[2] = (byte) (length >> 16 & 0xff);
-        bytes[1] = (byte) (length >> 8 & 0xff);
-        bytes[0] = (byte) (length & 0xff);
-        return bytes;
-    }
-    
-    public static int ToInt(this byte[] bytes)
-    {
-        return bytes[0] |
-               bytes[1] << 8 |
-               bytes[2] << 16 |
-               bytes[3] << 24;
-    }
-    
     public static async Task<byte[]> ReceiveMessageAsync(this Stream stream, CancellationToken cancellationToken = default)
     {
         var length = await stream.ReadMessageLengthAsync(cancellationToken);
@@ -43,12 +32,15 @@ public static class StreamExtensions
         {
             var message = new byte[length];
             await stream.ReadExactlyAsync(message, cancellationToken);
-            //Console.WriteLine($"Receive {System.Text.Encoding.UTF8.GetString(message)}");
+            if (Logger.IsEnabled(LogLevel.Trace))
+            {
+                Logger.LogTrace("Receive {message}", Encoding.UTF8.GetString(message));    
+            }
             return message;
         }
         catch
         {
-            Console.WriteLine($"Could not read message of length {length}");
+            Logger.LogError("Could not read message of length {length}", length);
             throw;
         }
     }
@@ -57,7 +49,7 @@ public static class StreamExtensions
     {
         var lengthBytes = new byte[4];
         await stream.ReadExactlyAsync(lengthBytes, cancellationToken);
-        var length = ToInt(lengthBytes);
+        var length = lengthBytes.ToInt();
         return length;
     }
 
@@ -78,8 +70,7 @@ public static class StreamExtensions
         }
         catch
         {
-            Console.WriteLine("HELLOOOO!");
-            Console.WriteLine($"Could not read '{Encoding.UTF8.GetString(bytes)}'");
+            Logger.LogError("Could not read '{message}'", Encoding.UTF8.GetString(bytes));
             throw;
         }
     }
