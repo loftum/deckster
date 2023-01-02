@@ -91,35 +91,14 @@ public class DecksterCommunicator : IDecksterCommunicator
         _isConnected = false;
     }
 
-    private readonly SemaphoreSlim _writeSemaphore = new(1, 1);
-    
-    public async Task SendAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default)
+    public Task SendAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default)
     {
-        await _writeStream.SendJsonAsync(message, cancellationToken);
-        // try
-        // {
-        //     await _writeSemaphore.WaitAsync(cancellationToken);
-        //     await _writeStream.SendJsonAsync(message, cancellationToken);
-        // }
-        // finally
-        // {
-        //     _writeSemaphore.Release();
-        // }
+        return _writeStream.SendJsonAsync(message, cancellationToken);
     }
 
-    public async Task<T?> ReceiveAsync<T>(CancellationToken cancellationToken = default)
+    public Task<T?> ReceiveAsync<T>(CancellationToken cancellationToken = default)
     {
-        return await _writeStream.ReceiveJsonAsync<T>(cancellationToken);
-        // try
-        // {
-        //     await _writeSemaphore.WaitAsync(cancellationToken);
-        //     return await _writeStream.ReceiveJsonAsync<T>(cancellationToken);
-        // }
-        // finally
-        // {
-        //     _writeSemaphore.Release();
-        // }
-        
+        return _writeStream.ReceiveJsonAsync<T>(cancellationToken);
     }
 
     public Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)

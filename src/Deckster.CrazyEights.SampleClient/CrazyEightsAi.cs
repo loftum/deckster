@@ -28,7 +28,7 @@ public class CrazyEightsAi
 
     private void GameEnded(GameEndedMessage message)
     {
-        _logger.LogInformation("Game ended");
+        _logger.LogInformation($"Game ended. Players: [{string.Join(", ", message.Players.Select(p => p.Name))}]");
         _gameEnded = true;
     }
 

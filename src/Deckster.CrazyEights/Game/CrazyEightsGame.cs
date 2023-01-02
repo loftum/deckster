@@ -9,7 +9,7 @@ public class CrazyEightsGame
 {
     private const int InitialCardsPerPlayer = 5;
     
-    private readonly List<CrazyEightsPlayer> _donePlayers = new();
+    public List<CrazyEightsPlayer> DonePlayers { get; } = new();
     private int _currentPlayerIndex;
     private int _cardsDrawn;
     
@@ -58,7 +58,7 @@ public class CrazyEightsGame
         }
         
         _currentPlayerIndex = 0;
-        _donePlayers.Clear();
+        DonePlayers.Clear();
         StockPile.Clear();
         StockPile.PushRange(Deck.Cards);
         for (var ii = 0; ii < InitialCardsPerPlayer; ii++)
@@ -71,7 +71,7 @@ public class CrazyEightsGame
         
         DiscardPile.Clear();
         DiscardPile.Push(StockPile.Pop());
-        _donePlayers.Clear();
+        DonePlayers.Clear();
     }
 
     public CommandResult PutCardOnDiscardPile(Guid playerId, Card card)
@@ -96,7 +96,7 @@ public class CrazyEightsGame
         _newSuit = null;
         if (!player.Cards.Any())
         {
-            _donePlayers.Add(player);
+            DonePlayers.Add(player);
         }
 
         MoveToNextPlayer();
@@ -133,7 +133,7 @@ public class CrazyEightsGame
         _newSuit = newSuit != card.Suit ? newSuit : null;
         if (!player.Cards.Any())
         {
-            _donePlayers.Add(player);
+            DonePlayers.Add(player);
         }
 
         MoveToNextPlayer();

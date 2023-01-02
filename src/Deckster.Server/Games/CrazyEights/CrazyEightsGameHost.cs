@@ -1,6 +1,6 @@
 using System.Collections.Concurrent;
-using System.Text.Json;
 using Deckster.Communication;
+using Deckster.Communication.Handshake;
 using Deckster.Core;
 using Deckster.Core.Domain;
 using Deckster.Core.Games;
@@ -98,7 +98,11 @@ public class CrazyEightsGameHost
                     await Task.WhenAll(_communicators.Select(c => c.Value.SendAsync(
                         new GameEndedMessage
                         {
-                            //PlayerViewOfGame = _game.GetStateFor(c.Value.PlayerData.PlayerId)
+                            Players = _game.Players.Select(p => new PlayerData
+                            {
+                                PlayerId = p.Id,
+                                Name = p.Name
+                            }).ToList()
                         }))
                     );
                     break;
@@ -152,7 +156,7 @@ public class CrazyEightsGameHost
             Id = c.Value.PlayerData.PlayerId,
             Name = c.Value.PlayerData.Name,
         }).ToArray();
-        _game = new CrazyEightsGame(Deck.Default, players);
+        _game = new CrazyEightsGame(Deck.Default.Shuffle(), players);
 
         await Task.WhenAll(_communicators.Select(c => c.Value.SendAsync(
             new GameStartedMessage

@@ -1,4 +1,5 @@
 using Deckster.Communication;
+using Deckster.Communication.Handshake;
 using Deckster.Core.Domain;
 using Deckster.Core.Games;
 using Deckster.CrazyEights.Game;
@@ -46,5 +47,5 @@ public class GameStartedMessage : CrazyEightsMessage
 
 public class GameEndedMessage : CrazyEightsMessage
 {
-    public PlayerViewOfGame PlayerViewOfGame { get; init; }
+    public List<PlayerData> Players { get; init; }
 }
