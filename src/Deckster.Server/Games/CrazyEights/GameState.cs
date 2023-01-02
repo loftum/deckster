@@ -1,4 +1,4 @@
-namespace Deckster.Client.CrazyEights.Game;
+namespace Deckster.Server.Games.CrazyEights;
 
 public enum GameState
 {

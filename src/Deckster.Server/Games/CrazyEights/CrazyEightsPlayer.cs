@@ -1,6 +1,6 @@
 using Deckster.Client.Core.Domain;
 
-namespace Deckster.Client.CrazyEights.Game;
+namespace Deckster.Server.Games.CrazyEights;
 
 public class CrazyEightsPlayer
 {

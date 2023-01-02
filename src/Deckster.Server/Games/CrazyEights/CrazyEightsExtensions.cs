@@ -1,5 +1,3 @@
-using Deckster.Client.CrazyEights.Game;
-
 namespace Deckster.Server.Games.CrazyEights;
 
 public static class CrazyEightsExtensions

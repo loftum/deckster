@@ -1,7 +1,7 @@
 using Deckster.Client.Core.Domain;
 using Deckster.Client.Core.Games;
 
-namespace Deckster.Client.CrazyEights.Game;
+namespace Deckster.Client.CrazyEights;
 
 public class PlayerViewOfGame : SuccessResult
 {

@@ -4,7 +4,6 @@ using Deckster.Client.Communication.Handshake;
 using Deckster.Client.Core;
 using Deckster.Client.Core.Domain;
 using Deckster.Client.Core.Games;
-using Deckster.Client.CrazyEights.Game;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.CrazyEights;

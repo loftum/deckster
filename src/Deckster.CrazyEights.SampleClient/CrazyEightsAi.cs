@@ -1,7 +1,6 @@
 using Deckster.Client.Core;
 using Deckster.Client.Core.Domain;
 using Deckster.Client.CrazyEights;
-using Deckster.Client.CrazyEights.Game;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.CrazyEights.SampleClient;
