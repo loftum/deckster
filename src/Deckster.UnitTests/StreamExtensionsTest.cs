@@ -8,6 +8,8 @@ public class StreamExtensionsTest
 {
     [Test]
     [TestCase(0)]
+    [TestCase(255)]
+    [TestCase(4000)]
     [TestCase(int.MaxValue)]
     [TestCase(int.MinValue)]
     public void ToInt(int value)

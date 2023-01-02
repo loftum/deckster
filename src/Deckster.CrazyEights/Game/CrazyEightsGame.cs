@@ -148,6 +148,11 @@ public class CrazyEightsGame
             return new FailureResult("It is not your turn");
         }
         
+        if (_cardsDrawn > 2)
+        {
+            return new FailureResult("You can only draw 3 cards");
+        }
+        
         ShufflePileIfNecessary();
         if (!StockPile.Any())
         {
@@ -156,11 +161,7 @@ public class CrazyEightsGame
         var card = StockPile.Pop();
         player.Cards.Add(card);
         _cardsDrawn++;
-        if (_cardsDrawn > 2)
-        {
-            MoveToNextPlayer();
-            _cardsDrawn = 0;
-        }
+        
         return new CardResult(card);
     }
     

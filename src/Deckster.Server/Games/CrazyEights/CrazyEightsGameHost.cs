@@ -66,6 +66,7 @@ public class CrazyEightsGameHost
 
     private async Task DrawCardAsync(IDecksterCommunicator communicator, DrawCardCommand command)
     {
+        _logger.LogInformation("{player} draws card", communicator.PlayerData.Name);
         var result = _game.DrawCardFromStockPile(communicator.PlayerData.PlayerId);
         await HandleResultAsync(communicator, command, result);
     }
@@ -73,7 +74,6 @@ public class CrazyEightsGameHost
     private async Task PutEightAsync(IDecksterCommunicator communicator, PutEightCommand command)
     {
         var result = _game.PutEight(communicator.PlayerData.PlayerId, command.Card, command.NewSuit);
-        await communicator.RespondAsync(result);
         await HandleResultAsync(communicator, command, result);
     }
 
@@ -81,6 +81,7 @@ public class CrazyEightsGameHost
     {
         _logger.LogInformation("{player} put card {card}", communicator.PlayerData.Name, command.Card);
         var result = _game.PutCardOnDiscardPile(communicator.PlayerData.PlayerId, command.Card);
+        
         await HandleResultAsync(communicator, command, result);
     }
     
@@ -97,14 +98,19 @@ public class CrazyEightsGameHost
                     await Task.WhenAll(_communicators.Select(c => c.Value.SendAsync(
                         new GameEndedMessage
                         {
-                            PlayerViewOfGame = _game.GetStateFor(c.Value.PlayerData.PlayerId)
+                            //PlayerViewOfGame = _game.GetStateFor(c.Value.PlayerData.PlayerId)
                         }))
                     );
                     break;
                 default:
                 {
+                    var currentPlayerId = _game.CurrentPlayer.Id;
+                    if (currentPlayerId == communicator.PlayerData.PlayerId)
+                    {
+                        return;
+                    }
                     var state = _game.GetStateFor(_game.CurrentPlayer.Id);
-                    await _communicators[_game.CurrentPlayer.Id].SendAsync<CrazyEightsMessage>(new ItsYourTurnMessage { PlayerViewOfGame = state });
+                    await _communicators[_game.CurrentPlayer.Id].SendAsync(new ItsYourTurnMessage { PlayerViewOfGame = state });
                     break;
                 }
             }

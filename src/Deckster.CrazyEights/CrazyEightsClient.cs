@@ -51,7 +51,9 @@ public class CrazyEightsClient
 
     public async Task<Card> DrawCardAsync(CancellationToken cancellationToken = default)
     {
+        _logger.LogTrace("Draw card");
         var result = await SendAsync<DrawCardCommand, CardResult>(new DrawCardCommand(), cancellationToken);
+        _logger.LogTrace("Draw card: {result}", result.Card);
         return result.Card;
     }
 

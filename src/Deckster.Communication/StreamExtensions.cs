@@ -23,6 +23,14 @@ public static class StreamExtensions
         return bytes;
     }
     
+    public static int ToInt(this byte[] bytes)
+    {
+        return bytes[0] |
+               bytes[1] << 8 |
+               bytes[2] << 16 |
+               bytes[3] << 24;
+    }
+    
     public static async Task<byte[]> ReceiveMessageAsync(this Stream stream, CancellationToken cancellationToken = default)
     {
         var length = await stream.ReadMessageLengthAsync(cancellationToken);
@@ -31,10 +39,18 @@ public static class StreamExtensions
 
     private static async ValueTask<byte[]> ReadMessageAsync(this Stream stream, int length, CancellationToken cancellationToken)
     {
-        var message = new byte[length];
-        await stream.ReadExactlyAsync(message, cancellationToken);
-        //Console.WriteLine($"Receive {System.Text.Encoding.UTF8.GetString(message)}");
-        return message;
+        try
+        {
+            var message = new byte[length];
+            await stream.ReadExactlyAsync(message, cancellationToken);
+            //Console.WriteLine($"Receive {System.Text.Encoding.UTF8.GetString(message)}");
+            return message;
+        }
+        catch
+        {
+            Console.WriteLine($"Could not read message of length {length}");
+            throw;
+        }
     }
 
     private static async ValueTask<int> ReadMessageLengthAsync(this Stream stream, CancellationToken cancellationToken)
@@ -43,14 +59,6 @@ public static class StreamExtensions
         await stream.ReadExactlyAsync(lengthBytes, cancellationToken);
         var length = ToInt(lengthBytes);
         return length;
-    }
-    
-    public static int ToInt(this byte[] bytes)
-    {
-        return bytes[0] |
-               bytes[1] << 8 |
-               bytes[2] << 16 |
-               bytes[3] << 24;
     }
 
     public static Task SendJsonAsync<T>(this Stream stream, T message, CancellationToken cancellationToken = default)
@@ -62,16 +70,16 @@ public static class StreamExtensions
     
     public static async Task<T?> ReceiveJsonAsync<T>(this Stream stream, CancellationToken cancellationToken = default)
     {
-        var message = await stream.ReceiveMessageAsync(cancellationToken);
+        var bytes = await stream.ReceiveMessageAsync(cancellationToken);
         try
         {
-            var value = JsonSerializer.Deserialize<T>(message, DecksterJson.Options);
+            var value = JsonSerializer.Deserialize<T>(bytes, DecksterJson.Options);
             return value;
         }
         catch
         {
             Console.WriteLine("HELLOOOO!");
-            Console.WriteLine($"Could not read '{Encoding.UTF8.GetString(message)}'");
+            Console.WriteLine($"Could not read '{Encoding.UTF8.GetString(bytes)}'");
             throw;
         }
     }

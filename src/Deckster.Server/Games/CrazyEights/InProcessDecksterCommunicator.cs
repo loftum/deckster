@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using Deckster.Communication;
 using Deckster.Communication.Handshake;
+using Deckster.Core;
 
 namespace Deckster.Server.Games.CrazyEights;
 
@@ -15,16 +16,20 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
 
     private readonly ConcurrentQueue<object> _responses = new();
 
+    private readonly ILogger _logger;
+
     public InProcessDecksterCommunicator(PlayerData playerData)
     {
         PlayerData = playerData;
         Target = new InProcessDecksterCommunicator(playerData, this);
+        _logger = Log.Factory.CreateLogger($"{playerData.Name} (client)");
     }
 
     private InProcessDecksterCommunicator(PlayerData playerData, InProcessDecksterCommunicator target)
     {
         PlayerData = playerData;
         Target = target;
+        _logger = Log.Factory.CreateLogger($"{playerData.Name} (target)");
     }
     
     public Task DisconnectAsync()
@@ -51,9 +56,11 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
         object? val;
         while (!_responses.TryDequeue(out val))
         {
+            _logger.LogTrace("Waiting for {val}", typeof(T).Name);
             await Task.Delay(10, cancellationToken);
         }
-
+        
+        _logger.LogTrace("Got response {val}", val.GetType().Name);
         if (val is T t)
         {
             return t;
@@ -64,7 +71,8 @@ public class InProcessDecksterCommunicator : IDecksterCommunicator
 
     public Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)
     {
-        _responses.Enqueue(response);
+        _logger.LogTrace("Responding {val}", response.GetType().Name);
+        Target._responses.Enqueue(response);
         return Task.CompletedTask;
     }
 
