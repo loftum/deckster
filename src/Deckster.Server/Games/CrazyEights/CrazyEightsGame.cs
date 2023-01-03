@@ -74,7 +74,7 @@ public class CrazyEightsGame
         DonePlayers.Clear();
     }
 
-    public CommandResult PutCardOnDiscardPile(Guid playerId, Card card)
+    public CommandResult PutCard(Guid playerId, Card card)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -141,7 +141,7 @@ public class CrazyEightsGame
         return GetPlayerViewOfGame(player);
     }
     
-    public CommandResult DrawCardFromStockPile(Guid playerId)
+    public CommandResult DrawCard(Guid playerId)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {

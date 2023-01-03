@@ -1,5 +1,4 @@
 using Deckster.Client.Common;
-using Deckster.Client.Communication.Handshake;
 
 namespace Deckster.Client.Communication;
 

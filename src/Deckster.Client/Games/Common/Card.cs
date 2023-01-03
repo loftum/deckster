@@ -47,7 +47,11 @@ public readonly struct Card
 
     public override string ToString()
     {
-        return $"{Map(Rank)}{Suit.Display()}";
+        return Rank switch
+        {
+            0 => Map(Rank),
+            _ => $"{Map(Rank)}{Suit.Display()}"
+        };
     }
 
     private static string Map(int rank)

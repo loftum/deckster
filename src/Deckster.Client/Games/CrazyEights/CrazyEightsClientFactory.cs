@@ -1,3 +1,4 @@
+using Deckster.Client.Common;
 using Deckster.Client.Communication;
 
 namespace Deckster.Client.Games.CrazyEights;
@@ -11,6 +12,11 @@ public static class CrazyEightsClientFactory
         if (uri.AbsolutePath.EndsWith("practice"))
         {
             await communicator.SendAsync(new StartCommand(), cancellationToken);
+            var response = await communicator.ReceiveAsync<CommandResult>(cancellationToken);
+            if (response is FailureResult r)
+            {
+                throw new Exception(r.Message);
+            }
         }
         return client;
     }

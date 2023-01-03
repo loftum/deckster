@@ -59,6 +59,7 @@ public class CrazyEightsAi
                 {
                     _logger.LogInformation("Putting card: {card} ({turn})", card, turn);
                     var r = await _client.PutCardAsync(card);
+                    _logger.LogInformation("Result: {result}", r.GetType().Name);
                 }
                 catch (Exception e)
                 {
@@ -80,7 +81,8 @@ public class CrazyEightsAi
                     try
                     {
                         _logger.LogInformation("Putting card: {card} ({turn})", card, turn);
-                        await _client.PutCardAsync(card);
+                        var r = await _client.PutCardAsync(card);
+                        _logger.LogInformation("Result: {result}", r.GetType().Name);
                     }
                     catch (Exception e)
                     {

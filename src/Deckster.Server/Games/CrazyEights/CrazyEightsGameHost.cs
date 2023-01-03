@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Deckster.Client;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Games.CrazyEights;
@@ -15,8 +14,8 @@ public class CrazyEightsGameHost
 
     private CrazyEightsGame? _game;
     private readonly CrazyEightsRepo _repo;
-    private readonly ConcurrentDictionary<Guid, IDecksterChannel> _communicators = new();
-    
+    private readonly ConcurrentDictionary<Guid, IDecksterChannel> _channels = new();
+
     public CrazyEightsGameHost(CrazyEightsRepo repo)
     {
         _logger = Log.Factory.CreateLogger($"{nameof(CrazyEightsGameHost)} {Id}");
@@ -32,96 +31,97 @@ public class CrazyEightsGameHost
 
         channel.OnMessage += OnMessage;
         channel.OnDisconnected += OnDisconnected;
-        _communicators[channel.PlayerData.PlayerId] = channel;
+        _channels[channel.PlayerData.PlayerId] = channel;
     }
 
     private Task OnDisconnected(IDecksterChannel channel)
     {
         _logger.LogInformation("{player} disconnected", channel.PlayerData.Name);
-        _communicators.Remove(channel.PlayerData.PlayerId, out _);
+        _channels.Remove(channel.PlayerData.PlayerId, out _);
         return Task.CompletedTask;
     }
 
-    private async void OnMessage(IDecksterChannel c, byte[] bytes)
+    private async void OnMessage(IDecksterChannel channel, byte[] bytes)
     {
-        var message = DecksterJson.Deserialize<CrazyEightsCommand>(bytes);
-        await (message switch
+        var command = DecksterJson.Deserialize<CrazyEightsCommand>(bytes);
+        await (command switch
         {
-            PutCardCommand m => PutCardAsync(c, m),
-            PutEightCommand m => PutEightAsync(c, m),
-            DrawCardCommand m => DrawCardAsync(c, m),
-            PassCommand m => PassAsync(c, m),
-            StartCommand m => StartAsync(c, m),
-            _ => Task.CompletedTask
+            null => channel.RespondAsync(new FailureResult("Troll command")),
+            StartCommand m => StartAsync(channel, m),
+            _ => PerformMoveAsync(channel, command)
         });
     }
 
-    private async Task PassAsync(IDecksterChannel channel, PassCommand command)
+    private async Task PerformMoveAsync(IDecksterChannel channel, CrazyEightsCommand command)
     {
-        var result = _game.Pass(channel.PlayerData.PlayerId);
-        await HandleResultAsync(channel, command, result);
-    }
-
-    private async Task DrawCardAsync(IDecksterChannel channel, DrawCardCommand command)
-    {
-        _logger.LogInformation("{player} draws card", channel.PlayerData.Name);
-        var result = _game.DrawCardFromStockPile(channel.PlayerData.PlayerId);
-        await HandleResultAsync(channel, command, result);
-    }
-
-    private async Task PutEightAsync(IDecksterChannel channel, PutEightCommand command)
-    {
-        var result = _game.PutEight(channel.PlayerData.PlayerId, command.Card, command.NewSuit);
-        await HandleResultAsync(channel, command, result);
-    }
-
-    private async Task PutCardAsync(IDecksterChannel channel, PutCardCommand command)
-    {
-        _logger.LogInformation("{player} put card {card}", channel.PlayerData.Name, command.Card);
-        var result = _game.PutCardOnDiscardPile(channel.PlayerData.PlayerId, command.Card);
-        
-        await HandleResultAsync(channel, command, result);
-    }
-    
-    private async Task HandleResultAsync(IDecksterChannel channel, CrazyEightsCommand command, CommandResult result)
-    {
-        await channel.RespondAsync(result);
-        if (result is SuccessResult)
+        try
         {
-            var playerData = channel.PlayerData;
-            await BroadcastFromAsync(playerData.PlayerId, CreateBroadcastMessage(playerData.PlayerId, command));
-            switch (_game.State)
+            if (_game == null)
             {
-                case GameState.Finished:
-                    await Task.WhenAll(_communicators.Select(c => c.Value.SendAsync(
-                        new GameEndedMessage
-                        {
-                            Players = _game.Players.Select(p => new PlayerData
-                            {
-                                PlayerId = p.Id,
-                                Name = p.Name
-                            }).ToList()
-                        }))
-                    );
-                    break;
-                default:
+                await channel.RespondAsync(new FailureResult("Game has not started yet."));
+                return;
+            }
+
+            if (_game.State == GameState.Finished)
+            {
+                await channel.RespondAsync(new FailureResult("Game is finished."));
+                return;
+            }
+
+            var playerId = channel.PlayerData.PlayerId;
+            var result = command switch
+            {
+                PutCardCommand m => _game.PutCard(playerId, m.Card),
+                PutEightCommand m => _game.PutEight(playerId, m.Card, m.NewSuit),
+                DrawCardCommand m => _game.DrawCard(playerId),
+                PassCommand m => _game.Pass(playerId),
+                _ => new FailureResult("Unknown command")
+            };
+            _logger.LogInformation("Result for {name}: {type}", channel.PlayerData.Name, result.GetType().Name);
+
+            await channel.RespondAsync(result);
+
+            if (result is SuccessResult)
+            {
+                await BroadcastFromAsync(playerId, CreateBroadcastMessage(playerId, command));
+                switch (_game.State)
                 {
-                    var currentPlayerId = _game.CurrentPlayer.Id;
-                    if (currentPlayerId == channel.PlayerData.PlayerId)
+                    case GameState.Finished:
+                        await Task.WhenAll(_channels.Select(c => c.Value.SendAsync(
+                            new GameEndedMessage
+                            {
+                                Players = _game.Players.Select(p => new PlayerData
+                                {
+                                    PlayerId = p.Id,
+                                    Name = p.Name
+                                }).ToList()
+                            }))
+                        );
+                        return;
+                    default:
                     {
+                        var currentPlayerId = _game.CurrentPlayer.Id;
+                        if (currentPlayerId == playerId)
+                        {
+                            return;
+                        }
+
+                        var state = _game.GetStateFor(currentPlayerId);
+                        await _channels[currentPlayerId].SendAsync(new ItsYourTurnMessage {PlayerViewOfGame = state});
                         return;
                     }
-                    var state = _game.GetStateFor(_game.CurrentPlayer.Id);
-                    await _communicators[_game.CurrentPlayer.Id].SendAsync(new ItsYourTurnMessage { PlayerViewOfGame = state });
-                    break;
                 }
             }
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unhandled");
         }
     }
 
     private Task BroadcastFromAsync<TMessage>(Guid playerId, TMessage message) where TMessage : CrazyEightsMessage
     {
-        var communiactors = _communicators.Values.Where(c => c.PlayerData.PlayerId != playerId);
+        var communiactors = _channels.Values.Where(c => c.PlayerData.PlayerId != playerId);
         return Task.WhenAll(communiactors.Select(c => c.SendAsync<CrazyEightsMessage>(message)));
     }
     
@@ -137,37 +137,62 @@ public class CrazyEightsGameHost
         };
     }
 
-    private async Task<CommandResult> StartAsync(IDecksterChannel channel, StartCommand command)
+    private async Task StartAsync(IDecksterChannel channel, StartCommand command)
     {
-        if (IsStarted)
+        var result = CreateGame();
+        await channel.RespondAsync(result);
+    
+        if (result is SuccessResult)
         {
-            return new FailureResult("Game already started");
+            await StartGameAsync();    
         }
-        await StartAsync();
-        return new SuccessResult();
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken = default)
+    public async Task<CommandResult> StartAsync(CancellationToken cancellationToken = default)
     {
-        var players = _communicators.Select(c => new CrazyEightsPlayer
+        var result = CreateGame();
+        if (result is SuccessResult)
         {
-            Id = c.Value.PlayerData.PlayerId,
-            Name = c.Value.PlayerData.Name,
-        }).ToArray();
-        _game = new CrazyEightsGame(Deck.Default.Shuffle(), players);
+            await StartGameAsync(cancellationToken);    
+        }
 
-        await Task.WhenAll(_communicators.Select(c => c.Value.SendAsync(
+        return result;
+    }
+
+    private async Task StartGameAsync(CancellationToken cancellationToken = default)
+    {
+        if (_game == null)
+        {
+            return;
+        }
+        
+        await Task.WhenAll(_channels.Select(c => c.Value.SendAsync(
             new GameStartedMessage
             {
                 PlayerViewOfGame = _game.GetStateFor(c.Value.PlayerData.PlayerId)
             }, cancellationToken))
         );
-        
+
         var currentPlayerId = _game.CurrentPlayer.Id;
-        
-        await _communicators[currentPlayerId].SendAsync(new ItsYourTurnMessage
+
+        await _channels[currentPlayerId].SendAsync(new ItsYourTurnMessage
         {
             PlayerViewOfGame = _game.GetStateFor(currentPlayerId)
         }, cancellationToken);
+    }
+
+    private CommandResult CreateGame()
+    {
+        if (_game != null)
+        {
+            return new FailureResult("Game already started");
+        }
+        var players = _channels.Select(c => new CrazyEightsPlayer
+        {
+            Id = c.Value.PlayerData.PlayerId,
+            Name = c.Value.PlayerData.Name
+        }).ToArray();
+        _game = new CrazyEightsGame(Deck.Default.Shuffle(), players);
+        return new SuccessResult();
     }
 }

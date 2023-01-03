@@ -68,6 +68,7 @@ public class CrazyEightsClient
         await _channel.SendAsync(command, cancellationToken);
         _logger.LogTrace("Waiting for response");
         var result = await _channel.ReceiveAsync<CommandResult>(cancellationToken);
+        _logger.LogTrace("Got response");
         return result switch
         {
             null => throw new Exception("Result is null. Wat"),
