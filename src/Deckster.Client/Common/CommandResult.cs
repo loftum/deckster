@@ -1,4 +1,4 @@
-namespace Deckster.Client.Core.Games;
+namespace Deckster.Client.Common;
 
 public abstract class CommandResult : IHaveDiscriminator
 {

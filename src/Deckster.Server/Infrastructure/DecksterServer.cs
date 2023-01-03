@@ -1,9 +1,9 @@
 using System.Net;
 using System.Net.Sockets;
 using Deckster.Client;
+using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Communication.Handshake;
-using Deckster.Client.Core;
 using Deckster.Client.Logging;
 using Deckster.Server.Users;
 

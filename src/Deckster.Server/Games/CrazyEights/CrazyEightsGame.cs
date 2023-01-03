@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Core.Domain;
-using Deckster.Client.Core.Games;
-using Deckster.Client.CrazyEights;
+using Deckster.Client.Common;
+using Deckster.Client.Games.Common;
+using Deckster.Client.Games.CrazyEights;
 
 namespace Deckster.Server.Games.CrazyEights;
 

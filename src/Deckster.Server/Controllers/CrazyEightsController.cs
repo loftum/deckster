@@ -1,4 +1,4 @@
-using Deckster.Client.Core.Games;
+using Deckster.Client.Common;
 using Deckster.Server.Authentication;
 using Deckster.Server.Games.CrazyEights;
 using Deckster.Server.Users;

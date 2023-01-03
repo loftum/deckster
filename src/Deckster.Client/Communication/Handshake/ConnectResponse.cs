@@ -1,3 +1,5 @@
+using Deckster.Client.Common;
+
 namespace Deckster.Client.Communication.Handshake;
 
 public class ConnectResponse

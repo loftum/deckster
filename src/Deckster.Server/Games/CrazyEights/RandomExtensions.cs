@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
-using Deckster.Client.Core.Domain;
+using Deckster.Client.Common;
+using Deckster.Client.Games.Common;
 
 namespace Deckster.Server.Games.CrazyEights;
 

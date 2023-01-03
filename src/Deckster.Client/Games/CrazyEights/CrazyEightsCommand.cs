@@ -1,8 +1,8 @@
+using Deckster.Client.Common;
 using Deckster.Client.Communication;
-using Deckster.Client.Core.Domain;
-using Deckster.Client.Core.Games;
+using Deckster.Client.Games.Common;
 
-namespace Deckster.Client.CrazyEights;
+namespace Deckster.Client.Games.CrazyEights;
 
 [JsonDerived<CrazyEightsCommand>]
 public abstract class CrazyEightsCommand : IHaveDiscriminator

@@ -1,11 +1,11 @@
 using System.Text.Json;
+using Deckster.Client.Common;
 using Deckster.Client.Communication;
-using Deckster.Client.Core.Domain;
-using Deckster.Client.Core.Games;
+using Deckster.Client.Games.Common;
 using Deckster.Client.Logging;
 using Microsoft.Extensions.Logging;
 
-namespace Deckster.Client.CrazyEights;
+namespace Deckster.Client.Games.CrazyEights;
 
 public class CrazyEightsClient
 {

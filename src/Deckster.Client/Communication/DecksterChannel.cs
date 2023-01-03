@@ -1,7 +1,6 @@
 ﻿using System.Net.Sockets;
 using System.Text;
-using Deckster.Client.Communication.Handshake;
-using Deckster.Client.Core;
+using Deckster.Client.Common;
 using Deckster.Client.Logging;
 using Microsoft.Extensions.Logging;
 

@@ -1,4 +1,4 @@
-namespace Deckster.Client.Core.Domain;
+namespace Deckster.Client.Games.Common;
 
 public enum Suit
 {

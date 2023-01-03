@@ -1,6 +1,6 @@
 using Deckster.Client.Communication;
 
-namespace Deckster.Client.CrazyEights;
+namespace Deckster.Client.Games.CrazyEights;
 
 public static class CrazyEightsClientFactory
 {
