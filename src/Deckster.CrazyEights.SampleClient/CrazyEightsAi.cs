@@ -39,12 +39,14 @@ public class CrazyEightsAi
     }
 
     private int _turn;
+    private readonly SemaphoreSlim _semaphore = new(1,1);
 
     private async void ItsMyTurn(ItsYourTurnMessage message)
     {
         var turn = _turn++;
         try
         {
+            await _semaphore.WaitAsync();
             var cards = message.PlayerViewOfGame.Cards;
             _logger.LogInformation("It's my turn. Top: {top} ({suit}). I have: {cards} ({turn})",
                 message.PlayerViewOfGame.TopOfPile,
@@ -52,7 +54,7 @@ public class CrazyEightsAi
                 string.Join(", ", cards),
                 turn);
             _view = message.PlayerViewOfGame;
-            
+
             if (TryGetCard(out var card))
             {
                 try
@@ -66,7 +68,7 @@ public class CrazyEightsAi
                     _logger.LogError("{message} ({turn})", e.Message, turn);
                     throw;
                 }
-                
+
                 return;
             }
 
@@ -89,7 +91,7 @@ public class CrazyEightsAi
                         _logger.LogError("{message} ({turn})", e.Message, turn);
                         throw;
                     }
-                    
+
                     return;
                 }
             }
@@ -101,6 +103,10 @@ public class CrazyEightsAi
         {
             _logger.LogError(e, "Argh ({turn})", turn);
             throw;
+        }
+        finally
+        {
+            _semaphore.Release();
         }
         _logger.LogInformation("Done ({turn})", turn);
     }
