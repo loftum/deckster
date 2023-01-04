@@ -1,4 +1,3 @@
-using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Deckster.Client.Common;
@@ -9,16 +8,14 @@ namespace Deckster.Server.Games.CrazyEights;
 
 public class InProcessDecksterChannel : IDecksterChannel
 {
-    public InProcessDecksterChannel Target { get; }
+    private readonly ILogger _logger;
+    private readonly Synchronizer _response = new();
     
+    public InProcessDecksterChannel Target { get; }
     public PlayerData PlayerData { get; }
+    
     public event Action<IDecksterChannel, byte[]>? OnMessage;
     public event Func<IDecksterChannel, Task>? OnDisconnected;
-
-    private readonly Synchronizer _synchronizer = new();
-    private readonly Locked<object> _response = new();
-
-    private readonly ILogger _logger;
 
     public InProcessDecksterChannel(PlayerData playerData)
     {
@@ -57,9 +54,10 @@ public class InProcessDecksterChannel : IDecksterChannel
     {
         _logger.LogInformation("Await {val}", typeof(T).Name);
         
-        var val = await _synchronizer;
+        var val = await _response;
 
         _logger.LogInformation("Done await {val}", val.GetType().Name);
+        
         if (val is T t)
         {
             return t;
@@ -68,93 +66,94 @@ public class InProcessDecksterChannel : IDecksterChannel
         return default;
     }
 
-    public async Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)
+    public Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)
     {
         _logger.LogTrace("Responding {val}", response.GetType().Name);
-        Target._synchronizer.SetResult(response);
+        Target._response.SetResult(response);
         _logger.LogTrace("Done Responding {val}", response.GetType().Name);
+        return Task.CompletedTask;
     }
 
     public void Dispose()
     {
         
     }
-}
 
-internal class Synchronizer
-{
-    private readonly object _lock = new();
-    private readonly Queue<SynchronizerAwaiter> _awaiters = new();
-
-    public SynchronizerAwaiter GetAwaiter()
+    private class Synchronizer
     {
-        lock (_lock)
+        private readonly object _lock = new();
+        private readonly Queue<SynchronizerAwaiter> _awaiters = new();
+    
+        public SynchronizerAwaiter GetAwaiter()
         {
-            if (_awaiters.TryDequeue(out var awaiter))
+            lock (_lock)
             {
+                if (_awaiters.TryDequeue(out var awaiter))
+                {
+                    return awaiter;
+                }
+                awaiter = new SynchronizerAwaiter();
+                _awaiters.Enqueue(awaiter);
                 return awaiter;
             }
-            awaiter = new SynchronizerAwaiter();
-            _awaiters.Enqueue(awaiter);
-            return awaiter;
+        }
+    
+        public void SetResult(object value)
+        {
+            SynchronizerAwaiter awaiter;
+            lock (_lock)
+            {
+                if (_awaiters.TryDequeue(out var a))
+                {
+                    awaiter = a;
+                }
+                else
+                {
+                    awaiter = new SynchronizerAwaiter();
+                    _awaiters.Enqueue(awaiter);
+                }
+            }
+            awaiter.Result = value;
         }
     }
 
-    public void SetResult(object value)
+    private class SynchronizerAwaiter : INotifyCompletion
     {
-        SynchronizerAwaiter awaiter;
-        lock (_lock)
+        private Action? _continuation;
+        private object? _result;
+        
+        public object? Result
         {
-            if (_awaiters.TryDequeue(out var a))
+            get => _result;
+            set
             {
-                awaiter = a;
+                _result = value;
+                IsCompleted = true;
+                if (_continuation != null)
+                {
+                    _continuation.Invoke();
+                }
+            }
+        }
+    
+        public bool IsCompleted { get; private set; }
+        
+        public object? GetResult()
+        {
+            return Result;
+        }
+    
+        public void OnCompleted(Action continuation)
+        {
+            if (IsCompleted)
+            {
+                continuation.Invoke();
             }
             else
             {
-                awaiter = new SynchronizerAwaiter();
-                _awaiters.Enqueue(awaiter);
-            }
-        }
-        awaiter.Result = value;
-    }
-}
-
-internal class SynchronizerAwaiter : INotifyCompletion
-{
-    private Action? _continuation;
-    private object? _result;
-    
-
-    public object? Result
-    {
-        get => _result;
-        set
-        {
-            _result = value;
-            IsCompleted = true;
-            if (_continuation != null)
-            {
-                _continuation.Invoke();
+                _continuation = continuation;    
             }
         }
     }
-
-    public bool IsCompleted { get; private set; }
-    
-    public object? GetResult()
-    {
-        return Result;
-    }
-
-    public void OnCompleted(Action continuation)
-    {
-        if (IsCompleted)
-        {
-            continuation.Invoke();
-        }
-        else
-        {
-            _continuation = continuation;    
-        }
-    }
 }
+
