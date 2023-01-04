@@ -201,7 +201,7 @@ public class CrazyEightsGameHost
             Id = c.Value.PlayerData.PlayerId,
             Name = c.Value.PlayerData.Name
         }).ToArray();
-        _game = new CrazyEightsGame(Deck.Default.Shuffle(), players);
+        _game = new CrazyEightsGame(Deck.Standard.Shuffle(), players);
         return new SuccessResult();
     }
 }

@@ -1,5 +1,4 @@
-﻿using Deckster.Client.Common;
-using Deckster.Client.Games.Common;
+﻿using Deckster.Client.Games.Common;
 
 namespace Deckster.Server.Games.CrazyEights;
 
@@ -18,7 +17,7 @@ public class Deck
         return this;
     }
     
-    public static Deck Default
+    public static Deck Standard
     {
         get
         {

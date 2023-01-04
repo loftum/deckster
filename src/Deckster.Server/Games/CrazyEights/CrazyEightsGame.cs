@@ -7,13 +7,15 @@ namespace Deckster.Server.Games.CrazyEights;
 
 public class CrazyEightsGame
 {
-    private const int InitialCardsPerPlayer = 5;
+    private readonly int _initialCardsPerPlayer;
+    private const int DefaultInitialCardsPerPlayer = 5;
     
     public List<CrazyEightsPlayer> DonePlayers { get; } = new();
     private int _currentPlayerIndex;
     private int _cardsDrawn;
     
     public Guid Id { get; set; } = Guid.NewGuid();
+    
     public GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
     
     /// <summary>
@@ -38,15 +40,23 @@ public class CrazyEightsGame
 
     private Suit? _newSuit;
     public Card TopOfPile => DiscardPile.Peek();
-    public Suit CurrentSuit => _newSuit ?? TopOfPile.Suit; 
-    
-    
+    public Suit CurrentSuit => _newSuit ?? TopOfPile.Suit;
+
     public CrazyEightsPlayer CurrentPlayer => State == GameState.Finished ? CrazyEightsPlayer.Null : Players[_currentPlayerIndex];
 
-    public CrazyEightsGame(Deck deck, CrazyEightsPlayer[] players)
+    public CrazyEightsGame(Deck deck, CrazyEightsPlayer[] players) : this(deck, players, DefaultInitialCardsPerPlayer)
+    {
+    }
+    
+    public CrazyEightsGame(Deck deck, CrazyEightsPlayer[] players, int initialCardsPerPlayer)
     {
         Deck = deck;
         Players = players;
+        _initialCardsPerPlayer = initialCardsPerPlayer;
+        if (Deck.Cards.Count < players.Length * initialCardsPerPlayer)
+        {
+            throw new ArgumentException("Not enough cards in deck", nameof(initialCardsPerPlayer));
+        }
         Reset();
     }
 
@@ -61,7 +71,7 @@ public class CrazyEightsGame
         DonePlayers.Clear();
         StockPile.Clear();
         StockPile.PushRange(Deck.Cards);
-        for (var ii = 0; ii < InitialCardsPerPlayer; ii++)
+        for (var ii = 0; ii < _initialCardsPerPlayer; ii++)
         {
             foreach (var player in Players)
             {
@@ -115,6 +125,11 @@ public class CrazyEightsGame
         {
             return new FailureResult($"You don't have '{card}'");
         }
+        
+        if (card.Rank != 8)
+        {
+            return new FailureResult("Card rank must be '8'");
+        }
 
         if (!CanPut(card))
         {
@@ -123,11 +138,6 @@ public class CrazyEightsGame
                 : new FailureResult($"Cannot put '{card}' on '{TopOfPile}'");
         }
 
-        if (card.Rank != 8)
-        {
-            return new FailureResult("Card rank must be '8'");
-        }
-        
         player.Cards.Remove(card);
         DiscardPile.Push(card);
         _newSuit = newSuit != card.Suit ? newSuit : null;
@@ -228,7 +238,7 @@ public class CrazyEightsGame
 
     private bool CanPut(Card card)
     {
-        return TopOfPile.Suit == CurrentSuit ||
+        return CurrentSuit == card.Suit ||
                TopOfPile.Rank == card.Rank ||
                card.Rank == 8;
     }

@@ -9,8 +9,8 @@ public class ShuffleTest
     [Test]
     public void KnuthShuffleTest()
     {
-        var unshuffled = Deck.Default.Cards;
-        var shuffled = Deck.Default.Cards.KnuthShuffle();
+        var unshuffled = Deck.Standard.Cards;
+        var shuffled = Deck.Standard.Cards.KnuthShuffle();
 
         Assert.That(unshuffled.SequenceEqual(shuffled), Is.False);
     }
