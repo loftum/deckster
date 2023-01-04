@@ -52,12 +52,8 @@ public class InProcessDecksterChannel : IDecksterChannel
 
     public async Task<T?> ReceiveAsync<T>(CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation("Await {val}", typeof(T).Name);
-        
         var val = await _response;
 
-        _logger.LogInformation("Done await {val}", val.GetType().Name);
-        
         if (val is T t)
         {
             return t;
@@ -68,9 +64,7 @@ public class InProcessDecksterChannel : IDecksterChannel
 
     public Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)
     {
-        _logger.LogTrace("Responding {val}", response.GetType().Name);
         Target._response.SetResult(response);
-        _logger.LogTrace("Done Responding {val}", response.GetType().Name);
         return Task.CompletedTask;
     }
 
@@ -98,7 +92,7 @@ public class InProcessDecksterChannel : IDecksterChannel
             }
         }
     
-        public void SetResult(object value)
+        public void SetResult(object? value)
         {
             SynchronizerAwaiter awaiter;
             lock (_lock)
@@ -129,10 +123,7 @@ public class InProcessDecksterChannel : IDecksterChannel
             {
                 _result = value;
                 IsCompleted = true;
-                if (_continuation != null)
-                {
-                    _continuation.Invoke();
-                }
+                _continuation?.Invoke();
             }
         }
     

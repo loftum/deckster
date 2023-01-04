@@ -1,4 +1,3 @@
-using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 
 namespace Deckster.Server.Games.CrazyEights;
@@ -6,7 +5,7 @@ namespace Deckster.Server.Games.CrazyEights;
 public class CrazyEightsPlayer
 {
     public Guid Id { get; init; }
-    public string Name { get; init; }
+    public string Name { get; init; } = "";
     
     public List<Card> Cards { get; } = new();
 
