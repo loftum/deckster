@@ -1,4 +1,3 @@
-using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.Client.Logging;
@@ -46,13 +45,14 @@ public class CrazyEightsAi
         var turn = _turn++;
         try
         {
-            await _semaphore.WaitAsync();
             var cards = message.PlayerViewOfGame.Cards;
+            
             _logger.LogInformation("It's my turn. Top: {top} ({suit}). I have: {cards} ({turn})",
                 message.PlayerViewOfGame.TopOfPile,
                 message.PlayerViewOfGame.CurrentSuit.Display(),
                 string.Join(", ", cards),
                 turn);
+            
             _view = message.PlayerViewOfGame;
 
             if (TryGetCard(out var card))
@@ -103,10 +103,6 @@ public class CrazyEightsAi
         {
             _logger.LogError(e, "Argh ({turn})", turn);
             throw;
-        }
-        finally
-        {
-            _semaphore.Release();
         }
         _logger.LogInformation("Done ({turn})", turn);
     }

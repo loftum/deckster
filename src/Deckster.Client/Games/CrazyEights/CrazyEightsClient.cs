@@ -9,7 +9,10 @@ namespace Deckster.Client.Games.CrazyEights;
 
 public class CrazyEightsClient
 {
+    private readonly IDecksterChannel _channel;
+    private readonly SemaphoreSlim _semaphore = new(1,1);
     private readonly ILogger _logger;
+    
     public event Action<PlayerPutCardMessage>? PlayerPutCard;
     public event Action<PlayerPutEightMessage>? PlayerPutEight;
     public event Action<PlayerDrewCardMessage>? PlayerDrewCard;
@@ -18,7 +21,6 @@ public class CrazyEightsClient
     public event Action<GameStartedMessage>? GameStarted;
     public event Action<GameEndedMessage>? GameEnded;
 
-    private readonly IDecksterChannel _channel;
     public PlayerData PlayerData => _channel.PlayerData;
 
     public CrazyEightsClient(IDecksterChannel channel)
@@ -65,9 +67,7 @@ public class CrazyEightsClient
         where TResult : CommandResult
     {
         _logger.LogTrace("Sending {type}", typeof(TCommand));
-        await _channel.SendAsync(command, cancellationToken);
-        _logger.LogTrace("Waiting for response");
-        var result = await _channel.ReceiveAsync<CommandResult>(cancellationToken);
+        var result = await DoSendAsync(command, cancellationToken);
         _logger.LogTrace("Got response");
         return result switch
         {
@@ -76,6 +76,22 @@ public class CrazyEightsClient
             TResult r => r,
             _ => throw new Exception($"Unknown result '{result.GetType().Name}'")
         };
+    }
+
+    private async Task<CommandResult?> DoSendAsync<TCommand>(TCommand command, CancellationToken cancellationToken = default)
+        where TCommand : CrazyEightsCommand
+    {
+        try
+        {
+            await _semaphore.WaitAsync(cancellationToken);
+            await _channel.SendAsync(command, cancellationToken);
+            var result = await _channel.ReceiveAsync<CommandResult>(cancellationToken);
+            return result;
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     private async void HandleMessageAsync(IDecksterChannel channel, byte[] bytes)

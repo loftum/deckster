@@ -130,13 +130,10 @@ internal class SynchronizerAwaiter : INotifyCompletion
         get => _result;
         set
         {
-            Console.WriteLine("Set result");
-            Console.WriteLine($"Continuation == null? {_continuation == null}");
             _result = value;
             IsCompleted = true;
             if (_continuation != null)
             {
-                Console.WriteLine("Invoking onComplete");
                 _continuation.Invoke();
             }
         }
@@ -146,7 +143,6 @@ internal class SynchronizerAwaiter : INotifyCompletion
     
     public object? GetResult()
     {
-        Console.WriteLine("GET RESULT");
         return Result;
     }
 
@@ -154,12 +150,10 @@ internal class SynchronizerAwaiter : INotifyCompletion
     {
         if (IsCompleted)
         {
-            Console.WriteLine("Invoking onCompleted");
             continuation.Invoke();
         }
         else
         {
-            Console.WriteLine("Setting onCompleted");
             _continuation = continuation;    
         }
     }

@@ -15,6 +15,7 @@ public class CrazyEightsGameHost
     private CrazyEightsGame? _game;
     private readonly CrazyEightsRepo _repo;
     private readonly ConcurrentDictionary<Guid, IDecksterChannel> _channels = new();
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
 
     public CrazyEightsGameHost(CrazyEightsRepo repo)
     {
@@ -44,12 +45,20 @@ public class CrazyEightsGameHost
     private async void OnMessage(IDecksterChannel channel, byte[] bytes)
     {
         var command = DecksterJson.Deserialize<CrazyEightsCommand>(bytes);
-        await (command switch
+        try
         {
-            null => channel.RespondAsync(new FailureResult("Troll command")),
-            StartCommand m => StartAsync(channel, m),
-            _ => PerformMoveAsync(channel, command)
-        });
+            await _semaphore.WaitAsync();
+            await (command switch
+            {
+                null => channel.RespondAsync(new FailureResult("Troll command")),
+                StartCommand m => StartAsync(channel, m),
+                _ => PerformMoveAsync(channel, command)
+            });
+        }
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     private async Task PerformMoveAsync(IDecksterChannel channel, CrazyEightsCommand command)
