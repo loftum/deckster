@@ -14,7 +14,7 @@ public readonly struct Card
     {
         if (rank is < 0 or > 13)
         {
-            throw new ArgumentOutOfRangeException(nameof(rank), "Invalid rank '{rank}'");
+            throw new ArgumentOutOfRangeException(nameof(rank), $"Invalid rank '{rank}'");
         }
         Rank = rank;
         Suit = suit;

@@ -53,9 +53,9 @@ public class CrazyEightsGame
         Deck = deck;
         Players = players;
         _initialCardsPerPlayer = initialCardsPerPlayer;
-        if (Deck.Cards.Count < players.Length * initialCardsPerPlayer)
+        if (Deck.Cards.Count <= players.Length * initialCardsPerPlayer)
         {
-            throw new ArgumentException("Not enough cards in deck", nameof(initialCardsPerPlayer));
+            throw new ArgumentException($"Not enough cards in deck ({Deck.Cards.Count})", nameof(initialCardsPerPlayer));
         }
         Reset();
     }
@@ -249,6 +249,7 @@ public class CrazyEightsGame
         {
             return;
         }
+        
         if (DiscardPile.Count < 2)
         {
             return;
