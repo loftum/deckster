@@ -20,7 +20,7 @@ class Program
             using var cts = new CancellationTokenSource();
             var client = await CrazyEightsClientFactory.ConnectAsync(uri, cts.Token);
             
-            var ai = new CrazyEightsAi(client);
+            var ai = new CrazyEightsPoorAi(client);
             await ai.PlayAsync(cts.Token);
             return 0;
         }

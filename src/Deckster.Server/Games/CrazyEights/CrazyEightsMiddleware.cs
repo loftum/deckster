@@ -56,7 +56,7 @@ public class CrazyEightsMiddleware : IDecksterMiddleware
                     PlayerId = Guid.NewGuid(),
                     Name = $"Player {ii}"
                 });
-                var ai = new CrazyEightsAi(new CrazyEightsClient(communicator));
+                var ai = new CrazyEightsPoorAi(new CrazyEightsClient(communicator));
                 newHost.Add(communicator.Target);
             }
             

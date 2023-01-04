@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Deckster.CrazyEights.SampleClient;
 
-public class CrazyEightsAi
+public class CrazyEightsPoorAi
 {
     private readonly ILogger _logger;
     
@@ -13,7 +13,7 @@ public class CrazyEightsAi
     private readonly CrazyEightsClient _client;
     private bool _gameEnded;
 
-    public CrazyEightsAi(CrazyEightsClient client)
+    public CrazyEightsPoorAi(CrazyEightsClient client)
     {
         _client = client;
         _logger = Log.Factory.CreateLogger(client.PlayerData.Name);
@@ -38,7 +38,6 @@ public class CrazyEightsAi
     }
 
     private int _turn;
-    private readonly SemaphoreSlim _semaphore = new(1,1);
 
     private async void ItsMyTurn(ItsYourTurnMessage message)
     {

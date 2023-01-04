@@ -193,6 +193,8 @@ public class CrazyEightsGame
             Cards = player.Cards,
             TopOfPile = TopOfPile,
             CurrentSuit = CurrentSuit,
+            DiscardPileCount = DiscardPile.Count,
+            StockPileCount = StockPile.Count,
             OtherPlayers = Players.Where(p => p.Id != player.Id).Select(ToOtherPlayer).ToList()
         };
     }
@@ -209,7 +211,6 @@ public class CrazyEightsGame
         player = p;
         return true;
     }
-    
 
     private void MoveToNextPlayer()
     {
