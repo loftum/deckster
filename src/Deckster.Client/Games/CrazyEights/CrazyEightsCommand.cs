@@ -7,7 +7,7 @@ namespace Deckster.Client.Games.CrazyEights;
 [JsonDerived<CrazyEightsCommand>]
 public abstract class CrazyEightsCommand : IHaveDiscriminator
 {
-    public string Discriminator => GetType().Name;
+    public string Type => GetType().Name.Replace("Command", "");
 }
 
 public class StartCommand : CrazyEightsCommand

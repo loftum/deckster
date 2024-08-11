@@ -13,4 +13,9 @@ public static class AsyncQueryableExtensions
     {
         return Task.FromResult(queryable.FirstOrDefault(predicate));
     }
+
+    public static Task<List<T>> ToListAsync<T>(this IQueryable<T> queryable, CancellationToken cancellationToken = default)
+    {
+        return Task.FromResult(queryable.ToList());
+    }
 }

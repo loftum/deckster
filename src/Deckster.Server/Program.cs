@@ -14,6 +14,7 @@ class Program
             using var cts = new CancellationTokenSource();
             Console.CancelKeyPress += (_, _) => cts.Cancel();
             var builder = WebApplication.CreateBuilder(argz);
+            
 
             var services = builder.Services;
             ConfigureServices(services);
@@ -34,14 +35,15 @@ class Program
 
     private static void ConfigureServices(IServiceCollection services)
     {
+        services.AddLogging(b => b.AddConsole());
         services.AddWebSockets(o =>
         {
-            o.KeepAliveInterval = TimeSpan.FromMinutes(1);
+            o.KeepAliveInterval = TimeSpan.FromSeconds(10);
         });
-        services.AddSignalR();
+        
         services.AddControllers();
         services.AddSingleton<IRepo, InMemoryRepo>();
-        
+
         services.AddCrazyEights();
 
         var mvc = services.AddMvc();
@@ -72,6 +74,7 @@ class Program
         app.UseStaticFiles();
         app.UseAuthentication();
         app.LoadUser();
+        app.UseWebSockets();
         app.MapControllers();
     }
 }

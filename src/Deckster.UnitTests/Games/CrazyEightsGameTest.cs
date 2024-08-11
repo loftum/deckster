@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Server.Games.CrazyEights;
+using Deckster.Server.Games.CrazyEights.Core;
 using NUnit.Framework;
 
 namespace Deckster.UnitTests.Games;
@@ -111,7 +112,7 @@ public class CrazyEightsGameTest
     [Test]
     public void Draw_Fails_WhenNoMoreCards()
     {
-        var game = CreateGame(12);
+        var game = CreateGame();
         var player = game.Players[0];
         for (var ii = 0; ii < 3; ii++)
         {
@@ -155,9 +156,9 @@ public class CrazyEightsGameTest
         }
     }
 
-    private static CrazyEightsGame CreateGame(int cardsPerPlayer = 10)
+    private static CrazyEightsGame CreateGame()
     {
-        var players = new[]
+        var players = new List<CrazyEightsPlayer>
         {
             new CrazyEightsPlayer
             {
@@ -180,7 +181,11 @@ public class CrazyEightsGameTest
                 Name = Some.TotallyDifferentPlayerName
             }
         };
-        var game = new CrazyEightsGame(TestDeck, players, cardsPerPlayer);
+        var game = new CrazyEightsGame
+        {
+            Deck = TestDeck,
+            Players = players,
+        };
         return game;
     }
 

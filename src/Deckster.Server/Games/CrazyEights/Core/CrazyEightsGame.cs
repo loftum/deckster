@@ -2,26 +2,24 @@ using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
+using Deckster.Server.Data;
 
-namespace Deckster.Server.Games.CrazyEights;
+namespace Deckster.Server.Games.CrazyEights.Core;
 
-public class CrazyEightsGame
+public class CrazyEightsGame : DomainObject
 {
-    private readonly int _initialCardsPerPlayer;
-    private const int DefaultInitialCardsPerPlayer = 5;
+    private readonly int _initialCardsPerPlayer = 5;
     
     public List<CrazyEightsPlayer> DonePlayers { get; } = new();
     private int _currentPlayerIndex;
     private int _cardsDrawn;
-    
-    public Guid Id { get; set; } = Guid.NewGuid();
     
     public GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
     
     /// <summary>
     /// All the (shuffled) cards in the game
     /// </summary>
-    public Deck Deck { get; }
+    public Deck Deck { get; set; } = Deck.Standard;
 
     /// <summary>
     /// Where players draw cards from
@@ -32,11 +30,11 @@ public class CrazyEightsGame
     /// Where players put cards
     /// </summary>
     public Stack<Card> DiscardPile { get; } = new();
-    
+
     /// <summary>
     /// All the players
     /// </summary>
-    public CrazyEightsPlayer[] Players { get; }
+    public List<CrazyEightsPlayer> Players { get; init; } = [];
 
     private Suit? _newSuit;
     public Card TopOfPile => DiscardPile.Peek();
@@ -44,20 +42,23 @@ public class CrazyEightsGame
 
     public CrazyEightsPlayer CurrentPlayer => State == GameState.Finished ? CrazyEightsPlayer.Null : Players[_currentPlayerIndex];
 
-    public CrazyEightsGame(Deck deck, CrazyEightsPlayer[] players) : this(deck, players, DefaultInitialCardsPerPlayer)
+    public bool TryAddPlayer(Guid id, string name, [MaybeNullWhen(true)] out string reason)
     {
-    }
-    
-    public CrazyEightsGame(Deck deck, CrazyEightsPlayer[] players, int initialCardsPerPlayer)
-    {
-        Deck = deck;
-        Players = players;
-        _initialCardsPerPlayer = initialCardsPerPlayer;
-        if (Deck.Cards.Count <= players.Length * initialCardsPerPlayer)
+        if (Players.Any(p => p.Id == id))
         {
-            throw new ArgumentException($"Not enough cards in deck ({Deck.Cards.Count})", nameof(initialCardsPerPlayer));
+            reason = "Player already exists";
+            return false;
         }
-        Reset();
+        
+        if (Deck.Cards.Count <= (Players.Count + 1) * _initialCardsPerPlayer)
+        {
+            reason = "Too many players";
+            return false;
+        }
+        Players.Add(new CrazyEightsPlayer { Id = id, Name = name });
+        
+        reason = default;
+        return true;
     }
 
     public void Reset()
@@ -225,7 +226,7 @@ public class CrazyEightsGame
         while (!foundNext)
         {
             index++;
-            if (index >= Players.Length)
+            if (index >= Players.Count)
             {
                 index = 0;
             }
@@ -281,5 +282,10 @@ public class CrazyEightsGame
             Name = player.Name,
             NumberOfCards = player.Cards.Count
         };
+    }
+
+    public void RemovePlayer(Guid id)
+    {
+        Players.RemoveAll(p => p.Id == id);
     }
 }

@@ -7,7 +7,7 @@ namespace Deckster.Client.Games.CrazyEights;
 [JsonDerived<CrazyEightsMessage>]
 public abstract class CrazyEightsMessage : IHaveDiscriminator
 {
-    public string Discriminator => GetType().Name;
+    public string Type => GetType().Name;
 }
 
 public class PlayerPutCardMessage : CrazyEightsMessage
