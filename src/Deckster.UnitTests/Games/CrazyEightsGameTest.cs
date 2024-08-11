@@ -45,7 +45,7 @@ public class CrazyEightsGameTest
 
     [Test]
     [TestCase(1, Suit.Clubs, "You don't have 'A♧'")]
-    [TestCase(12, Suit.Clubs, "Cannot put 'Q♧' on '4♥'")]
+    [TestCase(12, Suit.Clubs, "Cannot put 'Q♧' on '8♤'")]
     public void PutCard_Fails(int rank, Suit suit, string errorMessage)
     {
         var game = CreateGame();
@@ -160,22 +160,22 @@ public class CrazyEightsGameTest
     {
         var players = new List<CrazyEightsPlayer>
         {
-            new CrazyEightsPlayer
+            new()
             {
                 Id = Some.Id,
                 Name = Some.PlayerName
             },
-            new CrazyEightsPlayer
+            new()
             {
                 Id = Some.OtherId,
                 Name = Some.OtherPlayerName
             },
-            new CrazyEightsPlayer
+            new()
             {
                 Id = Some.YetAnotherId,
                 Name = Some.YetAnotherPlayerName
             },
-            new CrazyEightsPlayer
+            new()
             {
                 Id = Some.TotallyDifferentId,
                 Name = Some.TotallyDifferentPlayerName
@@ -186,6 +186,7 @@ public class CrazyEightsGameTest
             Deck = TestDeck,
             Players = players,
         };
+        game.Reset();
         return game;
     }
 
