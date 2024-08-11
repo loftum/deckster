@@ -37,9 +37,9 @@ public static class AuthenticationExtensions
         throw new ApplicationException("User is required");
     }
 
-    public static IApplicationBuilder AddUserTokenAuthentication(this IApplicationBuilder app)
+    public static IApplicationBuilder LoadUser(this IApplicationBuilder app)
     {
-        return app.UseMiddleware<UserTokenAuthenticationMiddleware>();
+        return app.UseMiddleware<UserLoaderMiddleware>();
     }
 }
 

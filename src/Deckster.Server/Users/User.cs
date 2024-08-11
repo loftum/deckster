@@ -2,7 +2,8 @@ namespace Deckster.Server.Users;
 
 public class User
 {
-    public Guid Id { get; init; } = Guid.NewGuid();
-    public string AccessToken { get; init; } = $"{Guid.NewGuid():N}{Guid.NewGuid():N}";
-    public string Name { get; init; } = "New player";
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string AccessToken { get; set; } = $"{Guid.NewGuid():N}{Guid.NewGuid():N}";
+    public string Name { get; set; } = "New player";
+    public string Password { get; set; }
 }

@@ -1,3 +1,4 @@
+@using Deckster.Server.Authentication
 <div>
-  Welcome to Deckster
+  Welcome to Deckster, @Context.GetUser()?.Name
 </div>

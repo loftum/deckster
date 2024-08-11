@@ -40,17 +40,29 @@ class Program
         });
         services.AddSignalR();
         services.AddControllers();
-        services.AddSingleton<UserRepo>();
+        services.AddSingleton<IUserRepo, UserRepo>();
+        
         services.AddCrazyEights();
 
         var mvc = services.AddMvc();
         mvc.AddRazorRuntimeCompilation();
         
-        services.AddAuthentication()
+        services.AddAuthentication(o =>
+            {
+                o.DefaultScheme = AuthenticationSchemes.Cookie;
+            })
             .AddCookie(AuthenticationSchemes.Cookie, o =>
             {
                 o.LoginPath = "/login";
                 o.LogoutPath = "/logout";
+                o.Cookie.Name = "deckster";
+                o.Cookie.HttpOnly = true;
+                o.Cookie.SameSite = SameSiteMode.Lax;
+                o.Cookie.IsEssential = true;
+                o.Cookie.MaxAge = TimeSpan.FromDays(180);
+                o.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+                o.SlidingExpiration = true;
+                o.ExpireTimeSpan = TimeSpan.FromDays(180);
             });
 
     }
@@ -58,8 +70,9 @@ class Program
     private static void Configure(WebApplication app)
     {
         app.UseStaticFiles();
-        app.MapControllers();
         app.UseAuthentication();
+        app.LoadUser();
+        app.MapControllers();
     }
 }
 
