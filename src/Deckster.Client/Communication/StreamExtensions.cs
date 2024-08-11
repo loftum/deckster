@@ -23,6 +23,7 @@ public static class StreamExtensions
     public static async Task<byte[]> ReceiveMessageAsync(this Stream stream, CancellationToken cancellationToken = default)
     {
         var length = await stream.ReadMessageLengthAsync(cancellationToken);
+        Console.WriteLine($"Length: {length}");
         return await stream.ReadMessageAsync(length, cancellationToken);
     }
 

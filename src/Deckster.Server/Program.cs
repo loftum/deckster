@@ -1,7 +1,7 @@
-using Deckster.Client.Communication;
+using Deckster.Server.Authentication;
 using Deckster.Server.Games.CrazyEights;
-using Deckster.Server.Infrastructure;
 using Deckster.Server.Users;
+using Microsoft.AspNetCore.WebSockets;
 
 namespace Deckster.Server;
 
@@ -19,13 +19,9 @@ class Program
             ConfigureServices(services);
 
             await using var web = builder.Build();
-            ConfigureWeb(web);
-            
-            using var decksterServer = DecksterServerBuilder.Create(DecksterConstants.TcpPort, web.Services)
-                .UseMiddleware<CrazyEightsMiddleware>()
-                .Build();
+            Configure(web);
 
-            await Task.WhenAny(web.RunAsync(cts.Token), decksterServer.RunAsync(cts.Token));
+            await web.RunAsync(cts.Token);
             
             return 0;
         }
@@ -36,16 +32,34 @@ class Program
         }
     }
 
-    private static void ConfigureWeb(WebApplication app)
-    {
-        app.MapControllers();
-        app.UseAuthentication();
-    }
-
     private static void ConfigureServices(IServiceCollection services)
     {
+        services.AddWebSockets(o =>
+        {
+            o.KeepAliveInterval = TimeSpan.FromMinutes(1);
+        });
+        services.AddSignalR();
         services.AddControllers();
         services.AddSingleton<UserRepo>();
         services.AddCrazyEights();
+
+        var mvc = services.AddMvc();
+        mvc.AddRazorRuntimeCompilation();
+        
+        services.AddAuthentication()
+            .AddCookie(AuthenticationSchemes.Cookie, o =>
+            {
+                o.LoginPath = "/login";
+                o.LogoutPath = "/logout";
+            });
+
+    }
+    
+    private static void Configure(WebApplication app)
+    {
+        app.UseStaticFiles();
+        app.MapControllers();
+        app.UseAuthentication();
     }
 }
+

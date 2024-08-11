@@ -19,6 +19,9 @@ public class CrazyEightsController : Controller
         _user = HttpContext.GetRequiredUser();
     }
 
+    [HttpGet("")]
+    public ViewResult Index() => View("Index");
+
     [HttpGet("{gameId}/state")]
     public async Task<object> GetState(Guid gameId)
     {

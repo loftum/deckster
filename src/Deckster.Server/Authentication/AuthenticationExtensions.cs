@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Deckster.Server.Users;
 
 namespace Deckster.Server.Authentication;
@@ -12,6 +13,18 @@ public static class AuthenticationExtensions
     public static User? GetUser(this HttpContext context)
     {
         return context.Items.TryGetValue("User", out var o) && o is User u ? u : null;
+    }
+
+    public static bool TryGetUser(this HttpContext context, [MaybeNullWhen(false)] out User user)
+    {
+        if (context.Items.TryGetValue("User", out var o) && o is User u)
+        {
+            user = u;
+            return true;
+        }
+
+        user = null;
+        return false;
     }
     
     public static User GetRequiredUser(this HttpContext context)
@@ -28,4 +41,9 @@ public static class AuthenticationExtensions
     {
         return app.UseMiddleware<UserTokenAuthenticationMiddleware>();
     }
+}
+
+public static class AuthenticationSchemes
+{
+    public const string Cookie = "cookie";
 }

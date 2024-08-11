@@ -1,3 +1,4 @@
+using Deckster.Server.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Deckster.Server.Controllers;
@@ -8,6 +9,16 @@ public class HomeController : Controller
     [HttpGet("")]
     public object Index()
     {
-        return "Welcome to Deckster";
+        if (!HttpContext.TryGetUser(out _))
+        {
+            return RedirectToAction("login");
+        }
+        return View();
+    }
+
+    [HttpGet("login")]
+    public ViewResult Login()
+    {
+        return View();
     }
 }
