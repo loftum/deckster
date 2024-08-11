@@ -1,6 +1,6 @@
 using Deckster.Server.Authentication;
+using Deckster.Server.Data;
 using Deckster.Server.Games.CrazyEights;
-using Deckster.Server.Users;
 using Microsoft.AspNetCore.WebSockets;
 
 namespace Deckster.Server;
@@ -40,7 +40,7 @@ class Program
         });
         services.AddSignalR();
         services.AddControllers();
-        services.AddSingleton<IUserRepo, InMemoryUserRepo>();
+        services.AddSingleton<IRepo, InMemoryRepo>();
         
         services.AddCrazyEights();
 

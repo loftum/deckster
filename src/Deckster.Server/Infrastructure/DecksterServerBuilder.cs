@@ -1,5 +1,3 @@
-using Deckster.Server.Users;
-
 namespace Deckster.Server.Infrastructure;
 
 public delegate Task DecksterDelegate(ConnectionContext context);

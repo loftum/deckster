@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Server.Users;
+using Deckster.Server.Data;
 
 namespace Deckster.Server.Authentication;
 
@@ -41,9 +41,4 @@ public static class AuthenticationExtensions
     {
         return app.UseMiddleware<UserLoaderMiddleware>();
     }
-}
-
-public static class AuthenticationSchemes
-{
-    public const string Cookie = "cookie";
 }

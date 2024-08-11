@@ -4,7 +4,7 @@ using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Communication.Handshake;
 using Deckster.Client.Logging;
-using Deckster.Server.Users;
+using Deckster.Server.Data;
 
 namespace Deckster.Server.Infrastructure;
 
@@ -13,7 +13,7 @@ public class DecksterServer : IDisposable
     private readonly int _port;
     private readonly ILogger _logger = Log.Factory.CreateLogger<DecksterServer>();
     private readonly IServiceProvider _services;
-    private readonly IUserRepo _userRepo;
+    private readonly IRepo _repo;
     private readonly TcpListener _listener;
     private readonly List<IDecksterChannel> _communicators = new();
 
@@ -23,7 +23,7 @@ public class DecksterServer : IDisposable
     {
         _port = port;
         _listener = new TcpListener(IPAddress.Any, port);
-        _userRepo = services.GetRequiredService<IUserRepo>();
+        _repo = services.GetRequiredService<IRepo>();
         _pipeline = pipeline;
         _services = services;
     }
@@ -101,7 +101,7 @@ public class DecksterServer : IDisposable
             return null;
         }
 
-        var user = await _userRepo.GetByTokenAsync(request.AccessToken, cancellationToken);
+        var user = _repo.Query<DecksterUser>().FirstOrDefault(u => u.AccessToken == request.AccessToken);
         if (user == null)
         {
             _logger.LogError("Invalid access token '{token}'. No user found", request.AccessToken);

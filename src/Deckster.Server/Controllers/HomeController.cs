@@ -1,9 +1,8 @@
 using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
-using Deckster.Client.Games.Common;
 using Deckster.Server.Authentication;
-using Deckster.Server.Users;
+using Deckster.Server.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,9 +34,9 @@ public class HomeController : Controller
         };
     }
     
-    private readonly IUserRepo _repo;
+    private readonly IRepo _repo;
 
-    public HomeController(IUserRepo repo)
+    public HomeController(IRepo repo)
     {
         _repo = repo;
     }
@@ -70,8 +69,8 @@ public class HomeController : Controller
         {
             return StatusCode(400, new ResponseMessage("Password must be specified"));
         }
-        
-        var user = await _repo.GetByUsernameAsync(input.Username, HttpContext.RequestAborted);
+
+        var user = await _repo.Query<DecksterUser>().FirstOrDefaultAsync(u => string.Equals(u.Name, input.Username, StringComparison.OrdinalIgnoreCase));
         if (user == null)
         {
             user = new DecksterUser

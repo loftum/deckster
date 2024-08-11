@@ -1,7 +1,7 @@
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Communication.Handshake;
-using Deckster.Server.Users;
+using Deckster.Server.Data;
 
 namespace Deckster.Server.Infrastructure;
 

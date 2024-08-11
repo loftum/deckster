@@ -1,7 +1,7 @@
 using Deckster.Client.Common;
 using Deckster.Server.Authentication;
+using Deckster.Server.Data;
 using Deckster.Server.Games.CrazyEights;
-using Deckster.Server.Users;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Deckster.Server.Controllers;
