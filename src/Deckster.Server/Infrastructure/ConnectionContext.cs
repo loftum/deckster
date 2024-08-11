@@ -8,7 +8,7 @@ namespace Deckster.Server.Infrastructure;
 public class ConnectionContext
 {
     public IDecksterChannel Channel { get; }
-    public User User { get; }
+    public DecksterUser User { get; }
     public IServiceProvider Services { get; }
     public ConnectRequest Request { get; }
     public ConnectResponse Response { get; }
@@ -16,7 +16,7 @@ public class ConnectionContext
     public ConnectionContext(
         IDecksterChannel channel,
         ConnectRequest request,
-        User user,
+        DecksterUser user,
         IServiceProvider services)
     {
         Channel = channel;

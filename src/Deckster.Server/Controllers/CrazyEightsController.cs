@@ -6,21 +6,25 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Deckster.Server.Controllers;
 
+public abstract class CardGameController : Controller
+{
+    
+}
+
 [Route("crazyeights")]
 [RequireUser]
-public class CrazyEightsController : Controller
+public class CrazyEightsController : CardGameController
 {
     private readonly CrazyEightsRepo _repo;
-    private readonly User _user;
+    private DecksterUser DecksterUser => HttpContext.GetRequiredUser();
 
     public CrazyEightsController(CrazyEightsRepo repo)
     {
         _repo = repo;
-        _user = HttpContext.GetRequiredUser();
     }
 
     [HttpGet("")]
-    public ViewResult Index() => View("Index");
+    public ViewResult Index() => View();
 
     [HttpGet("{gameId}/state")]
     public async Task<object> GetState(Guid gameId)
@@ -31,7 +35,7 @@ public class CrazyEightsController : Controller
             return NotFound(new FailureResult($"There is no game '{gameId}'"));
         }
 
-        var state = game.GetStateFor(_user.Id);
+        var state = game.GetStateFor(DecksterUser.Id);
         return CommandResult(state);
     }
 

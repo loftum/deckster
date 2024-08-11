@@ -1,6 +1,6 @@
 namespace Deckster.Server.Users;
 
-public class User
+public class DecksterUser
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string AccessToken { get; set; } = $"{Guid.NewGuid():N}{Guid.NewGuid():N}";

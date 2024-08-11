@@ -1,6 +1,5 @@
 using System.Net;
 using System.Net.Sockets;
-using Deckster.Client;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Communication.Handshake;
@@ -14,7 +13,7 @@ public class DecksterServer : IDisposable
     private readonly int _port;
     private readonly ILogger _logger = Log.Factory.CreateLogger<DecksterServer>();
     private readonly IServiceProvider _services;
-    private readonly UserRepo _userRepo;
+    private readonly IUserRepo _userRepo;
     private readonly TcpListener _listener;
     private readonly List<IDecksterChannel> _communicators = new();
 
@@ -24,7 +23,7 @@ public class DecksterServer : IDisposable
     {
         _port = port;
         _listener = new TcpListener(IPAddress.Any, port);
-        _userRepo = services.GetRequiredService<UserRepo>();
+        _userRepo = services.GetRequiredService<IUserRepo>();
         _pipeline = pipeline;
         _services = services;
     }

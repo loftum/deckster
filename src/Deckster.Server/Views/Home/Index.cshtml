@@ -1,4 +1,12 @@
+@model Deckster.Server.Controllers.HomeIndexModel
 @using Deckster.Server.Authentication
+
 <div>
   Welcome to Deckster, @Context.GetUser()?.Name
 </div>
+
+<h3>Games</h3>
+@foreach (var game in Model.GameTypes)
+{
+  <a href="@game.Href">@game.Name</a>
+}

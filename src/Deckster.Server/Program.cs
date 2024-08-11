@@ -40,7 +40,7 @@ class Program
         });
         services.AddSignalR();
         services.AddControllers();
-        services.AddSingleton<IUserRepo, UserRepo>();
+        services.AddSingleton<IUserRepo, InMemoryUserRepo>();
         
         services.AddCrazyEights();
 

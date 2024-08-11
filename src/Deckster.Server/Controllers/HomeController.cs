@@ -1,5 +1,7 @@
+using System.Reflection;
 using System.Security.Claims;
 using System.Text.Json.Serialization;
+using Deckster.Client.Games.Common;
 using Deckster.Server.Authentication;
 using Deckster.Server.Users;
 using Microsoft.AspNetCore.Authentication;
@@ -10,6 +12,29 @@ namespace Deckster.Server.Controllers;
 [Route("")]
 public class HomeController : Controller
 {
+    private static readonly HomeIndexModel HomeIndexModel;
+
+    static HomeController()
+    {
+        var gameLinks = from c in typeof(HomeController).Assembly.GetTypes()
+                    where typeof(CardGameController).IsAssignableFrom(c) &&
+                          !c.IsAbstract
+            let name = c.Name.Replace("Controller", "")
+            let route = c.GetCustomAttribute<RouteAttribute>()
+            let link = new GameLink
+                {
+                    Name = name,
+                    Href = route?.Template ?? name.ToLowerInvariant()
+                }
+            select link
+            ;
+        
+        HomeIndexModel = new HomeIndexModel
+        {
+            GameTypes = gameLinks.ToArray()  
+        };
+    }
+    
     private readonly IUserRepo _repo;
 
     public HomeController(IUserRepo repo)
@@ -24,7 +49,7 @@ public class HomeController : Controller
         {
             return RedirectToAction("login");
         }
-        return View();
+        return View(HomeIndexModel);
     }
 
     [HttpGet("login")]
@@ -49,7 +74,7 @@ public class HomeController : Controller
         var user = await _repo.GetByUsernameAsync(input.Username, HttpContext.RequestAborted);
         if (user == null)
         {
-            user = new User
+            user = new DecksterUser
             {
                 Name = input.Username,
                 Password = input.Password,
@@ -75,6 +100,17 @@ public class HomeController : Controller
 
         return StatusCode(200, new ResponseMessage("OK"));
     }
+}
+
+public class HomeIndexModel
+{
+    public GameLink[] GameTypes { get; init; }
+}
+
+public class GameLink
+{
+    public string Name { get; init; }
+    public string Href { get; init; }
 }
 
 public class LoginModel
