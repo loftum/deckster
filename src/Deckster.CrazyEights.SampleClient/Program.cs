@@ -1,7 +1,11 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Runtime.InteropServices;
 using System.Text;
+using Deckster.Client.Common;
+using Deckster.Client.Communication;
 using Deckster.Client.Games.CrazyEights;
+using Deckster.Client.Serialization;
 
 namespace Deckster.CrazyEights.SampleClient;
 
@@ -18,10 +22,29 @@ class Program
         try
         {
             using var cts = new CancellationTokenSource();
-            var client = await CrazyEightsClientFactory.ConnectAsync(uri, cts.Token);
+            using var channel = await WebSocketDecksterChannel.ConnectAsync(uri, new PlayerData
+            {
+                
+            },
+                "",
+            cts.Token);
+
+            var message = new TestMessage
+            {
+                Word = "hest"
+            };
+
+            Console.WriteLine("SendAsync");
+            await channel.SendAsync(message, cts.Token);
+            var response = await channel.ReceiveAsync<TestMessage>(cts.Token);
+            Console.WriteLine("ReceiveAsync");
             
-            var ai = new CrazyEightsPoorAi(client);
-            await ai.PlayAsync(cts.Token);
+            
+            Console.WriteLine(Jsons.Pretty(response));
+            await channel.DisconnectAsync(cts.Token);
+            
+            // var ai = new CrazyEightsPoorAi(new CrazyEightsClient(channel));
+            // await ai.PlayAsync(cts.Token);
             return 0;
         }
         catch (Exception e)
@@ -41,8 +64,8 @@ class Program
             }
         }
 
-        uri = default;
-        return false;
+        uri = new Uri("ws://localhost:13992/wstest");
+        return true;
     }
 
     private static void PrintUsage()
@@ -53,4 +76,9 @@ class Program
             .AppendLine($"e.g {Process.GetCurrentProcess().ProcessName} deckster://localhost:23023/crazyeights/123456");
         Console.WriteLine(usage);
     }
+}
+
+public class TestMessage
+{
+    public string Word { get; set; }
 }

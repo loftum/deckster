@@ -2,7 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
-using Deckster.Server.Games.CrazyEights;
 using Deckster.Server.Games.CrazyEights.Core;
 using NUnit.Framework;
 

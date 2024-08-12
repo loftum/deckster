@@ -1,7 +1,7 @@
 using System.Net.WebSockets;
 using System.Text.Json;
+using Deckster.Client.Serialization;
 using Deckster.Server.Data;
-using Deckster.Server.Serialization;
 
 namespace Deckster.Server.Games;
 

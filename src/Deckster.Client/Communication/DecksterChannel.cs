@@ -36,10 +36,10 @@ public class DecksterChannel : IDecksterChannel
         _writeSocket = writeSocket;
         _writeStream = writeStream;
         PlayerData = playerData;
-        _readTask = ReadMessages();
+        _readTask = ReadMessagesAsync();
     }
 
-    private async Task ReadMessages()
+    private async Task ReadMessagesAsync()
     {
         try
         {
@@ -106,10 +106,10 @@ public class DecksterChannel : IDecksterChannel
         return _readStream.SendJsonAsync(response, cancellationToken);
     }
     
-    public async Task DisconnectAsync()
+    public async Task DisconnectAsync(CancellationToken cancellationToken = default)
     {
-        await _writeStream.SendMessageAsync(Disconnect);
-        _cts.Cancel();
+        await _writeStream.SendMessageAsync(Disconnect, cancellationToken: cancellationToken);
+        await _cts.CancelAsync();
         await DoDisconnectAsync();
     }
 

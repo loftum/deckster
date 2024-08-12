@@ -31,7 +31,7 @@ public class InProcessDecksterChannel : IDecksterChannel
         _logger = Log.Factory.CreateLogger($"{playerData.Name} (target)");
     }
     
-    public Task DisconnectAsync()
+    public Task DisconnectAsync(CancellationToken cancellationToken = default)
     {
         var handler = Target.OnDisconnected;
         return handler != null ? handler.Invoke(this) : Task.CompletedTask;
