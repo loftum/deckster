@@ -63,7 +63,7 @@ public class CrazyEightsClient
     }
 
     private async Task<TResult> SendAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken = default)
-        where TCommand : CrazyEightsCommand
+        where TCommand : DecksterCommand
         where TResult : CommandResult
     {
         _logger.LogTrace("Sending {type}", typeof(TCommand));
@@ -79,7 +79,7 @@ public class CrazyEightsClient
     }
 
     private async Task<CommandResult?> DoSendAsync<TCommand>(TCommand command, CancellationToken cancellationToken = default)
-        where TCommand : CrazyEightsCommand
+        where TCommand : DecksterCommand
     {
         try
         {

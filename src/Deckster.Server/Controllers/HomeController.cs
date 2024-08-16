@@ -1,7 +1,5 @@
-using System.Net.WebSockets;
 using System.Reflection;
 using System.Security.Claims;
-using System.Text;
 using System.Text.Json.Serialization;
 using Deckster.Server.Authentication;
 using Deckster.Server.Data;
@@ -100,30 +98,6 @@ public class HomeController : Controller
         });
 
         return StatusCode(200, new ResponseMessage("OK"));
-    }
-
-    [HttpGet("wstest")]
-    public async Task WsTest()
-    {
-        if (!HttpContext.WebSockets.IsWebSocketRequest)
-        {
-            HttpContext.Response.StatusCode = 400;
-            await HttpContext.Response.WriteAsJsonAsync(new ResponseMessage("Not WS request"));
-            return;
-        }
-
-        using var websocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-        var buffer = new byte[512];
-        
-        while (websocket.State == WebSocketState.Open)
-        {
-            var result = await websocket.ReceiveAsync(buffer, default);
-            var json = Encoding.UTF8.GetString(buffer, 0, result.Count);
-            Console.WriteLine($"Received: '{json}'");
-            await websocket.SendAsync(new ArraySegment<byte>(buffer, 0, result.Count), result.MessageType, result.EndOfMessage, default);
-            Console.WriteLine($"Sent: '{json}'");
-        }
-        await websocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closed by server", default);
     }
 }
 

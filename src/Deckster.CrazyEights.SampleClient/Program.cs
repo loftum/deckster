@@ -1,6 +1,5 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using System.Text;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
@@ -22,11 +21,9 @@ class Program
         try
         {
             using var cts = new CancellationTokenSource();
-            using var channel = await WebSocketDecksterChannel.ConnectAsync(uri, new PlayerData
-            {
-                
-            },
-                "",
+            
+            using var channel = await WebSocketDecksterChannel.ConnectAsync(uri,
+                "abc123",
             cts.Token);
 
             var message = new TestMessage
@@ -64,7 +61,7 @@ class Program
             }
         }
 
-        uri = new Uri("ws://localhost:13992/wstest");
+        uri = new Uri($"ws://localhost:13992/crazyeights/join/{Guid.Empty}");
         return true;
     }
 
@@ -73,7 +70,7 @@ class Program
         var usage = new StringBuilder()
             .AppendLine("Usage:")
             .AppendLine($"{Process.GetCurrentProcess().ProcessName} <uri>")
-            .AppendLine($"e.g {Process.GetCurrentProcess().ProcessName} deckster://localhost:23023/crazyeights/123456");
+            .AppendLine($"e.g {Process.GetCurrentProcess().ProcessName} deckster://localhost:23023/123456");
         Console.WriteLine(usage);
     }
 }

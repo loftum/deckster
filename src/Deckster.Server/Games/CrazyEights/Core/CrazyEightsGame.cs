@@ -288,4 +288,14 @@ public class CrazyEightsGame : DomainObject
     {
         Players.RemoveAll(p => p.Id == id);
     }
+
+    private readonly object _lock = new object();
+    
+    public bool ContainsPlayer(Guid userId)
+    {
+        lock (_lock)
+        {
+            return Players.Any(p => p.Id == userId);
+        }
+    }
 }

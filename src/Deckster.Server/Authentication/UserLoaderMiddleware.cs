@@ -7,13 +7,13 @@ namespace Deckster.Server.Authentication;
 
 public class UserLoaderMiddleware
 {
-    private readonly IRepo _users;
+    private readonly IRepo _repo;
     private readonly RequestDelegate _next;
 
-    public UserLoaderMiddleware(IRepo users, RequestDelegate next)
+    public UserLoaderMiddleware(IRepo repo, RequestDelegate next)
     {
         _next = next;
-        _users = users;
+        _repo = repo;
     }
 
     public Task Invoke(HttpContext context)
@@ -31,7 +31,7 @@ public class UserLoaderMiddleware
             var sub = result.Principal.FindFirstValue("sub");
             if (sub != null && Guid.TryParse(sub, out var id))
             {
-                var user = await _users.GetAsync<DecksterUser>(id, context.RequestAborted);
+                var user = await _repo.GetAsync<DecksterUser>(id, context.RequestAborted);
                 if (user != null)
                 {
                     context.SetUser(user);
@@ -43,7 +43,7 @@ public class UserLoaderMiddleware
 
     private async Task AuthenticateWithTokenAsync(HttpContext context, string token)
     {
-        var user = await _users.Query<DecksterUser>().FirstOrDefaultAsync(u => u.AccessToken == token);
+        var user = await _repo.Query<DecksterUser>().FirstOrDefaultAsync(u => u.AccessToken == token);
         if (user != null)
         {
             context.SetUser(user);
