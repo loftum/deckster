@@ -2,7 +2,7 @@ using Deckster.Client.Common;
 
 namespace Deckster.Client.Communication;
 
-public interface IDecksterChannel : IDisposable
+public interface IDecksterChannel : IDisposable, IAsyncDisposable
 {
     PlayerData PlayerData { get; }
     event Action<IDecksterChannel, byte[]>? OnMessage;

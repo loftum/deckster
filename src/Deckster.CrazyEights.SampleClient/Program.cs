@@ -1,10 +1,9 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
-using Deckster.Client.Common;
+using Deckster.Client;
 using Deckster.Client.Communication;
-using Deckster.Client.Games.CrazyEights;
-using Deckster.Client.Serialization;
+using Deckster.Client.Games.ChatRoom;
 
 namespace Deckster.CrazyEights.SampleClient;
 
@@ -12,7 +11,7 @@ class Program
 {
     public static async Task<int> Main(string[] argz)
     {
-        if (!TryGetUrl(argz, out var uri))
+        if (!TryGetUrl(argz, out _))
         {
             PrintUsage();
             return 0;
@@ -21,27 +20,25 @@ class Program
         try
         {
             using var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (_, _) => cts.Cancel();
             
-            using var channel = await WebSocketDecksterChannel.ConnectAsync(uri,
-                "abc123",
-            cts.Token);
+            var deckster = new DecksterApi(new Uri("http://localhost:13992"), "abc123");
+            await using var chatRoom = await deckster.ChatRoom.CreateAndJoinAsync(cts.Token);
 
-            var message = new TestMessage
+            while (!cts.IsCancellationRequested)
             {
-                Word = "hest"
-            };
-
-            Console.WriteLine("SendAsync");
-            await channel.SendAsync(message, cts.Token);
-            var response = await channel.ReceiveAsync<TestMessage>(cts.Token);
-            Console.WriteLine("ReceiveAsync");
+                Console.WriteLine("Write message:");
+                var message = Console.ReadLine();
+                Console.WriteLine($"Sending '{message}'");
+                var response = await chatRoom.SendAsync(new ChatMessage
+                {
+                    Message = message
+                }, cts.Token);
+                
+                Console.WriteLine("Response:");
+                Console.WriteLine(response?.Pretty() ?? "null");
+            }
             
-            
-            Console.WriteLine(Jsons.Pretty(response));
-            await channel.DisconnectAsync(cts.Token);
-            
-            // var ai = new CrazyEightsPoorAi(new CrazyEightsClient(channel));
-            // await ai.PlayAsync(cts.Token);
             return 0;
         }
         catch (Exception e)
@@ -73,9 +70,4 @@ class Program
             .AppendLine($"e.g {Process.GetCurrentProcess().ProcessName} deckster://localhost:23023/123456");
         Console.WriteLine(usage);
     }
-}
-
-public class TestMessage
-{
-    public string Word { get; set; }
 }

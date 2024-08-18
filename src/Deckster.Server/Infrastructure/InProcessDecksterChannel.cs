@@ -146,5 +146,10 @@ public class InProcessDecksterChannel : IDecksterChannel
             }
         }
     }
+
+    public ValueTask DisposeAsync()
+    {
+        return ValueTask.CompletedTask;
+    }
 }
 

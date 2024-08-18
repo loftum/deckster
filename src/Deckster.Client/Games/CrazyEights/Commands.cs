@@ -1,19 +1,7 @@
-using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Games.Common;
 
 namespace Deckster.Client.Games.CrazyEights;
-
-[JsonDerived<DecksterCommand>]
-public abstract class DecksterCommand : IHaveDiscriminator
-{
-    public string Type => GetType().Name.Replace("Command", "");
-}
-
-public class StartCommand : DecksterCommand
-{
-    
-}
 
 public class PutCardCommand : DecksterCommand
 {

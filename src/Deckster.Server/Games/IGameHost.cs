@@ -8,5 +8,5 @@ public interface IGameHost
     event EventHandler<CrazyEightsGameHost> OnEnded;
     Guid Id { get; }
     Task Start();
-    bool TryAddPlayer(ServerChannel player, [MaybeNullWhen(false)] out string error);
+    bool TryAddPlayer(ServerChannel player, [MaybeNullWhen(true)] out string error);
 }

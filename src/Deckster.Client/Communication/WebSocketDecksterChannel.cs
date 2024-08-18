@@ -1,4 +1,3 @@
-using System.Net;
 using System.Net.WebSockets;
 using Deckster.Client.Common;
 using Deckster.Client.Logging;
@@ -75,19 +74,21 @@ public class WebSocketDecksterChannel : IDecksterChannel
         return SendAsync(response, cancellationToken);
     }
 
-    public static async Task<WebSocketDecksterChannel> ConnectAsync(Uri uri, string token, CancellationToken cancellationToken = default)
+    public static async Task<WebSocketDecksterChannel> ConnectAsync(Uri uri, Guid gameId, string token, CancellationToken cancellationToken = default)
     {
         try
         {
-            var writeSocket = new ClientWebSocket();
-            writeSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
-            await writeSocket.ConnectAsync(uri, cancellationToken);
-            var connectMessage = await writeSocket.ReceiveMessageAsync<ConnectMessage>(cancellationToken);
-            var readSocket = new ClientWebSocket();
-            readSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
-            await readSocket.ConnectAsync(connectMessage.FinishUri, cancellationToken);
+            var joinUri = uri.ToWebSocket($"join/{gameId}");
+            var commandSocket = new ClientWebSocket();
+            commandSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
+            await commandSocket.ConnectAsync(joinUri, cancellationToken);
+            var connectMessage = await commandSocket.ReceiveMessageAsync<ConnectMessage>(cancellationToken);
+            
+            var eventSocket = new ClientWebSocket();
+            eventSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
+            await eventSocket.ConnectAsync(uri.ToWebSocket($"finishjoin/{connectMessage.ConnectionId}"), cancellationToken);
         
-            return new WebSocketDecksterChannel(writeSocket, readSocket, connectMessage.PlayerData);
+            return new WebSocketDecksterChannel(commandSocket, eventSocket, connectMessage.PlayerData);
         }
         catch (WebSocketException e)
         {
@@ -101,10 +102,31 @@ public class WebSocketDecksterChannel : IDecksterChannel
         _eventSocket.Dispose();
         _commandSocket.Dispose();
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _commandSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
+        await CastAndDispose(_commandSocket);
+        await _eventSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
+        await CastAndDispose(_eventSocket);
+        await CastAndDispose(_cts);
+        if (_readTask != null) await CastAndDispose(_readTask);
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync();
+            else
+                resource.Dispose();
+        }
+    }
 }
 
 public class ConnectMessage
 {
-    public PlayerData PlayerData { get; init; }
-    public Uri FinishUri { get; init; }
+    public PlayerData PlayerData { get; set; }
+    public Uri FinishUri { get; set; }
+    public Guid ConnectionId { get; set; }
 }

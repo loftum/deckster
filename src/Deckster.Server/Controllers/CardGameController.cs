@@ -1,6 +1,4 @@
 using System.Net.WebSockets;
-using Deckster.Client.Common;
-using Deckster.Client.Communication;
 using Deckster.Server.Authentication;
 using Deckster.Server.Games;
 using Microsoft.AspNetCore.Mvc;
@@ -9,14 +7,14 @@ namespace Deckster.Server.Controllers;
 
 public abstract class CardGameController : Controller
 {
-    private readonly GameRegistry _gameRegistry;
+    protected readonly GameRegistry Registry;
 
-    protected CardGameController(GameRegistry gameRegistry)
+    protected CardGameController(GameRegistry registry)
     {
-        _gameRegistry = gameRegistry;
+        Registry = registry;
     }
     
-    [HttpPost("join/{gameId:guid}")]
+    [HttpGet("join/{gameId:guid}")]
     public async Task Join(Guid gameId)
     {
         if (!HttpContext.WebSockets.IsWebSocketRequest)
@@ -27,29 +25,16 @@ public abstract class CardGameController : Controller
         }
 
         var decksterUser = HttpContext.GetRequiredUser();
-        var commandSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
-
-        if (!_gameRegistry.TryStartConnect(decksterUser, commandSocket, gameId, out var connectingPlayer))
+        using var commandSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+        if (!await Registry.StartJoinAsync(decksterUser, commandSocket, gameId))
         {
             HttpContext.Response.StatusCode = 400;
             await HttpContext.Response.WriteAsJsonAsync(new ResponseMessage("Could not connect"));
             await commandSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "Could not connect", default);
-            commandSocket.Dispose();
-            return;
         }
-        
-        await connectingPlayer.CommandSocket.SendMessageAsync(new ConnectMessage
-        {
-            FinishUri = new Uri(HttpContext.Request.),
-            PlayerData = new PlayerData
-            {
-                Name = decksterUser.Name,
-                PlayerId = decksterUser.Id
-            }
-        });
     }
 
-    [HttpPost("join/finish/{connectionId:guid}")]
+    [HttpGet("finishjoin/{connectionId:guid}")]
     public async Task FinishJoin(Guid connectionId)
     {
         if (!HttpContext.WebSockets.IsWebSocketRequest)
@@ -59,9 +44,9 @@ public abstract class CardGameController : Controller
             return;
         }
         
-        var eventSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
+        using var eventSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
 
-        if (!await _gameRegistry.TryCompleteAsync(connectionId, eventSocket))
+        if (!await Registry.FinishJoinAsync(connectionId, eventSocket))
         {
             HttpContext.Response.StatusCode = 400;
             await HttpContext.Response.WriteAsJsonAsync(new ResponseMessage("Could not connect"));

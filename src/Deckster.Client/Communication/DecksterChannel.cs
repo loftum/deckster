@@ -129,4 +129,24 @@ public class DecksterChannel : IDecksterChannel
         
         GC.SuppressFinalize(this);
     }
+
+    public async ValueTask DisposeAsync()
+    {
+        await CastAndDispose(_readSocket);
+        await _readStream.DisposeAsync();
+        await CastAndDispose(_writeSocket);
+        await _writeStream.DisposeAsync();
+        if (_readTask != null) await CastAndDispose(_readTask);
+        await CastAndDispose(_cts);
+
+        return;
+
+        static async ValueTask CastAndDispose(IDisposable resource)
+        {
+            if (resource is IAsyncDisposable resourceAsyncDisposable)
+                await resourceAsyncDisposable.DisposeAsync();
+            else
+                resource.Dispose();
+        }
+    }
 }

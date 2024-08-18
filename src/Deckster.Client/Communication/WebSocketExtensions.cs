@@ -1,6 +1,5 @@
 using System.Net.WebSockets;
 using System.Text.Json;
-using Deckster.Client.Serialization;
 
 namespace Deckster.Client.Communication;
 
@@ -8,7 +7,7 @@ public static class WebSocketExtensions
 {
     public static ValueTask SendMessageAsync<T>(this WebSocket socket, T message, CancellationToken cancellationToken = default)
     {
-        return socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(message, Jsons.CamelCase),
+        return socket.SendAsync(JsonSerializer.SerializeToUtf8Bytes(message, DecksterJson.Options),
             WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
     }
 
@@ -20,7 +19,7 @@ public static class WebSocketExtensions
         switch (result.MessageType)
         {
             case WebSocketMessageType.Text:
-                return JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(buffer, 0, result.Count));
+                return JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(buffer, 0, result.Count), DecksterJson.Options);
             case WebSocketMessageType.Close:
                 return default;
         }

@@ -5,6 +5,7 @@ namespace Deckster.Server.Games.CrazyEights;
 
 public class ConnectingPlayer
 {
+    public TaskCompletionSource TaskCompletionSource { get; } = new();
     public Guid ConnectionId { get; } = Guid.NewGuid();
     public DecksterUser User { get; }
     public WebSocket CommandSocket { get; }

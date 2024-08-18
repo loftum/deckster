@@ -1,7 +1,9 @@
 using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
+using Deckster.Client.Common;
+using Deckster.Client.Communication;
 using Deckster.Client.Games.CrazyEights;
-using Deckster.Client.Serialization;
 using Deckster.Server.Data;
 
 namespace Deckster.Server.Games;
@@ -13,14 +15,16 @@ public class ServerChannel : IDisposable
     public DecksterUser User { get; }
     private readonly WebSocket _commandSocket;
     private readonly WebSocket _eventSocket;
+    private readonly TaskCompletionSource _taskCompletionSource;
 
     private Task? _listenTask;
     
-    public ServerChannel(DecksterUser user, WebSocket commandSocket, WebSocket eventSocket)
+    public ServerChannel(DecksterUser user, WebSocket commandSocket, WebSocket eventSocket, TaskCompletionSource taskCompletionSource)
     {
         User = user;
         _commandSocket = commandSocket;
         _eventSocket = eventSocket;
+        _taskCompletionSource = taskCompletionSource;
     }
 
     public void Start(CancellationToken cancellationToken)
@@ -28,19 +32,34 @@ public class ServerChannel : IDisposable
         _listenTask = ListenAsync(cancellationToken);
     }
     
-    private async Task ListenAsync(CancellationToken _cancellationToken)
+    private async Task ListenAsync(CancellationToken cancellationToken)
     {
         try
         {
             var buffer = new byte[4096];
-            while (!_cancellationToken.IsCancellationRequested)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var result = await _commandSocket.ReceiveAsync(buffer, _cancellationToken);
-            
-                var message = JsonSerializer.Deserialize<DecksterCommand>(new ArraySegment<byte>(buffer, 0, result.Count), Jsons.CamelCase);
-                if (message != null)
+                var result = await _commandSocket.ReceiveAsync(buffer, cancellationToken);
+                Console.WriteLine($"Got messageType: '{result.MessageType}'");
+
+                switch (result.MessageType)
                 {
-                    Received?.Invoke(User.Id, message);
+                    case WebSocketMessageType.Close:
+                        _taskCompletionSource.SetResult();
+                        return;
+                }
+            
+                var command = DecksterJson.Deserialize<DecksterCommand>(new ArraySegment<byte>(buffer, 0, result.Count));
+                if (command == null)
+                {
+                    Console.WriteLine("Command is null.");
+                    Console.WriteLine($"Raw: {Encoding.UTF8.GetString(new ArraySegment<byte>(buffer, 0, result.Count))}");
+                    await _commandSocket.SendMessageAsync(new FailureResult("Command is null"), cancellationToken: cancellationToken);
+                }
+                else
+                {
+                    Console.WriteLine($"Got command: {command.Pretty()}");
+                    Received?.Invoke(User.Id, command);    
                 }
             }
         }
@@ -52,8 +71,14 @@ public class ServerChannel : IDisposable
     
     public ValueTask ReplayAsync(object message, CancellationToken cancellationToken = default)
     {
-        var bytes = JsonSerializer.SerializeToUtf8Bytes(message, message.GetType(), Jsons.CamelCase);
+        var bytes = DecksterJson.SerializeToBytes(message);
         return _commandSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
+    }
+
+    public ValueTask PostEventAsync(object message, CancellationToken cancellationToken = default)
+    {
+        var bytes = DecksterJson.SerializeToBytes(message);
+        return _eventSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
     }
     
     public Task WeAreDoneHereAsync(CancellationToken cancellationToken = default)
@@ -72,5 +97,6 @@ public class ServerChannel : IDisposable
         _commandSocket.Dispose();
         _eventSocket.Dispose();
         _listenTask?.Dispose();
+        _taskCompletionSource.TrySetResult();
     }
 }

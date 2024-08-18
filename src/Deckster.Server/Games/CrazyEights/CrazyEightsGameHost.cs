@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Common;
+using Deckster.Client.Communication;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.Server.Games.CrazyEights.Core;
 
