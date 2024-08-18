@@ -9,6 +9,7 @@ public class ChatRoomClient : IDisposable, IAsyncDisposable
     public ChatRoomClient(WebSocketDecksterChannel channel)
     {
         _channel = channel;
+        
     }
 
     public async Task<TMessage?> SendAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
@@ -25,6 +26,5 @@ public class ChatRoomClient : IDisposable, IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         await _channel.DisposeAsync();
-   
     }
 }

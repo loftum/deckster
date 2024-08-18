@@ -115,4 +115,14 @@ public class CrazyEightsGameHost : IGameHost
         var currentPlayerId = _game.CurrentPlayer.Id;
         await _players[currentPlayerId].ReplayAsync(new ItsYourTurnMessage());
     }
+    
+    public async Task CancelAsync()
+    {
+        foreach (var player in _players.Values.ToArray())
+        {
+            player.Received -= MessageReceived;
+            await player.DisconnectAsync();
+            player.Dispose();
+        }
+    }
 }

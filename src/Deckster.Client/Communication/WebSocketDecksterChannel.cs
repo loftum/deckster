@@ -46,6 +46,7 @@ public class WebSocketDecksterChannel : IDecksterChannel
                 case WebSocketMessageType.Close:
                     OnDisconnected?.Invoke(this);
                     await _eventSocket.CloseOutputAsync(WebSocketCloseStatus.Empty, "", _cts.Token);
+                    return;
                     break;
             }
         }
@@ -79,6 +80,7 @@ public class WebSocketDecksterChannel : IDecksterChannel
         try
         {
             var joinUri = uri.ToWebSocket($"join/{gameId}");
+            
             var commandSocket = new ClientWebSocket();
             commandSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
             await commandSocket.ConnectAsync(joinUri, cancellationToken);
@@ -105,9 +107,9 @@ public class WebSocketDecksterChannel : IDecksterChannel
 
     public async ValueTask DisposeAsync()
     {
-        await _commandSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
+        await _commandSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
         await CastAndDispose(_commandSocket);
-        await _eventSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
+        await _eventSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client closed", default);
         await CastAndDispose(_eventSocket);
         await CastAndDispose(_cts);
         if (_readTask != null) await CastAndDispose(_readTask);
@@ -122,11 +124,4 @@ public class WebSocketDecksterChannel : IDecksterChannel
                 resource.Dispose();
         }
     }
-}
-
-public class ConnectMessage
-{
-    public PlayerData PlayerData { get; set; }
-    public Uri FinishUri { get; set; }
-    public Guid ConnectionId { get; set; }
 }

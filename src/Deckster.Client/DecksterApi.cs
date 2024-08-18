@@ -12,6 +12,10 @@ public class DecksterApi
     {
         Console.WriteLine($"Baseurl: {baseUri}, crazyeights: {baseUri.Append("crazyeights")}");
         CrazyEights = new GameApi<CrazyEightsClient>(baseUri.Append("crazyeights"), token, c => new CrazyEightsClient(c));
-        ChatRoom = new GameApi<ChatRoomClient>(baseUri.Append("chatroom"), token, c => new ChatRoomClient(c));
+        ChatRoom = new GameApi<ChatRoomClient>(baseUri.Append("chatroom"), token, c =>
+        {
+            var client = new ChatRoomClient(c);
+            return client;
+        });
     }
 }

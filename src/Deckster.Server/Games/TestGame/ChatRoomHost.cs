@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Communication;
-using Deckster.Client.Games.CrazyEights;
 using Deckster.Server.Games.CrazyEights;
 
 namespace Deckster.Server.Games.TestGame;
@@ -46,5 +45,14 @@ public class ChatRoomHost : IGameHost
 
         error = default;
         return true;
+    }
+
+    public async Task CancelAsync()
+    {
+        foreach (var player in _players.Values.ToArray())
+        {
+            await player.DisconnectAsync();
+            player.Dispose();
+        }
     }
 }

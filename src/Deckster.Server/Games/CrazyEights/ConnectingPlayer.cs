@@ -17,4 +17,11 @@ public class ConnectingPlayer
         CommandSocket = commandSocket;
         GameHost = host;
     }
+
+    public async Task CancelAsync()
+    {
+        TaskCompletionSource.SetResult();
+        await CommandSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Server stopping", default);
+        CommandSocket.Dispose();
+    }
 }

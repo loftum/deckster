@@ -9,4 +9,5 @@ public interface IGameHost
     Guid Id { get; }
     Task Start();
     bool TryAddPlayer(ServerChannel player, [MaybeNullWhen(true)] out string error);
+    Task CancelAsync();
 }

@@ -21,7 +21,8 @@ public static class WebSocketExtensions
             case WebSocketMessageType.Text:
                 return JsonSerializer.Deserialize<T>(new ReadOnlySpan<byte>(buffer, 0, result.Count), DecksterJson.Options);
             case WebSocketMessageType.Close:
-                return default;
+                await socket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Server disconnected", default);
+                throw new Exception($"WebSocket disconnected: {result.CloseStatus} '{result.CloseStatusDescription}'");
         }
 
         return default;

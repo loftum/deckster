@@ -24,6 +24,7 @@ class Program
             
             var deckster = new DecksterApi(new Uri("http://localhost:13992"), "abc123");
             await using var chatRoom = await deckster.ChatRoom.CreateAndJoinAsync(cts.Token);
+            
 
             while (!cts.IsCancellationRequested)
             {

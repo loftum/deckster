@@ -1,9 +1,7 @@
 using System.Net.WebSockets;
 using System.Text;
-using System.Text.Json;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
-using Deckster.Client.Games.CrazyEights;
 using Deckster.Server.Data;
 
 namespace Deckster.Server.Games;
@@ -46,6 +44,7 @@ public class ServerChannel : IDisposable
                 {
                     case WebSocketMessageType.Close:
                         _taskCompletionSource.SetResult();
+                        await _commandSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Server closed connection", default);
                         return;
                 }
             
@@ -96,7 +95,6 @@ public class ServerChannel : IDisposable
     {
         _commandSocket.Dispose();
         _eventSocket.Dispose();
-        _listenTask?.Dispose();
         _taskCompletionSource.TrySetResult();
     }
 }

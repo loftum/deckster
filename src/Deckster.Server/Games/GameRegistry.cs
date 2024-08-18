@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using System.Runtime.InteropServices;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Server.Data;
@@ -11,8 +10,12 @@ namespace Deckster.Server.Games;
 public class GameRegistry
 {
     private readonly ConcurrentDictionary<Guid, ConnectingPlayer> _connectingPlayers = new();
-    
     private readonly ConcurrentDictionary<Guid, IGameHost> _hostedGames = new();
+
+    public GameRegistry(IHostApplicationLifetime lifetime)
+    {
+        lifetime.ApplicationStopping.Register(ApplicationStopping);
+    }
 
     public void Add(IGameHost host)
     {
@@ -75,5 +78,18 @@ public class GameRegistry
 
         await connectingUser.TaskCompletionSource.Task;
         return true;
+    }
+    
+    private async void ApplicationStopping()
+    {
+        foreach (var connecting in _connectingPlayers.Values.ToArray())
+        {
+            await connecting.CancelAsync();
+        }
+
+        foreach (var host in _hostedGames.Values.ToArray())
+        {
+            await host.CancelAsync();
+        }
     }
 }
