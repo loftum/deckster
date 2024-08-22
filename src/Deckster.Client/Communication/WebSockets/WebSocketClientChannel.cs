@@ -3,13 +3,13 @@ using Deckster.Client.Common;
 using Deckster.Client.Logging;
 using Microsoft.Extensions.Logging;
 
-namespace Deckster.Client.Communication;
+namespace Deckster.Client.Communication.WebSockets;
 
-public class WebSocketDecksterChannel : IDecksterChannel
+public class WebSocketClientChannel : IClientChannel
 {
     public PlayerData PlayerData { get; }
-    public event Action<IDecksterChannel, byte[]>? OnMessage;
-    public event Func<IDecksterChannel, Task>? OnDisconnected;
+    public event Action<IClientChannel, byte[]>? OnMessage;
+    public event Action<IClientChannel>? OnDisconnected;
     private readonly ClientWebSocket _commandSocket;
     private readonly ClientWebSocket _eventSocket;
     private readonly CancellationTokenSource _cts = new();
@@ -17,9 +17,9 @@ public class WebSocketDecksterChannel : IDecksterChannel
 
     private Task? _readTask;
 
-    public WebSocketDecksterChannel(ClientWebSocket commandSocket, ClientWebSocket eventSocket, PlayerData playerData)
+    public WebSocketClientChannel(ClientWebSocket commandSocket, ClientWebSocket eventSocket, PlayerData playerData)
     {
-        _logger =  Log.Factory.CreateLogger($"{nameof(DecksterChannel)} {playerData.Name}");
+        _logger =  Log.Factory.CreateLogger($"{nameof(WebSocketClientChannel)} {playerData.Name}");
         _commandSocket = commandSocket;
         PlayerData = playerData;
         _eventSocket = eventSocket;
@@ -45,19 +45,12 @@ public class WebSocketDecksterChannel : IDecksterChannel
                 }
                 case WebSocketMessageType.Close:
                     OnDisconnected?.Invoke(this);
+                    await _commandSocket.CloseOutputAsync(WebSocketCloseStatus.Empty, "", _cts.Token);
                     await _eventSocket.CloseOutputAsync(WebSocketCloseStatus.Empty, "", _cts.Token);
                     return;
                     break;
             }
         }
-    }
-
-    public Task DisconnectAsync(CancellationToken cancellationToken = default)
-    {
-        return Task.WhenAll(
-            _eventSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client disconnected", cancellationToken),
-            _commandSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client disconnected", cancellationToken)
-        );
     }
 
     public async Task SendAsync<TRequest>(TRequest message, CancellationToken cancellationToken = default)
@@ -69,13 +62,16 @@ public class WebSocketDecksterChannel : IDecksterChannel
     {
         return _commandSocket.ReceiveMessageAsync<T>(cancellationToken: cancellationToken);
     }
-
-    public Task RespondAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)
+    
+    public Task DisconnectAsync(CancellationToken cancellationToken = default)
     {
-        return SendAsync(response, cancellationToken);
+        return Task.WhenAll(
+            _eventSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client disconnected", cancellationToken),
+            _commandSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Client disconnected", cancellationToken)
+        );
     }
 
-    public static async Task<WebSocketDecksterChannel> ConnectAsync(Uri uri, Guid gameId, string token, CancellationToken cancellationToken = default)
+    public static async Task<WebSocketClientChannel> ConnectAsync(Uri uri, Guid gameId, string token, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -90,7 +86,7 @@ public class WebSocketDecksterChannel : IDecksterChannel
             eventSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
             await eventSocket.ConnectAsync(uri.ToWebSocket($"finishjoin/{connectMessage.ConnectionId}"), cancellationToken);
         
-            return new WebSocketDecksterChannel(commandSocket, eventSocket, connectMessage.PlayerData);
+            return new WebSocketClientChannel(commandSocket, eventSocket, connectMessage.PlayerData);
         }
         catch (WebSocketException e)
         {

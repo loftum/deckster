@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
+using Deckster.Client.Protocol;
 using Deckster.Server.Games.CrazyEights.Core;
 using NUnit.Framework;
 
@@ -130,7 +131,7 @@ public class CrazyEightsGameTest
         return JsonSerializer.Serialize(thing, new JsonSerializerOptions {WriteIndented = true, Converters = {new JsonStringEnumConverter()}});
     }
 
-    private static void AssertSuccess(CommandResult result)
+    private static void AssertSuccess(DecksterCommandResult result)
     {
         switch (result)
         {
@@ -142,7 +143,7 @@ public class CrazyEightsGameTest
         }
     }
 
-    private static void AssertFail(CommandResult result, string message)
+    private static void AssertFail(DecksterCommandResult result, string message)
     {
         switch (result)
         {

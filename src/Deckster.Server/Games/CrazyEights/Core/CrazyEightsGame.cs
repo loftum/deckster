@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
+using Deckster.Client.Protocol;
 using Deckster.Server.Data;
 
 namespace Deckster.Server.Games.CrazyEights.Core;
@@ -85,7 +86,7 @@ public class CrazyEightsGame : DomainObject
         DonePlayers.Clear();
     }
 
-    public CommandResult PutCard(Guid playerId, Card card)
+    public DecksterCommandResult PutCard(Guid playerId, Card card)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -115,7 +116,7 @@ public class CrazyEightsGame : DomainObject
         return GetPlayerViewOfGame(player);
     }
 
-    public CommandResult PutEight(Guid playerId, Card card, Suit newSuit)
+    public DecksterCommandResult PutEight(Guid playerId, Card card, Suit newSuit)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -152,7 +153,7 @@ public class CrazyEightsGame : DomainObject
         return GetPlayerViewOfGame(player);
     }
     
-    public CommandResult DrawCard(Guid playerId)
+    public DecksterCommandResult DrawCard(Guid playerId)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -176,7 +177,7 @@ public class CrazyEightsGame : DomainObject
         return new CardResult(card);
     }
     
-    public CommandResult Pass(Guid playerId)
+    public DecksterCommandResult Pass(Guid playerId)
     {
         if (!TryGetCurrentPlayer(playerId, out _))
         {

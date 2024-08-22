@@ -1,15 +1,15 @@
-using System.Text.Json;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Logging;
+using Deckster.Client.Protocol;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Games.CrazyEights;
 
 public class CrazyEightsClient
 {
-    private readonly IDecksterChannel _channel;
+    private readonly IClientChannel _channel;
     private readonly SemaphoreSlim _semaphore = new(1,1);
     private readonly ILogger _logger;
     
@@ -23,20 +23,20 @@ public class CrazyEightsClient
 
     public PlayerData PlayerData => _channel.PlayerData;
 
-    public CrazyEightsClient(IDecksterChannel channel)
+    public CrazyEightsClient(IClientChannel channel)
     {
         _channel = channel;
         _logger = Log.Factory.CreateLogger(channel.PlayerData.Name);
         channel.OnMessage += HandleMessageAsync;
     }
 
-    public Task<CommandResult> PutCardAsync(Card card, CancellationToken cancellationToken = default)
+    public Task<DecksterCommandResult> PutCardAsync(Card card, CancellationToken cancellationToken = default)
     {
         var command = new PutCardCommand
         {
             Card = card
         };
-        return SendAsync<PutCardCommand, CommandResult>(command, cancellationToken);
+        return SendAsync<PutCardCommand, DecksterCommandResult>(command, cancellationToken);
     }
 
     public Task PutEightAsync(Card card, Suit newSuit, CancellationToken cancellationToken = default)
@@ -46,7 +46,7 @@ public class CrazyEightsClient
             Card = card,
             NewSuit = newSuit
         };
-        return SendAsync<PutEightCommand, CommandResult>(command, cancellationToken);
+        return SendAsync<PutEightCommand, DecksterCommandResult>(command, cancellationToken);
     }
 
     public async Task<Card> DrawCardAsync(CancellationToken cancellationToken = default)
@@ -59,12 +59,12 @@ public class CrazyEightsClient
 
     public Task PassAsync(CancellationToken cancellationToken = default)
     {
-        return SendAsync<PassCommand, CommandResult>(new PassCommand(), cancellationToken);
+        return SendAsync<PassCommand, DecksterCommandResult>(new PassCommand(), cancellationToken);
     }
 
     private async Task<TResult> SendAsync<TCommand, TResult>(TCommand command, CancellationToken cancellationToken = default)
         where TCommand : DecksterCommand
-        where TResult : CommandResult
+        where TResult : DecksterCommandResult
     {
         _logger.LogTrace("Sending {type}", typeof(TCommand));
         var result = await DoSendAsync(command, cancellationToken);
@@ -78,14 +78,14 @@ public class CrazyEightsClient
         };
     }
 
-    private async Task<CommandResult?> DoSendAsync<TCommand>(TCommand command, CancellationToken cancellationToken = default)
+    private async Task<DecksterCommandResult?> DoSendAsync<TCommand>(TCommand command, CancellationToken cancellationToken = default)
         where TCommand : DecksterCommand
     {
         try
         {
             await _semaphore.WaitAsync(cancellationToken);
             await _channel.SendAsync(command, cancellationToken);
-            var result = await _channel.ReceiveAsync<CommandResult>(cancellationToken);
+            var result = await _channel.ReceiveAsync<DecksterCommandResult>(cancellationToken);
             return result;
         }
         finally
@@ -94,11 +94,11 @@ public class CrazyEightsClient
         }
     }
 
-    private async void HandleMessageAsync(IDecksterChannel channel, byte[] bytes)
+    private async void HandleMessageAsync(IClientChannel channel, byte[] bytes)
     {
         try
         {
-            var message = JsonSerializer.Deserialize<CrazyEightsMessage>(bytes, DecksterJson.Options);
+            var message = DecksterJson.Deserialize<CrazyEightsMessage>(bytes);
             switch (message)
             {
                 case GameStartedMessage m:

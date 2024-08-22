@@ -22,11 +22,11 @@ class Program
             using var cts = new CancellationTokenSource();
             Console.CancelKeyPress += (_, _) => cts.Cancel();
             
-            var deckster = new DecksterApi(new Uri("http://localhost:13992"), "abc123");
+            var deckster = new DecksterClient("http://localhost:13992", "abc123");
             
             await using var chatRoom = await deckster.ChatRoom.CreateAndJoinAsync(cts.Token);
 
-            chatRoom.OnMessage += (c, m) => Console.WriteLine(c.PlayerData.Name + " sent " + m.Pretty());
+            chatRoom.OnMessage += (c, m) => Console.WriteLine($"{c.PlayerData.Name} sent {m.Pretty()}");
 
             while (!cts.IsCancellationRequested)
             {

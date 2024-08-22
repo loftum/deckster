@@ -1,21 +1,22 @@
-using System.Text.Json;
 using Deckster.Client.Communication;
+using Deckster.Client.Communication.WebSockets;
+using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Games.ChatRoom;
 
 public class ChatRoomClient : IDisposable, IAsyncDisposable
 {
-    public event Action<IDecksterChannel, DecksterCommand> OnMessage;
+    public event Action<IClientChannel, DecksterCommand> OnMessage;
     
-    private readonly WebSocketDecksterChannel _channel;
+    private readonly WebSocketClientChannel _channel;
 
-    public ChatRoomClient(WebSocketDecksterChannel channel)
+    public ChatRoomClient(WebSocketClientChannel channel)
     {
         _channel = channel;
         channel.OnMessage += MessageReceived;
     }
 
-    private void MessageReceived(IDecksterChannel channel, byte[] bytes)
+    private void MessageReceived(IClientChannel channel, byte[] bytes)
     {
         var message = DecksterJson.Deserialize<DecksterCommand>(bytes);
         if (message == null)

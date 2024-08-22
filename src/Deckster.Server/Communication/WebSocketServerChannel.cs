@@ -2,11 +2,13 @@ using System.Net.WebSockets;
 using System.Text;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
+using Deckster.Client.Communication.WebSockets;
+using Deckster.Client.Protocol;
 using Deckster.Server.Data;
 
-namespace Deckster.Server.Games;
+namespace Deckster.Server.Communication;
 
-public class ServerChannel : IDisposable
+public class WebSocketServerChannel : IServerChannel
 {
     public event Action<Guid, DecksterCommand>? Received;
     
@@ -17,7 +19,7 @@ public class ServerChannel : IDisposable
 
     private Task? _listenTask;
     
-    public ServerChannel(DecksterUser user, WebSocket commandSocket, WebSocket eventSocket, TaskCompletionSource taskCompletionSource)
+    public WebSocketServerChannel(DecksterUser user, WebSocket commandSocket, WebSocket eventSocket, TaskCompletionSource taskCompletionSource)
     {
         User = user;
         _commandSocket = commandSocket;
@@ -68,7 +70,7 @@ public class ServerChannel : IDisposable
         }
     }
     
-    public ValueTask ReplayAsync(object message, CancellationToken cancellationToken = default)
+    public ValueTask ReplyAsync(object message, CancellationToken cancellationToken = default)
     {
         var bytes = DecksterJson.SerializeToBytes(message);
         return _commandSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);

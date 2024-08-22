@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Communication;
+using Deckster.Client.Protocol;
+using Deckster.Server.Communication;
 using Deckster.Server.Games.CrazyEights;
 
 namespace Deckster.Server.Games.TestGame;
@@ -10,7 +12,7 @@ public class ChatRoomHost : IGameHost
     public event EventHandler<CrazyEightsGameHost>? OnEnded;
     public Guid Id { get; } = Guid.NewGuid();
 
-    private readonly ConcurrentDictionary<Guid, ServerChannel> _players = new();
+    private readonly ConcurrentDictionary<Guid, WebSocketServerChannel> _players = new();
     
     public Task Start()
     {
@@ -20,7 +22,7 @@ public class ChatRoomHost : IGameHost
     private async void MessageReceived(Guid id, DecksterCommand command)
     {
         Console.WriteLine($"Received: {command.Pretty()}");
-        await _players[id].ReplayAsync(command);
+        await _players[id].ReplyAsync(command);
         await BroadcastAsync(command);
     }
     
@@ -29,7 +31,7 @@ public class ChatRoomHost : IGameHost
         return Task.WhenAll(_players.Values.Select(p => p.PostEventAsync(message, cancellationToken).AsTask()));
     }
 
-    public bool TryAddPlayer(ServerChannel player, [MaybeNullWhen(true)] out string error)
+    public bool TryAddPlayer(WebSocketServerChannel player, [MaybeNullWhen(true)] out string error)
     {
         if (!_players.TryAdd(player.User.Id, player))
         {

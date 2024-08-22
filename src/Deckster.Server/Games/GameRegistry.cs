@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Net.WebSockets;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
+using Deckster.Client.Communication.WebSockets;
+using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.CrazyEights;
 
@@ -68,7 +70,7 @@ public class GameRegistry
             return false;
         }
         
-        var channel = new ServerChannel(connectingUser.User, connectingUser.CommandSocket, eventSocket, connectingUser.TaskCompletionSource);
+        var channel = new WebSocketServerChannel(connectingUser.User, connectingUser.CommandSocket, eventSocket, connectingUser.TaskCompletionSource);
         if (!connectingUser.GameHost.TryAddPlayer(channel, out var error))
         {
             await channel.DisconnectAsync();

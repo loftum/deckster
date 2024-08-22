@@ -1,5 +1,6 @@
 using Deckster.Client.Communication;
 using Deckster.Client.Games.Common;
+using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Games.CrazyEights;
 

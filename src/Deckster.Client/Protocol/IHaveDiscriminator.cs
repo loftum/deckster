@@ -1,4 +1,4 @@
-namespace Deckster.Client.Common;
+namespace Deckster.Client.Protocol;
 
 internal interface IHaveDiscriminator
 {

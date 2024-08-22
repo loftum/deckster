@@ -1,6 +1,6 @@
-using Deckster.Client.Common;
+using Deckster.Client.Communication;
 
-namespace Deckster.Client.Communication;
+namespace Deckster.Client.Protocol;
 
 [JsonDerived<DecksterCommand>]
 public abstract class DecksterCommand : IHaveDiscriminator

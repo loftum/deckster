@@ -1,6 +1,8 @@
+using Deckster.Client.Protocol;
+
 namespace Deckster.Client.Common;
 
-public class FailureResult : CommandResult
+public class FailureResult : DecksterCommandResult
 {
     public string Message { get; }
     

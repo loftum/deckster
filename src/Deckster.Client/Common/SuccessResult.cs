@@ -1,5 +1,7 @@
+using Deckster.Client.Protocol;
+
 namespace Deckster.Client.Common;
 
-public class SuccessResult : CommandResult
+public class SuccessResult : DecksterCommandResult
 {
 }
