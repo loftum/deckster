@@ -2,8 +2,9 @@ using Deckster.Client.Communication;
 
 namespace Deckster.Client.Protocol;
 
-[JsonDerived<DecksterCommandResult>]
-public abstract class DecksterCommandResult : IHaveDiscriminator
+[JsonDerived<DecksterRequest>]
+public abstract class DecksterRequest : IHaveDiscriminator
 {
     public string Type => GetType().Name;
 }
+

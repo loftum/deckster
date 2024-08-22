@@ -26,14 +26,14 @@ class Program
             
             await using var chatRoom = await deckster.ChatRoom.CreateAndJoinAsync(cts.Token);
 
-            chatRoom.OnMessage += (c, m) => Console.WriteLine($"{c.PlayerData.Name} sent {m.Pretty()}");
+            chatRoom.OnMessage += m => Console.WriteLine($"Got message {m.Pretty()}");
 
             while (!cts.IsCancellationRequested)
             {
                 Console.WriteLine("Write message:");
                 var message = Console.ReadLine();
                 Console.WriteLine($"Sending '{message}'");
-                var response = await chatRoom.SendAsync(new ChatMessage
+                var response = await chatRoom.SendAsync(new SendChatMessage
                 {
                     Message = message
                 }, cts.Token);

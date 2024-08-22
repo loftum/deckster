@@ -131,23 +131,23 @@ public class CrazyEightsGameTest
         return JsonSerializer.Serialize(thing, new JsonSerializerOptions {WriteIndented = true, Converters = {new JsonStringEnumConverter()}});
     }
 
-    private static void AssertSuccess(DecksterCommandResult result)
+    private static void AssertSuccess(DecksterResponse result)
     {
         switch (result)
         {
-            case SuccessResult:
+            case SuccessResponse:
                 break;
-            case FailureResult r:
+            case FailureResponse r:
                 Assert.Fail($"Expeced success, but got '{r.Message}'");
                 break;
         }
     }
 
-    private static void AssertFail(DecksterCommandResult result, string message)
+    private static void AssertFail(DecksterResponse result, string message)
     {
         switch (result)
         {
-            case FailureResult r:
+            case FailureResponse r:
                 Assert.That(r.Message, Is.EqualTo(message));
                 break;
             default:

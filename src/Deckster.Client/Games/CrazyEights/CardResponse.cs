@@ -3,16 +3,16 @@ using Deckster.Client.Games.Common;
 
 namespace Deckster.Client.Games.CrazyEights;
 
-public class CardResult : SuccessResult
+public class CardResponse : SuccessResponse
 {
     public Card Card { get; init; }
 
-    public CardResult()
+    public CardResponse()
     {
         
     }
 
-    public CardResult(Card card)
+    public CardResponse(Card card)
     {
         Card = card;
     }

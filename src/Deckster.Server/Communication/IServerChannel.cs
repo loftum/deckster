@@ -1,12 +1,18 @@
-using Deckster.Server.Data;
+using Deckster.Client.Common;
+using Deckster.Client.Protocol;
 
 namespace Deckster.Server.Communication;
 
 public interface IServerChannel : IDisposable
 {
-    DecksterUser User { get; }
-    ValueTask ReplyAsync(object message, CancellationToken cancellationToken = default);
-    ValueTask PostEventAsync(object message, CancellationToken cancellationToken = default);
+    event Action<PlayerData, DecksterRequest>? Received;
+    event Action<IServerChannel> Disconnected;
+    
+    PlayerData Player { get; }
+    ValueTask ReplyAsync(DecksterResponse response, CancellationToken cancellationToken = default);
+    ValueTask PostMessageAsync(DecksterMessage message, CancellationToken cancellationToken = default);
     Task WeAreDoneHereAsync(CancellationToken cancellationToken = default);
-    Task DisconnectAsync();
+    Task DisconnectAsync(bool normal, string reason);
+    
+    void Start(CancellationToken cancellationToken);
 }

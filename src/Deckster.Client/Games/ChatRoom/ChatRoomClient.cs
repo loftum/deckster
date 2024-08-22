@@ -6,9 +6,9 @@ namespace Deckster.Client.Games.ChatRoom;
 
 public class ChatRoomClient : IDisposable, IAsyncDisposable
 {
-    public event Action<IClientChannel, DecksterCommand> OnMessage;
+    public event Action<DecksterMessage> OnMessage;
     
-    private readonly WebSocketClientChannel _channel;
+    private readonly IClientChannel _channel;
 
     public ChatRoomClient(WebSocketClientChannel channel)
     {
@@ -16,20 +16,14 @@ public class ChatRoomClient : IDisposable, IAsyncDisposable
         channel.OnMessage += MessageReceived;
     }
 
-    private void MessageReceived(IClientChannel channel, byte[] bytes)
+    private void MessageReceived(IClientChannel channel, DecksterMessage message)
     {
-        var message = DecksterJson.Deserialize<DecksterCommand>(bytes);
-        if (message == null)
-        {
-            return;
-        }
-        OnMessage.Invoke(channel, message);
+        OnMessage.Invoke(message);
     }
 
-    public async Task<TMessage?> SendAsync<TMessage>(TMessage message, CancellationToken cancellationToken = default)
+    public Task<DecksterResponse> SendAsync(DecksterRequest message, CancellationToken cancellationToken = default)
     {
-        await _channel.SendAsync(message, cancellationToken);
-        return await _channel.ReceiveAsync<TMessage>(cancellationToken);
+        return _channel.SendAsync(message, cancellationToken);
     }
 
     public void Dispose()
@@ -39,6 +33,7 @@ public class ChatRoomClient : IDisposable, IAsyncDisposable
 
     public async ValueTask DisposeAsync()
     {
+        await _channel.DisconnectAsync(true, "Client disconnected");
         await _channel.DisposeAsync();
     }
 }

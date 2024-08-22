@@ -9,6 +9,6 @@ public interface IGameHost
     event EventHandler<CrazyEightsGameHost> OnEnded;
     Guid Id { get; }
     Task Start();
-    bool TryAddPlayer(WebSocketServerChannel player, [MaybeNullWhen(true)] out string error);
-    Task CancelAsync();
+    bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error);
+    Task CancelAsync(string reason);
 }

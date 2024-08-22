@@ -69,11 +69,16 @@ public class GameRegistry
         {
             return false;
         }
-        
-        var channel = new WebSocketServerChannel(connectingUser.User, connectingUser.CommandSocket, eventSocket, connectingUser.TaskCompletionSource);
+
+        var player = new PlayerData
+        {
+            Name = connectingUser.User.Name,
+            PlayerId = connectingUser.User.Id
+        };
+        var channel = new WebSocketServerChannel(player, connectingUser.CommandSocket, eventSocket, connectingUser.TaskCompletionSource);
         if (!connectingUser.GameHost.TryAddPlayer(channel, out var error))
         {
-            await channel.DisconnectAsync();
+            await channel.DisconnectAsync(false, error);
             channel.Dispose();
             return false;
         }
@@ -91,7 +96,7 @@ public class GameRegistry
 
         foreach (var host in _hostedGames.Values.ToArray())
         {
-            await host.CancelAsync();
+            await host.CancelAsync("Shuttings down");
         }
     }
 }

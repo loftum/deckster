@@ -86,21 +86,21 @@ public class CrazyEightsGame : DomainObject
         DonePlayers.Clear();
     }
 
-    public DecksterCommandResult PutCard(Guid playerId, Card card)
+    public DecksterResponse PutCard(Guid playerId, Card card)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            return new FailureResult("It is not your turn");
+            return new FailureResponse("It is not your turn");
         }
 
         if (!player.HasCard(card))
         {
-            return new FailureResult($"You don't have '{card}'");
+            return new FailureResponse($"You don't have '{card}'");
         }
 
         if (!CanPut(card))
         {
-            return new FailureResult($"Cannot put '{card}' on '{TopOfPile}'");
+            return new FailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
         }
         
         player.Cards.Remove(card);
@@ -116,28 +116,28 @@ public class CrazyEightsGame : DomainObject
         return GetPlayerViewOfGame(player);
     }
 
-    public DecksterCommandResult PutEight(Guid playerId, Card card, Suit newSuit)
+    public DecksterResponse PutEight(Guid playerId, Card card, Suit newSuit)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            return new FailureResult("It is not your turn");
+            return new FailureResponse("It is not your turn");
         }
 
         if (!player.HasCard(card))
         {
-            return new FailureResult($"You don't have '{card}'");
+            return new FailureResponse($"You don't have '{card}'");
         }
         
         if (card.Rank != 8)
         {
-            return new FailureResult("Card rank must be '8'");
+            return new FailureResponse("Card rank must be '8'");
         }
 
         if (!CanPut(card))
         {
             return _newSuit.HasValue
-                ? new FailureResult($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{_newSuit.Value}')")
-                : new FailureResult($"Cannot put '{card}' on '{TopOfPile}'");
+                ? new FailureResponse($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{_newSuit.Value}')")
+                : new FailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
         }
 
         player.Cards.Remove(card);
@@ -153,39 +153,39 @@ public class CrazyEightsGame : DomainObject
         return GetPlayerViewOfGame(player);
     }
     
-    public DecksterCommandResult DrawCard(Guid playerId)
+    public DecksterResponse DrawCard(Guid playerId)
     {
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            return new FailureResult("It is not your turn");
+            return new FailureResponse("It is not your turn");
         }
         
         if (_cardsDrawn > 2)
         {
-            return new FailureResult("You can only draw 3 cards");
+            return new FailureResponse("You can only draw 3 cards");
         }
         
         ShufflePileIfNecessary();
         if (!StockPile.Any())
         {
-            return new FailureResult("No more cards");
+            return new FailureResponse("No more cards");
         }
         var card = StockPile.Pop();
         player.Cards.Add(card);
         _cardsDrawn++;
         
-        return new CardResult(card);
+        return new CardResponse(card);
     }
     
-    public DecksterCommandResult Pass(Guid playerId)
+    public DecksterResponse Pass(Guid playerId)
     {
         if (!TryGetCurrentPlayer(playerId, out _))
         {
-            return new FailureResult("It is not your turn");
+            return new FailureResponse("It is not your turn");
         }
         
         MoveToNextPlayer();
-        return new SuccessResult();
+        return new SuccessResponse();
     }
 
     private PlayerViewOfGame GetPlayerViewOfGame(CrazyEightsPlayer player)

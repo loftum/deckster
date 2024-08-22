@@ -4,26 +4,26 @@ using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Communication.WebSockets;
 using Deckster.Client.Protocol;
-using Deckster.Server.Data;
 
 namespace Deckster.Server.Communication;
 
 public class WebSocketServerChannel : IServerChannel
 {
-    public event Action<Guid, DecksterCommand>? Received;
-    
-    public DecksterUser User { get; }
-    private readonly WebSocket _commandSocket;
-    private readonly WebSocket _eventSocket;
+    public event Action<PlayerData, DecksterRequest>? Received;
+    public event Action<IServerChannel>? Disconnected;
+
+    public PlayerData Player { get; }
+    private readonly WebSocket _requestSocket;
+    private readonly WebSocket _messageSocket;
     private readonly TaskCompletionSource _taskCompletionSource;
 
     private Task? _listenTask;
     
-    public WebSocketServerChannel(DecksterUser user, WebSocket commandSocket, WebSocket eventSocket, TaskCompletionSource taskCompletionSource)
+    public WebSocketServerChannel(PlayerData player, WebSocket requestSocket, WebSocket messageSocket, TaskCompletionSource taskCompletionSource)
     {
-        User = user;
-        _commandSocket = commandSocket;
-        _eventSocket = eventSocket;
+        Player = player;
+        _requestSocket = requestSocket;
+        _messageSocket = messageSocket;
         _taskCompletionSource = taskCompletionSource;
     }
 
@@ -39,28 +39,27 @@ public class WebSocketServerChannel : IServerChannel
             var buffer = new byte[4096];
             while (!cancellationToken.IsCancellationRequested)
             {
-                var result = await _commandSocket.ReceiveAsync(buffer, cancellationToken);
+                var result = await _requestSocket.ReceiveAsync(buffer, cancellationToken);
                 Console.WriteLine($"Got messageType: '{result.MessageType}'");
 
                 switch (result.MessageType)
                 {
                     case WebSocketMessageType.Close:
-                        _taskCompletionSource.SetResult();
-                        await _commandSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Server closed connection", default);
+                        await DisconnectAsync(true, "Client disconnected");
                         return;
                 }
             
-                var command = DecksterJson.Deserialize<DecksterCommand>(new ArraySegment<byte>(buffer, 0, result.Count));
-                if (command == null)
+                var request = DecksterJson.Deserialize<DecksterRequest>(new ArraySegment<byte>(buffer, 0, result.Count));
+                if (request == null)
                 {
                     Console.WriteLine("Command is null.");
                     Console.WriteLine($"Raw: {Encoding.UTF8.GetString(new ArraySegment<byte>(buffer, 0, result.Count))}");
-                    await _commandSocket.SendMessageAsync(new FailureResult("Command is null"), cancellationToken: cancellationToken);
+                    await _requestSocket.SendMessageAsync(new FailureResponse("Command is null"), cancellationToken: cancellationToken);
                 }
                 else
                 {
-                    Console.WriteLine($"Got command: {command.Pretty()}");
-                    Received?.Invoke(User.Id, command);    
+                    Console.WriteLine($"Got request: {request.Pretty()}");
+                    Received?.Invoke(Player, request);
                 }
             }
         }
@@ -70,33 +69,38 @@ public class WebSocketServerChannel : IServerChannel
         }
     }
     
-    public ValueTask ReplyAsync(object message, CancellationToken cancellationToken = default)
+    public ValueTask ReplyAsync(DecksterResponse response, CancellationToken cancellationToken = default)
     {
-        var bytes = DecksterJson.SerializeToBytes(message);
-        return _commandSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
+        var bytes = DecksterJson.SerializeToBytes(response);
+        return _requestSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
     }
 
-    public ValueTask PostEventAsync(object message, CancellationToken cancellationToken = default)
+    public ValueTask PostMessageAsync(DecksterMessage message, CancellationToken cancellationToken = default)
     {
+        
         var bytes = DecksterJson.SerializeToBytes(message);
-        return _eventSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
+        Console.WriteLine($"Post {bytes.Length} bytes to {Player.Name}");
+        return _messageSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
     }
     
     public Task WeAreDoneHereAsync(CancellationToken cancellationToken = default)
     {
-        return _commandSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", cancellationToken);
+        return _requestSocket.CloseOutputAsync(WebSocketCloseStatus.NormalClosure, "Closing", cancellationToken);
     }
 
-    public async Task DisconnectAsync()
+    public async Task DisconnectAsync(bool normal, string reason)
     {
-        await _commandSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "Closing", default);
-        await _eventSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "Closing", default);
+        var status = normal ? WebSocketCloseStatus.NormalClosure : WebSocketCloseStatus.ProtocolError;
+        _taskCompletionSource.SetResult();
+        await _requestSocket.CloseOutputAsync(status, reason, default);
+        await _messageSocket.CloseOutputAsync(status, reason, default);
+        Disconnected?.Invoke(this);
     }
 
     public void Dispose()
     {
-        _commandSocket.Dispose();
-        _eventSocket.Dispose();
+        _requestSocket.Dispose();
+        _messageSocket.Dispose();
         _taskCompletionSource.TrySetResult();
     }
 }

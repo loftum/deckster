@@ -4,23 +4,23 @@ using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Games.CrazyEights;
 
-public class PutCardCommand : DecksterCommand
+public class PutCardRequest : DecksterRequest
 {
     public Card Card { get; set; }
 }
 
-public class PutEightCommand : DecksterCommand
+public class PutEightRequest : DecksterRequest
 {
     public Card Card { get; set; }
     public Suit NewSuit { get; set; }
 }
 
-public class DrawCardCommand : DecksterCommand
+public class DrawCardRequest : DecksterRequest
 {
     
 }
 
-public class PassCommand : DecksterCommand
+public class PassRequest : DecksterRequest
 {
     
 }

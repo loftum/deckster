@@ -14,84 +14,87 @@ public class CrazyEightsGameHost : IGameHost
 
     public Guid Id => _game.Id;
 
-    private readonly ConcurrentDictionary<Guid, WebSocketServerChannel> _players = new();
+    private readonly ConcurrentDictionary<Guid, IServerChannel> _players = new();
     private readonly CrazyEightsGame _game = new() { Id = Guid.NewGuid() };
     private readonly CancellationTokenSource _cts = new();
 
-    private async void MessageReceived(Guid id, DecksterCommand message)
+    private async void MessageReceived(PlayerData player, DecksterRequest message)
     {
-        if (!_players.TryGetValue(id, out var player))
+        if (!_players.TryGetValue(player.PlayerId, out var channel))
         {
             return;
         }
         if (_game.State != GameState.Running)
         {
-            await player.ReplyAsync(new FailureResult("Game is not running"));
+            await channel.ReplyAsync(new FailureResponse("Game is not running"));
             return;
         }
 
-        var result = await ExecuteCommandAsync(id, message, player);
-        if (result is SuccessResult)
+        var result = await HandleRequestAsync(player.PlayerId, message, channel);
+        if (result is SuccessResponse)
         {
             if (_game.State == GameState.Finished)
             {
-                await BroadcastAsync(new GameEndedMessage());
+                await BroadcastMessageAsync(new GameEndedMessage());
                 await Task.WhenAll(_players.Values.Select(p => p.WeAreDoneHereAsync()));
                 await _cts.CancelAsync();
                 _cts.Dispose();
                 OnEnded?.Invoke(this, this);
+                return;
             }
             var currentPlayerId = _game.CurrentPlayer.Id;
-            await _players[currentPlayerId].ReplyAsync(new ItsYourTurnMessage());
+            await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnMessage());
         }
     }
 
-    public bool TryAddPlayer(WebSocketServerChannel player, [MaybeNullWhen(true)] out string error)
+    public bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error)
     {
-        if (!_game.TryAddPlayer(player.User.Id, player.User.Name, out error))
+        if (!_game.TryAddPlayer(channel.Player.PlayerId, channel.Player.Name, out error))
         {
             error = "Could not add player";
             return false;
         }
 
-        if (!_players.TryAdd(player.User.Id, player))
+        if (!_players.TryAdd(channel.Player.PlayerId, channel))
         {
             error = "Could not add player";
             return false;
         }
+        
+        
 
         error = default;
         return true;
     }
 
-    private Task BroadcastAsync(object message, CancellationToken cancellationToken = default)
+    private Task BroadcastMessageAsync(DecksterMessage message, CancellationToken cancellationToken = default)
     {
-        return Task.WhenAll(_players.Values.Select(p => p.ReplyAsync(message, cancellationToken).AsTask()));
+        return Task.WhenAll(_players.Values.Select(p => p.PostMessageAsync(message, cancellationToken).AsTask()));
     }
 
-    private async Task<DecksterCommandResult> ExecuteCommandAsync(Guid id, DecksterCommand message, WebSocketServerChannel player)
+    private async Task<DecksterResponse> HandleRequestAsync(Guid id, DecksterRequest message, IServerChannel player)
     {
         switch (message)
         {
-            case PutCardCommand command:
+            case PutCardRequest command:
             {
                 var result = _game.PutCard(id, command.Card);
                 await player.ReplyAsync(result);
                 return result;
             }
-            case PutEightCommand command:
+            case PutEightRequest command:
             {
                 var result = _game.PutEight(id, command.Card, command.NewSuit);
                 await player.ReplyAsync(result);
                 return result;
             }
-            case DrawCardCommand:
+            case DrawCardRequest:
             {
                 var result = _game.DrawCard(id);
                 await player.ReplyAsync(result);
                 return result;
             }
-            case PassCommand:
+            case PassRequest:
             {
                 var result = _game.Pass(id);
                 await player.ReplyAsync(result);
@@ -99,7 +102,7 @@ public class CrazyEightsGameHost : IGameHost
             }
             default:
             {
-                var result = new FailureResult($"Unknown command '{message.Type}'");
+                var result = new FailureResponse($"Unknown command '{message.Type}'");
                 await player.ReplyAsync(result);
                 return result;
             }
@@ -114,15 +117,15 @@ public class CrazyEightsGameHost : IGameHost
             player.Received += MessageReceived;
         }
         var currentPlayerId = _game.CurrentPlayer.Id;
-        await _players[currentPlayerId].ReplyAsync(new ItsYourTurnMessage());
+        await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnMessage());
     }
     
-    public async Task CancelAsync()
+    public async Task CancelAsync(string reason)
     {
         foreach (var player in _players.Values.ToArray())
         {
             player.Received -= MessageReceived;
-            await player.DisconnectAsync();
+            await player.DisconnectAsync(true, reason);
             player.Dispose();
         }
     }

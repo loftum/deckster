@@ -16,8 +16,10 @@ public static class DecksterJson
       var options = new JsonSerializerOptions
       {
           Converters = {new JsonStringEnumConverter(),
-              new DerivedTypeConverter<DecksterCommand>(),
-              new DerivedTypeConverter<DecksterCommandResult>()},
+              new DerivedTypeConverter<DecksterRequest>(),
+              new DerivedTypeConverter<DecksterResponse>(),
+              new DerivedTypeConverter<DecksterMessage>()
+          },
           PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
           DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
           AllowTrailingCommas = true,

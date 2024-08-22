@@ -1,7 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
-using Deckster.Client.Common;
 using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Communication;
@@ -19,7 +18,6 @@ internal class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscrim
             select t;
         TypeMap = types.ToDictionary(t => t.Name, t => t);
     }
-        
 
     public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
