@@ -40,6 +40,22 @@ public abstract class CardGameController<TGameHost> : Controller, ICardGameContr
         return games;
     }
     
+    [HttpGet("state/{id:guid}")]
+    public object GameState(Guid id)
+    {
+        if (!Registry.TryGet(id, out var host))
+        {
+            return StatusCode(404, new ResponseMessage("Game not found: '{id}'"));
+        }
+        var vm = new GameVm
+        {
+            Id = host.Id,
+            Players = host.GetPlayers()
+        };
+
+        return Request.Accepts("application/json") ? vm : View(vm);
+    }
+    
     [HttpPost("create")]
     public object Create()
     {
