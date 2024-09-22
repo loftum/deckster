@@ -5,13 +5,47 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Deckster.Server.Controllers;
 
-public abstract class CardGameController : Controller
+// Marker interface for discoverability
+public interface ICardGameController;
+
+public abstract class CardGameController<TGameHost> : Controller, ICardGameController
+    where TGameHost : IGameHost, new()
 {
     protected readonly GameRegistry Registry;
 
     protected CardGameController(GameRegistry registry)
     {
         Registry = registry;
+    }
+    
+    [HttpGet("")]
+    public ViewResult Overview()
+    {
+        var games = Registry.GetGames<TGameHost>().Select(h => new GameVm
+        {
+            Id = h.Id,
+            Players = h.GetPlayers()
+        });
+        return View(games);
+    }
+    
+    [HttpGet("games")]
+    public object Games()
+    {
+        var games = Registry.GetGames<TGameHost>().Select(h => new GameVm
+        {
+            Id = h.Id,
+            Players = h.GetPlayers()
+        });
+        return games;
+    }
+    
+    [HttpPost("create")]
+    public object Create()
+    {
+        var host = new TGameHost();
+        Registry.Add(host);
+        return StatusCode(200, new { host.Id });
     }
     
     [HttpPost("start/{id:guid}")]
