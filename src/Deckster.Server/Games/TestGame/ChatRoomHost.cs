@@ -15,7 +15,7 @@ public class ChatRoomHost : IGameHost
     public event EventHandler<CrazyEightsGameHost>? OnEnded;
     public string GameType => "ChatRoom";
     public GameState State => GameState.Running;
-    public Guid Id { get; } = Guid.NewGuid();
+    public string Name { get; init; }
 
     private readonly ConcurrentDictionary<Guid, IServerChannel> _players = new();
     

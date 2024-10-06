@@ -10,43 +10,43 @@ using Deckster.Server.Games.CrazyEights;
 
 namespace Deckster.Server.Games;
 
-public class GameRegistry
+public class GameHostRegistry
 {
     private readonly ConcurrentDictionary<Guid, ConnectingPlayer> _connectingPlayers = new();
-    private readonly ConcurrentDictionary<Guid, IGameHost> _hostedGames = new();
+    private readonly ConcurrentDictionary<string, IGameHost> _hostedGames = new();
 
-    public GameRegistry(IHostApplicationLifetime lifetime)
+    public GameHostRegistry(IHostApplicationLifetime lifetime)
     {
         lifetime.ApplicationStopping.Register(ApplicationStopping);
     }
 
     public void Add(IGameHost host)
     {
-        _hostedGames.TryAdd(host.Id, host);
+        _hostedGames.TryAdd(host.Name, host);
     }
 
     private void RemoveHost(object? sender, IGameHost e)
     {
-        _hostedGames.TryRemove(e.Id, out _);
+        _hostedGames.TryRemove(e.Name, out _);
     }
     
-    public IEnumerable<TGameHost> GetGames<TGameHost>() where TGameHost : IGameHost
+    public IEnumerable<TGameHost> GetHosts<TGameHost>() where TGameHost : IGameHost
     {
         return _hostedGames.Values.OfType<TGameHost>();
     }
 
-    public bool TryGet(Guid id, [MaybeNullWhen(false)] out IGameHost o)
+    public bool TryGet(string id, [MaybeNullWhen(false)] out IGameHost o)
     {
         return _hostedGames.TryGetValue(id, out o);
     }
 
-    public async Task<bool> StartJoinAsync(DecksterUser user, WebSocket actionSocket, Guid gameId)
+    public async Task<bool> StartJoinAsync(DecksterUser user, WebSocket actionSocket, string gameHostName)
     {
-        if (!_hostedGames.TryGetValue(gameId, out var host))
+        if (!_hostedGames.TryGetValue(gameHostName, out var host))
         {
             await actionSocket.SendMessageAsync(new ConnectFailureMessage
             {
-                ErrorMessage = $"Unknown game '{gameId}'" 
+                ErrorMessage = $"Unknown game '{gameHostName}'" 
             });
             return false;
         }

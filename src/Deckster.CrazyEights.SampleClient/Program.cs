@@ -18,7 +18,9 @@ class Program
         try
         {
             using var cts = new CancellationTokenSource();
+            
             var deckster = new DecksterClient("http://localhost:13992", "abc123");
+            
             await using var game = await deckster.CrazyEights.CreateAndJoinAsync(cts.Token);
 
             var ai = new CrazyEightsPoorAi(game);
