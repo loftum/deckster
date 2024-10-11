@@ -1,7 +1,6 @@
 using System.Net.WebSockets;
 using System.Text;
 using Deckster.Client.Common;
-using Deckster.Client.Communication;
 using Deckster.Client.Communication.WebSockets;
 using Deckster.Client.Protocol;
 using Deckster.Client.Serialization;
@@ -29,18 +28,18 @@ public class WebSocketServerChannel : IServerChannel
         _taskCompletionSource = taskCompletionSource;
     }
 
-    public void Start(CancellationToken cancellationToken)
+    public void Start<TRequest>(Action<PlayerData, TRequest> handle, CancellationToken cancellationToken)
     {
-        _listenTask = ListenAsync(cancellationToken);
+        _listenTask = ListenAsync(handle, cancellationToken);
     }
     
-    public ValueTask ReplyAsync(DecksterResponse response, CancellationToken cancellationToken = default)
+    public ValueTask ReplyAsync<TResponse>(TResponse response, CancellationToken cancellationToken = default)
     {
         var bytes = DecksterJson.SerializeToBytes(response);
         return _actionSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
     }
 
-    public ValueTask PostMessageAsync(DecksterNotification notification, CancellationToken cancellationToken = default)
+    public ValueTask PostMessageAsync<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
     {
         
         var bytes = DecksterJson.SerializeToBytes(notification);
@@ -53,7 +52,7 @@ public class WebSocketServerChannel : IServerChannel
         return DisconnectAsync();
     }
     
-    private async Task ListenAsync(CancellationToken cancellationToken)
+    private async Task ListenAsync<TRequest>(Action<PlayerData, TRequest> handle, CancellationToken cancellationToken)
     {
         try
         {
@@ -80,7 +79,7 @@ public class WebSocketServerChannel : IServerChannel
                         return;
                 }
             
-                var request = DecksterJson.Deserialize<DecksterRequest>(new ArraySegment<byte>(buffer, 0, result.Count));
+                var request = DecksterJson.Deserialize<TRequest>(new ArraySegment<byte>(buffer, 0, result.Count));
                 if (request == null)
                 {
                     Console.WriteLine("Command is null.");
@@ -90,7 +89,7 @@ public class WebSocketServerChannel : IServerChannel
                 else
                 {
                     Console.WriteLine($"Got request: {request.Pretty()}");
-                    Received?.Invoke(Player, request);
+                    handle(Player, request);
                 }
             }
         }

@@ -21,10 +21,9 @@ public class UnoClient : GameClient<UnoRequest, UnoResponse, UnoGameNotification
 
     public PlayerData PlayerData => Channel.PlayerData;
 
-    public UnoClient(IClientChannel<UnoGameNotification> channel) : base(channel)
+    public UnoClient(IClientChannel channel) : base(channel)
     {
         _logger = Log.Factory.CreateLogger(channel.PlayerData.Name);
-        channel.OnMessage += HandleMessageAsync;
     }
 
     public Task<UnoResponse> PutCardAsync(UnoCard card, CancellationToken cancellationToken = default)
@@ -59,7 +58,7 @@ public class UnoClient : GameClient<UnoRequest, UnoResponse, UnoGameNotification
         return SendAsync(new PassRequest(), cancellationToken);
     }
 
-    private async void HandleMessageAsync(UnoGameNotification notification)
+    protected override async void OnNotification(UnoGameNotification notification)
     {
         try
         {

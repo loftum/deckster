@@ -2,29 +2,25 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Common;
 using Deckster.Client.Games.ChatRoom;
-using Deckster.Client.Protocol;
 using Deckster.Client.Serialization;
 using Deckster.Server.Communication;
 using Deckster.Server.Games.Common;
-using Deckster.Server.Games.CrazyEights;
 
 namespace Deckster.Server.Games.TestGame;
 
-public class ChatRoomHost : IGameHost
+public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification>
 {
-    public event EventHandler<CrazyEightsGameHost>? OnEnded;
-    public string GameType => "ChatRoom";
-    public GameState State => GameState.Running;
-    public string Name { get; init; }
+    public override string GameType => "ChatRoom";
+    public override GameState State => GameState.Running;
 
     private readonly ConcurrentDictionary<Guid, IServerChannel> _players = new();
     
-    public Task Start()
+    public override Task Start()
     {
         return Task.CompletedTask;
     }
 
-    private async void MessageReceived(PlayerData player, DecksterRequest request)
+    private async void MessageReceived(PlayerData player, ChatRequest request)
     {
         Console.WriteLine($"Received: {request.Pretty()}");
 
@@ -43,12 +39,12 @@ public class ChatRoomHost : IGameHost
         await _players[player.Id].ReplyAsync(new FailureResponse($"Unknown request type {request.Type}"));
     }
     
-    private Task BroadcastAsync(DecksterNotification notification, CancellationToken cancellationToken = default)
+    private Task BroadcastAsync(ChatNotification notification, CancellationToken cancellationToken = default)
     {
         return Task.WhenAll(_players.Values.Select(p => p.PostMessageAsync(notification, cancellationToken).AsTask()));
     }
 
-    public bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error)
+    public override bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error)
     {
         if (!_players.TryAdd(channel.Player.Id, channel))
         {
@@ -59,9 +55,8 @@ public class ChatRoomHost : IGameHost
         
         Console.WriteLine($"Added player {channel.Player.Name}");
         channel.Disconnected += ChannelDisconnected;
-
-        channel.Received += MessageReceived;
-        channel.Start(default);
+        
+        channel.Start<ChatRequest>(MessageReceived, default);
 
         error = default;
         return true;
@@ -78,7 +73,7 @@ public class ChatRoomHost : IGameHost
         });
     }
 
-    public async Task CancelAsync()
+    public override async Task CancelAsync()
     {
         foreach (var player in _players.Values.ToArray())
         {
@@ -88,7 +83,7 @@ public class ChatRoomHost : IGameHost
         _players.Clear();
     }
 
-    public ICollection<PlayerData> GetPlayers()
+    public override ICollection<PlayerData> GetPlayers()
     {
         return _players.Values.Select(c => c.Player).ToArray();
     }

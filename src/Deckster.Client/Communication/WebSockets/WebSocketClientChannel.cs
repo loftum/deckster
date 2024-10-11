@@ -6,10 +6,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Communication.WebSockets;
 
-public class WebSocketClientChannel<TNotification> : IClientChannel<TNotification>
+public class WebSocketClientChannel : IClientChannel
 {
     public PlayerData PlayerData { get; }
-    public event Action<TNotification>? OnMessage;
     public event Action<string>? OnDisconnected;
     private readonly ClientWebSocket _actionSocket;
     private readonly ClientWebSocket _notificationSocket;
@@ -25,11 +24,10 @@ public class WebSocketClientChannel<TNotification> : IClientChannel<TNotificatio
     public WebSocketClientChannel(ClientWebSocket actionSocket, ClientWebSocket notificationSocket, PlayerData playerData)
     {
         IsConnected = true;
-        _logger =  Log.Factory.CreateLogger($"{nameof(WebSocketClientChannel<TNotification>)} {playerData.Name}");
+        _logger =  Log.Factory.CreateLogger($"{nameof(WebSocketClientChannel)} {playerData.Name}");
         _actionSocket = actionSocket;
         PlayerData = playerData;
         _notificationSocket = notificationSocket;
-        _readTask = ReadNotifications();
     }
 
     public async Task<TResponse> SendAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
@@ -101,8 +99,13 @@ public class WebSocketClientChannel<TNotification> : IClientChannel<TNotificatio
             _semaphore.Release();
         }
     }
+
+    public void StartReadNotifications<TNotification>(Action<TNotification> handle)
+    {
+        _readTask = ReadNotifications(handle);
+    }
     
-    private async Task ReadNotifications()
+    private async Task ReadNotifications<TNotification>(Action<TNotification> handle)
     {
         var buffer = new byte[4096];
         _cts.Token.Register(() => _actionSocket.Dispose());
@@ -116,7 +119,7 @@ public class WebSocketClientChannel<TNotification> : IClientChannel<TNotificatio
                     var message = DecksterJson.Deserialize<TNotification>(new ReadOnlySpan<byte>(buffer, 0, result.Count));
                     if (message != null)
                     {
-                        OnMessage?.Invoke(message);    
+                        handle(message);
                     }
                     break;
                 }
@@ -168,7 +171,7 @@ public class WebSocketClientChannel<TNotification> : IClientChannel<TNotificatio
         }
     }
     
-    public static async Task<WebSocketClientChannel<TNotification>> ConnectAsync(Uri uri, string gameName, string token, CancellationToken cancellationToken = default)
+    public static async Task<WebSocketClientChannel> ConnectAsync(Uri uri, string gameName, string token, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -199,7 +202,7 @@ public class WebSocketClientChannel<TNotification> : IClientChannel<TNotificatio
                         case ConnectSuccessMessage:
                         {
                             Console.WriteLine("Success");
-                            return new WebSocketClientChannel<TNotification>(actionSocket, notificationSocket, hello.Player);
+                            return new WebSocketClientChannel(actionSocket, notificationSocket, hello.Player);
                         }
                         case ConnectFailureMessage finishFailure:
                             await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);

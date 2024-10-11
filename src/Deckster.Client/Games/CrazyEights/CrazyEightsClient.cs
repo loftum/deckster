@@ -20,10 +20,9 @@ public class CrazyEightsClient : GameClient<CrazyEightsRequest, CrazyEightsRespo
 
     public PlayerData PlayerData => Channel.PlayerData;
 
-    public CrazyEightsClient(IClientChannel<CrazyEightsNotification> channel) : base(channel)
+    public CrazyEightsClient(IClientChannel channel) : base(channel)
     {
         _logger = Log.Factory.CreateLogger(channel.PlayerData.Name);
-        channel.OnMessage += HandleMessageAsync;
     }
 
     public Task<CrazyEightsResponse> PutCardAsync(Card card, CancellationToken cancellationToken = default)
@@ -58,7 +57,7 @@ public class CrazyEightsClient : GameClient<CrazyEightsRequest, CrazyEightsRespo
         return SendAsync(new PassRequest(), cancellationToken);
     }
 
-    private async void HandleMessageAsync(CrazyEightsNotification notification)
+    protected override async void OnNotification(CrazyEightsNotification notification)
     {
         try
         {

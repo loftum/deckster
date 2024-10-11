@@ -2,19 +2,19 @@ using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Common;
 using Deckster.Client.Games.Uno;
-using Deckster.Client.Protocol;
 using Deckster.Server.Communication;
 using Deckster.Server.Games.Common;
+using Deckster.Server.Games.TestGame;
 using Deckster.Server.Games.Uno.Core;
 
 namespace Deckster.Server.Games.Uno;
 
-public class UnoGameHost : IGameHost
+public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
 {
     public event EventHandler<UnoGameHost>? OnEnded;
 
-    public string GameType => "Uno";
-    public GameState State => _game.State;
+    public override string GameType => "Uno";
+    public override GameState State => _game.State;
     public string Name { get; init; } = Guid.NewGuid().ToString();
 
     private readonly ConcurrentDictionary<Guid, IServerChannel> _players = new();
@@ -29,7 +29,7 @@ public class UnoGameHost : IGameHost
         };
     }
     
-    private async void MessageReceived(PlayerData player, DecksterRequest message)
+    private async void MessageReceived(PlayerData player, UnoRequest message)
     {
         if (!_players.TryGetValue(player.Id, out var channel))
         {
@@ -58,7 +58,7 @@ public class UnoGameHost : IGameHost
         }
     }
 
-    public bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error)
+    public override bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error)
     {
         if (!_game.TryAddPlayer(channel.Player.Id, channel.Player.Name, out error))
         {
@@ -76,12 +76,12 @@ public class UnoGameHost : IGameHost
         return true;
     }
 
-    private Task BroadcastMessageAsync(DecksterNotification notification, CancellationToken cancellationToken = default)
+    private Task BroadcastMessageAsync(UnoGameNotification notification, CancellationToken cancellationToken = default)
     {
         return Task.WhenAll(_players.Values.Select(p => p.PostMessageAsync(notification, cancellationToken).AsTask()));
     }
 
-    private async Task<DecksterResponse> HandleRequestAsync(Guid id, DecksterRequest message, IServerChannel player)
+    private async Task<UnoResponse> HandleRequestAsync(Guid id, UnoRequest message, IServerChannel player)
     {
         switch (message)
         {
@@ -111,35 +111,35 @@ public class UnoGameHost : IGameHost
             }
             default:
             {
-                var result = new FailureResponse($"Unknown command '{message.Type}'");
+                var result = new UnoFailureResponse($"Unknown command '{message.Type}'");
                 await player.ReplyAsync(result);
                 return result;
             }
         }
     }
 
-    public async Task Start()
+    public override async Task Start()
     {
         _game.NewRound(DateTimeOffset.Now);
         foreach (var player in _players.Values)
         {
-            player.Received += MessageReceived;
+            player.Start<UnoRequest>(MessageReceived, _cts.Token);
         }
         var currentPlayerId = _game.CurrentPlayer.Id;
         await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification());
     }
     
-    public async Task CancelAsync()
+    public override async Task CancelAsync()
     {
+        await _cts.CancelAsync();
         foreach (var player in _players.Values.ToArray())
         {
-            player.Received -= MessageReceived;
             await player.DisconnectAsync();
             player.Dispose();
         }
     }
 
-    public ICollection<PlayerData> GetPlayers()
+    public override ICollection<PlayerData> GetPlayers()
     {
         return _players.Values.Select(c => c.Player).ToArray();
     }

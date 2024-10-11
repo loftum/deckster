@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
 
@@ -5,14 +6,17 @@ namespace Deckster.Client.Games;
 
 public abstract class GameClient<TRequest, TResponse, TNotification> : IDisposable, IAsyncDisposable
 {
-    protected readonly IClientChannel<TNotification> Channel;
-    public event Action? Disconnected;
+    protected readonly IClientChannel Channel;
+    public event Action<string>? Disconnected;
 
-    protected GameClient(IClientChannel<TNotification> channel)
+    protected GameClient(IClientChannel channel)
     {
         Channel = channel;
-        channel.OnDisconnected += (reason) => Disconnected?.Invoke();
+        channel.OnDisconnected += reason => Disconnected?.Invoke(reason);
+        channel.StartReadNotifications<TNotification>(OnNotification);
     }
+
+    protected abstract void OnNotification(TNotification notification);
 
     protected async Task<TWanted> GetAsync<TWanted>(TRequest request, CancellationToken cancellationToken = default) where TWanted : TResponse
     {
@@ -28,7 +32,7 @@ public abstract class GameClient<TRequest, TResponse, TNotification> : IDisposab
 
     protected Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken = default)
     {
-        return Channel.SendAsync(request, cancellationToken);
+        return Channel.SendAsync<TRequest, TResponse>(request, cancellationToken);
     }
 
     public async Task DisconnectAsync()
