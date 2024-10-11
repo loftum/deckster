@@ -26,9 +26,9 @@ public class GameApi<TClient>
         return client;
     }
     
-    public async Task<TClient> JoinAsync(Guid gameId, CancellationToken cancellationToken = default)
+    public async Task<TClient> JoinAsync(string gameName, CancellationToken cancellationToken = default)
     {
-        var channel = await WebSocketClientChannel.ConnectAsync(_baseUri, gameId, _token, cancellationToken);
+        var channel = await WebSocketClientChannel.ConnectAsync(_baseUri, gameName, _token, cancellationToken);
         return _createClient(channel);
     }
 

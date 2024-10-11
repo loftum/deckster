@@ -43,7 +43,7 @@ public abstract class CardGameController<TGameHost> : Controller, ICardGameContr
     [HttpGet("games/{id}")]
     public object GameState(string id)
     {
-        if (!HostRegistry.TryGet(id, out var host))
+        if (!HostRegistry.TryGet<TGameHost>(id, out var host))
         {
             return StatusCode(404, new ResponseMessage("Game not found: '{id}'"));
         }
@@ -75,7 +75,7 @@ public abstract class CardGameController<TGameHost> : Controller, ICardGameContr
     [HttpPost("games/{id}/start")]
     public async Task<object> Start(string id)
     {
-        if (!HostRegistry.TryGet(id, out var host))
+        if (!HostRegistry.TryGet<TGameHost>(id, out var host))
         {
             return StatusCode(404, new ResponseMessage("Game not found: '{id}'"));
         }
@@ -84,8 +84,8 @@ public abstract class CardGameController<TGameHost> : Controller, ICardGameContr
         return StatusCode(200, new ResponseMessage("Game '{id}' started"));
     }
     
-    [HttpGet("join/{gameHostName}")]
-    public async Task Join(string gameHostName)
+    [HttpGet("join/{gameName}")]
+    public async Task Join(string gameName)
     {
         if (!HttpContext.WebSockets.IsWebSocketRequest)
         {
@@ -102,7 +102,7 @@ public abstract class CardGameController<TGameHost> : Controller, ICardGameContr
         }
         using var actionSocket = await HttpContext.WebSockets.AcceptWebSocketAsync();
         
-        if (!await HostRegistry.StartJoinAsync(decksterUser, actionSocket, gameHostName))
+        if (!await HostRegistry.StartJoinAsync<TGameHost>(decksterUser, actionSocket, gameName))
         {
             HttpContext.Response.StatusCode = 400;
             await HttpContext.Response.WriteAsJsonAsync(new ResponseMessage("Could not connect"));

@@ -8,8 +8,8 @@ namespace Deckster.Server.Games;
 public interface IGameHost
 {
     string GameType { get; }
-    GameState State { get; }
     string Name { get; init; }
+    GameState State { get; }
     Task Start();
     bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error);
     Task CancelAsync();
