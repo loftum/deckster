@@ -7,12 +7,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Communication.WebSockets;
 
-public static class ClosingReasons
-{
-    public const string ClientDisconnected = "Client disconnected";
-    public const string ServerDisconnected = "Server disconnected";
-}
-
 public class WebSocketClientChannel : IClientChannel
 {
     public PlayerData PlayerData { get; }
@@ -108,66 +102,6 @@ public class WebSocketClientChannel : IClientChannel
             _semaphore.Release();
         }
     }
-
-    public static async Task<WebSocketClientChannel> ConnectAsync(Uri uri, string gameName, string token, CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            var joinUri = uri.ToWebSocket($"join/{gameName}");
-            
-            var actionSocket = new ClientWebSocket();
-            actionSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
-            await actionSocket.ConnectAsync(joinUri, cancellationToken);
-            var joinMessage = await actionSocket.ReceiveMessageAsync<ConnectMessage>(cancellationToken);
-
-            Console.WriteLine($"Got join message: {joinMessage.Pretty()}");
-            switch (joinMessage)
-            {
-                case ConnectFailureMessage failure:
-                    
-                    await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
-                    actionSocket.Dispose();
-                    throw new Exception($"Join failed: {failure.ErrorMessage}");
-                case HelloSuccessMessage hello:
-                    var notificationSocket = new ClientWebSocket();
-                    notificationSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
-                    await notificationSocket.ConnectAsync(uri.ToWebSocket($"join/{hello.ConnectionId}/finish"), cancellationToken);
-
-                    var finishMessage = await notificationSocket.ReceiveMessageAsync<ConnectMessage>(cancellationToken: cancellationToken);
-                    Console.WriteLine($"Got finish message: {finishMessage.Pretty()}");
-                    switch (finishMessage)
-                    {
-                        case ConnectSuccessMessage:
-                        {
-                            Console.WriteLine("Success");
-                            return new WebSocketClientChannel(actionSocket, notificationSocket, hello.Player);
-                        }
-                        case ConnectFailureMessage finishFailure:
-                            await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
-                            actionSocket.Dispose();
-                            await notificationSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
-                            notificationSocket.Dispose();
-                            throw new Exception($"Finish join failed: '{finishFailure.ErrorMessage}'");
-                        default:
-                            await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
-                            actionSocket.Dispose();
-                            await notificationSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
-                            notificationSocket.Dispose();
-                            throw new Exception($"Could not connect. Don't understand message: '{joinMessage.Pretty()}'");        
-                    }
-                    
-                default:
-                    await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
-                    actionSocket.Dispose();
-                    throw new Exception($"Could not connect. Don't understand message: '{joinMessage.Pretty()}'");
-            }
-        }
-        catch (WebSocketException e)
-        {
-            Console.WriteLine(e);
-            throw;
-        }
-    }
     
     private async Task ReadNotifications()
     {
@@ -232,6 +166,66 @@ public class WebSocketClientChannel : IClientChannel
             {
                 resource.Dispose();
             }
+        }
+    }
+    
+    public static async Task<WebSocketClientChannel> ConnectAsync(Uri uri, string gameName, string token, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var joinUri = uri.ToWebSocketUri($"join/{gameName}");
+            
+            var actionSocket = new ClientWebSocket();
+            actionSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
+            await actionSocket.ConnectAsync(joinUri, cancellationToken);
+            var joinMessage = await actionSocket.ReceiveMessageAsync<ConnectMessage>(cancellationToken);
+
+            Console.WriteLine($"Got join message: {joinMessage.Pretty()}");
+            switch (joinMessage)
+            {
+                case ConnectFailureMessage failure:
+                    
+                    await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
+                    actionSocket.Dispose();
+                    throw new Exception($"Join failed: {failure.ErrorMessage}");
+                case HelloSuccessMessage hello:
+                    var notificationSocket = new ClientWebSocket();
+                    notificationSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
+                    await notificationSocket.ConnectAsync(uri.ToWebSocketUri($"join/{hello.ConnectionId}/finish"), cancellationToken);
+
+                    var finishMessage = await notificationSocket.ReceiveMessageAsync<ConnectMessage>(cancellationToken: cancellationToken);
+                    Console.WriteLine($"Got finish message: {finishMessage.Pretty()}");
+                    switch (finishMessage)
+                    {
+                        case ConnectSuccessMessage:
+                        {
+                            Console.WriteLine("Success");
+                            return new WebSocketClientChannel(actionSocket, notificationSocket, hello.Player);
+                        }
+                        case ConnectFailureMessage finishFailure:
+                            await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
+                            actionSocket.Dispose();
+                            await notificationSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
+                            notificationSocket.Dispose();
+                            throw new Exception($"Finish join failed: '{finishFailure.ErrorMessage}'");
+                        default:
+                            await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
+                            actionSocket.Dispose();
+                            await notificationSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
+                            notificationSocket.Dispose();
+                            throw new Exception($"Could not connect. Don't understand message: '{joinMessage.Pretty()}'");        
+                    }
+                    
+                default:
+                    await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);
+                    actionSocket.Dispose();
+                    throw new Exception($"Could not connect. Don't understand message: '{joinMessage.Pretty()}'");
+            }
+        }
+        catch (WebSocketException e)
+        {
+            Console.WriteLine(e);
+            throw;
         }
     }
 }
