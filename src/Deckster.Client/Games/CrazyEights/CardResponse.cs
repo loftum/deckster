@@ -1,9 +1,8 @@
-using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 
 namespace Deckster.Client.Games.CrazyEights;
 
-public class CardResponse : SuccessResponse
+public class CardResponse : CrazyEightsResponse
 {
     public Card Card { get; init; }
 

@@ -1,27 +1,25 @@
 using Deckster.Client.Communication;
-using Deckster.Client.Communication.WebSockets;
-using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Games.ChatRoom;
 
-public class ChatRoomClient : GameClient
+public class ChatRoomClient : GameClient<ChatRequest, ChatResponse, ChatNotification>
 {
-    public event Action<DecksterNotification>? OnMessage;
+    public event Action<ChatNotification>? OnMessage;
     public event Action<string>? OnDisconnected;
 
-    public ChatRoomClient(WebSocketClientChannel channel) : base(channel)
+    public ChatRoomClient(IClientChannel<ChatRequest, ChatResponse, ChatNotification> channel) : base(channel)
     {
         channel.OnMessage += MessageReceived;
-        channel.OnDisconnected += (channel, s) => OnDisconnected(s);
+        channel.OnDisconnected += s => OnDisconnected(s);
     }
 
-    private void MessageReceived(IClientChannel channel, DecksterNotification notification)
+    private void MessageReceived(ChatNotification notification)
     {
         OnMessage?.Invoke(notification);
     }
 
-    public Task<DecksterResponse> SendAsync(DecksterRequest message, CancellationToken cancellationToken = default)
+    public Task<ChatResponse> SendAsync(ChatRequest message, CancellationToken cancellationToken = default)
     {
-        return Channel.SendAsync(message, cancellationToken);
+        return base.SendAsync(message, cancellationToken);
     }
 }
