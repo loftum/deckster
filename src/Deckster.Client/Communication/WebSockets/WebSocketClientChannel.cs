@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Communication.WebSockets;
 
-public class WebSocketClientChannel<TRequest, TResponse, TNotification> : IClientChannel<TRequest, TResponse, TNotification>
+public class WebSocketClientChannel<TNotification> : IClientChannel<TNotification>
 {
     public PlayerData PlayerData { get; }
     public event Action<TNotification>? OnMessage;
@@ -25,14 +25,14 @@ public class WebSocketClientChannel<TRequest, TResponse, TNotification> : IClien
     public WebSocketClientChannel(ClientWebSocket actionSocket, ClientWebSocket notificationSocket, PlayerData playerData)
     {
         IsConnected = true;
-        _logger =  Log.Factory.CreateLogger($"{nameof(WebSocketClientChannel<TRequest, TResponse, TNotification>)} {playerData.Name}");
+        _logger =  Log.Factory.CreateLogger($"{nameof(WebSocketClientChannel<TNotification>)} {playerData.Name}");
         _actionSocket = actionSocket;
         PlayerData = playerData;
         _notificationSocket = notificationSocket;
         _readTask = ReadNotifications();
     }
 
-    public async Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken = default)
+    public async Task<TResponse> SendAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
@@ -168,7 +168,7 @@ public class WebSocketClientChannel<TRequest, TResponse, TNotification> : IClien
         }
     }
     
-    public static async Task<WebSocketClientChannel<TRequest, TResponse, TNotification>> ConnectAsync(Uri uri, string gameName, string token, CancellationToken cancellationToken = default)
+    public static async Task<WebSocketClientChannel<TNotification>> ConnectAsync(Uri uri, string gameName, string token, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -199,7 +199,7 @@ public class WebSocketClientChannel<TRequest, TResponse, TNotification> : IClien
                         case ConnectSuccessMessage:
                         {
                             Console.WriteLine("Success");
-                            return new WebSocketClientChannel<TRequest, TResponse, TNotification>(actionSocket, notificationSocket, hello.Player);
+                            return new WebSocketClientChannel<TNotification>(actionSocket, notificationSocket, hello.Player);
                         }
                         case ConnectFailureMessage finishFailure:
                             await actionSocket.CloseOutputAsync(WebSocketCloseStatus.ProtocolError, "", default);

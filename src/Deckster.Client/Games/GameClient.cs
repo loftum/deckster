@@ -5,10 +5,10 @@ namespace Deckster.Client.Games;
 
 public abstract class GameClient<TRequest, TResponse, TNotification> : IDisposable, IAsyncDisposable
 {
-    protected readonly IClientChannel<TRequest, TResponse, TNotification> Channel;
+    protected readonly IClientChannel<TNotification> Channel;
     public event Action? Disconnected;
 
-    protected GameClient(IClientChannel<TRequest, TResponse, TNotification> channel)
+    protected GameClient(IClientChannel<TNotification> channel)
     {
         Channel = channel;
         channel.OnDisconnected += (reason) => Disconnected?.Invoke();
@@ -16,7 +16,7 @@ public abstract class GameClient<TRequest, TResponse, TNotification> : IDisposab
 
     protected async Task<TWanted> GetAsync<TWanted>(TRequest request, CancellationToken cancellationToken = default) where TWanted : TResponse
     {
-        var result = await Channel.SendAsync(request, cancellationToken);
+        var result = await Channel.SendAsync<TRequest, TResponse>(request, cancellationToken);
         return result switch
         {
             null => throw new Exception("Result is null. Wat"),

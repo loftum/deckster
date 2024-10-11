@@ -20,7 +20,7 @@ public class CrazyEightsClient : GameClient<CrazyEightsRequest, CrazyEightsRespo
 
     public PlayerData PlayerData => Channel.PlayerData;
 
-    public CrazyEightsClient(IClientChannel<CrazyEightsRequest, CrazyEightsResponse, CrazyEightsNotification> channel) : base(channel)
+    public CrazyEightsClient(IClientChannel<CrazyEightsNotification> channel) : base(channel)
     {
         _logger = Log.Factory.CreateLogger(channel.PlayerData.Name);
         channel.OnMessage += HandleMessageAsync;

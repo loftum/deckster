@@ -21,7 +21,7 @@ public class UnoClient : GameClient<UnoRequest, UnoResponse, UnoGameNotification
 
     public PlayerData PlayerData => Channel.PlayerData;
 
-    public UnoClient(IClientChannel<UnoRequest, UnoResponse, UnoGameNotification> channel) : base(channel)
+    public UnoClient(IClientChannel<UnoGameNotification> channel) : base(channel)
     {
         _logger = Log.Factory.CreateLogger(channel.PlayerData.Name);
         channel.OnMessage += HandleMessageAsync;

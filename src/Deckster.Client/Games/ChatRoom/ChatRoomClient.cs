@@ -7,7 +7,7 @@ public class ChatRoomClient : GameClient<ChatRequest, ChatResponse, ChatNotifica
     public event Action<ChatNotification>? OnMessage;
     public event Action<string>? OnDisconnected;
 
-    public ChatRoomClient(IClientChannel<ChatRequest, ChatResponse, ChatNotification> channel) : base(channel)
+    public ChatRoomClient(IClientChannel<ChatNotification> channel) : base(channel)
     {
         channel.OnMessage += MessageReceived;
         channel.OnDisconnected += s => OnDisconnected(s);
