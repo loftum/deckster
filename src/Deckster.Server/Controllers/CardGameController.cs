@@ -21,7 +21,6 @@ public abstract class CardGameController<TGameHost> : Controller, ICardGameContr
     [HttpGet("")]
     public ViewResult Overview()
     {
-        var routeData = RouteData;
         var games = HostRegistry.GetHosts<TGameHost>().Select(h => new GameVm
         {
             Id = h.Name,
