@@ -18,6 +18,7 @@ class Program
         try
         {
             using var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (s, e) => cts.Cancel();
             
             var deckster = new DecksterClient("http://localhost:13992", "abc123");
             

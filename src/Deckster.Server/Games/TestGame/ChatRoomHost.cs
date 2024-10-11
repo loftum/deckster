@@ -41,7 +41,6 @@ public class ChatRoomHost : IGameHost
         }
         
         await _players[player.Id].ReplyAsync(new FailureResponse($"Unknown request type {request.Type}"));
-        
     }
     
     private Task BroadcastAsync(DecksterNotification notification, CancellationToken cancellationToken = default)
