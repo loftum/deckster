@@ -6,7 +6,7 @@ namespace Deckster.Client.Games.Uno;
 [JsonDerived<UnoResponse>]
 public abstract class UnoResponse : IHaveDiscriminator
 {
-    public string Type { get; }
+    public string Type => GetType().Name;
 }
 
 public class UnoCardsResponse : UnoResponse

@@ -3,9 +3,5 @@ using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Serialization;
 
-internal class JsonDerivedAttribute<T> : JsonConverterAttribute where T : IHaveDiscriminator
-{
-    public JsonDerivedAttribute() : base(typeof(DerivedTypeConverter<T>))
-    {
-    }
-}
+public class JsonDerivedAttribute<T>() : JsonConverterAttribute(typeof(DerivedTypeConverter<T>))
+    where T : IHaveDiscriminator;

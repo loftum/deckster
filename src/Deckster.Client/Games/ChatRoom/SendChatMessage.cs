@@ -6,7 +6,7 @@ namespace Deckster.Client.Games.ChatRoom;
 [JsonDerived<ChatRequest>]
 public abstract class ChatRequest : IHaveDiscriminator
 {
-    public string Type { get; }
+    public string Type => GetType().Name;
 }
 
 public class SendChatMessage : ChatRequest
@@ -14,14 +14,16 @@ public class SendChatMessage : ChatRequest
     public string Message { get; set; }
 }
 
-public class ChatNotification
+[JsonDerived<ChatNotification>]
+public class ChatNotification : IHaveDiscriminator
 {
+    public string Type => GetType().Name;
     public string Sender { get; init; }
     public string Message { get; init; }
 }
 
 [JsonDerived<ChatResponse>]
-public class ChatResponse : IHaveDiscriminator 
+public class ChatResponse : IHaveDiscriminator
 {
-    public string Type { get; }
+    public string Type => GetType().Name;
 }

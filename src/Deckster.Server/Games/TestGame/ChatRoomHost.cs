@@ -27,7 +27,7 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
         switch (request)
         {
             case SendChatMessage message:
-                await _players[player.Id].ReplyAsync(new SuccessResponse());
+                await _players[player.Id].ReplyAsync(new SuccessResponse(), JsonOptions);
                 await BroadcastAsync(new ChatNotification
                 {
                     Sender = player.Name,
@@ -36,12 +36,12 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
                 return;
         }
         
-        await _players[player.Id].ReplyAsync(new FailureResponse($"Unknown request type {request.Type}"));
+        await _players[player.Id].ReplyAsync(new FailureResponse($"Unknown request type {request.Type}"), JsonOptions);
     }
     
     private Task BroadcastAsync(ChatNotification notification, CancellationToken cancellationToken = default)
     {
-        return Task.WhenAll(_players.Values.Select(p => p.PostMessageAsync(notification, cancellationToken).AsTask()));
+        return Task.WhenAll(_players.Values.Select(p => p.PostMessageAsync(notification, JsonOptions, cancellationToken).AsTask()));
     }
 
     public override bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error)
@@ -56,7 +56,7 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
         Console.WriteLine($"Added player {channel.Player.Name}");
         channel.Disconnected += ChannelDisconnected;
         
-        channel.Start<ChatRequest>(MessageReceived, default);
+        channel.Start<ChatRequest>(MessageReceived, JsonOptions, default);
 
         error = default;
         return true;

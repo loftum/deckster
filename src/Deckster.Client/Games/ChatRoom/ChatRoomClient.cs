@@ -17,8 +17,8 @@ public class ChatRoomClient : GameClient<ChatRequest, ChatResponse, ChatNotifica
         OnMessage?.Invoke(notification);
     }
 
-    public Task<ChatResponse> SendAsync(ChatRequest message, CancellationToken cancellationToken = default)
+    public Task<ChatResponse> ChatAsync(ChatRequest request, CancellationToken cancellationToken = default)
     {
-        return base.SendAsync(message, cancellationToken);
+        return base.SendAsync(request, cancellationToken);
     }
 }

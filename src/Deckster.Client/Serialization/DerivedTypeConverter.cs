@@ -5,7 +5,7 @@ using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Serialization;
 
-internal class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscriminator
+public class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscriminator
 {
     // ReSharper disable once StaticMemberInGenericType
     private static readonly Dictionary<string, Type> TypeMap;

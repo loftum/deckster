@@ -37,7 +37,7 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
         }
         if (_game.State != GameState.Running)
         {
-            await channel.ReplyAsync(new FailureResponse("Game is not running"));
+            await channel.ReplyAsync(new FailureResponse("Game is not running"), JsonOptions);
             return;
         }
 
@@ -54,7 +54,7 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
                 return;
             }
             var currentPlayerId = _game.CurrentPlayer.Id;
-            await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification());
+            await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification(), JsonOptions);
         }
     }
 
@@ -78,7 +78,7 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
 
     private Task BroadcastMessageAsync(UnoGameNotification notification, CancellationToken cancellationToken = default)
     {
-        return Task.WhenAll(_players.Values.Select(p => p.PostMessageAsync(notification, cancellationToken).AsTask()));
+        return Task.WhenAll(_players.Values.Select(p => p.PostMessageAsync(notification, JsonOptions, cancellationToken).AsTask()));
     }
 
     private async Task<UnoResponse> HandleRequestAsync(Guid id, UnoRequest message, IServerChannel player)
@@ -88,31 +88,31 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
             case PutCardRequest command:
             {
                 var result = _game.PutCard(id, command.Card);
-                await player.ReplyAsync(result);
+                await player.ReplyAsync(result, JsonOptions);
                 return result;
             }
             case PutWildRequest command:
             {
                 var result = _game.PutWild(id, command.Card, command.NewColor);
-                await player.ReplyAsync(result);
+                await player.ReplyAsync(result, JsonOptions);
                 return result;
             }
             case DrawCardRequest:
             {
                 var result = _game.DrawCard(id);
-                await player.ReplyAsync(result);
+                await player.ReplyAsync(result, JsonOptions);
                 return result;
             }
             case PassRequest:
             {
                 var result = _game.Pass(id);
-                await player.ReplyAsync(result);
+                await player.ReplyAsync(result, JsonOptions);
                 return result;
             }
             default:
             {
                 var result = new UnoFailureResponse($"Unknown command '{message.Type}'");
-                await player.ReplyAsync(result);
+                await player.ReplyAsync(result, JsonOptions);
                 return result;
             }
         }
@@ -123,10 +123,10 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
         _game.NewRound(DateTimeOffset.Now);
         foreach (var player in _players.Values)
         {
-            player.Start<UnoRequest>(MessageReceived, _cts.Token);
+            player.Start<UnoRequest>(MessageReceived, JsonOptions, _cts.Token);
         }
         var currentPlayerId = _game.CurrentPlayer.Id;
-        await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification());
+        await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification(), JsonOptions);
     }
     
     public override async Task CancelAsync()

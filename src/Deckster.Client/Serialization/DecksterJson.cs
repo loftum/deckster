@@ -10,11 +10,12 @@ public static class DecksterJson
     
     public static readonly JsonSerializerOptions PrettyOptions = Create(o => o.WriteIndented = true);
 
-    private static JsonSerializerOptions Create(Action<JsonSerializerOptions>? configure = null)
+    public static JsonSerializerOptions Create(Action<JsonSerializerOptions>? configure = null)
     {
       var options = new JsonSerializerOptions
       {
-          Converters = {new JsonStringEnumConverter(),
+          Converters = {
+              new JsonStringEnumConverter(),
               new DerivedTypeConverter<DecksterRequest>(),
               new DerivedTypeConverter<DecksterResponse>(),
               new DerivedTypeConverter<DecksterNotification>()

@@ -1,4 +1,5 @@
 using System.Net.WebSockets;
+using System.Text.Json;
 using Deckster.Client.Common;
 using Deckster.Client.Logging;
 using Deckster.Client.Serialization;
@@ -30,7 +31,7 @@ public class WebSocketClientChannel : IClientChannel
         _notificationSocket = notificationSocket;
     }
 
-    public async Task<TResponse> SendAsync<TRequest, TResponse>(TRequest request, CancellationToken cancellationToken = default)
+    public async Task<TResponse> SendAsync<TRequest, TResponse>(TRequest request, JsonSerializerOptions options, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
@@ -40,7 +41,7 @@ public class WebSocketClientChannel : IClientChannel
             {
                 throw new Exception("Not connected");
             }
-            await _actionSocket.SendMessageAsync(request, cancellationToken);
+            await _actionSocket.SendMessageAsync(request, options, cancellationToken);
             var result = await _actionSocket.ReceiveAsync(_actionBuffer, cancellationToken);
         
             switch (result.MessageType)
@@ -100,12 +101,12 @@ public class WebSocketClientChannel : IClientChannel
         }
     }
 
-    public void StartReadNotifications<TNotification>(Action<TNotification> handle)
+    public void StartReadNotifications<TNotification>(Action<TNotification> handle, JsonSerializerOptions options)
     {
-        _readTask = ReadNotifications(handle);
+        _readTask = ReadNotifications(handle, options);
     }
     
-    private async Task ReadNotifications<TNotification>(Action<TNotification> handle)
+    private async Task ReadNotifications<TNotification>(Action<TNotification> handle, JsonSerializerOptions options)
     {
         var buffer = new byte[4096];
         _cts.Token.Register(() => _actionSocket.Dispose());
@@ -116,7 +117,7 @@ public class WebSocketClientChannel : IClientChannel
             {
                 case WebSocketMessageType.Text:
                 {
-                    var message = DecksterJson.Deserialize<TNotification>(new ReadOnlySpan<byte>(buffer, 0, result.Count));
+                    var message = JsonSerializer.Deserialize<TNotification>(new ReadOnlySpan<byte>(buffer, 0, result.Count), options);
                     if (message != null)
                     {
                         handle(message);
@@ -180,7 +181,7 @@ public class WebSocketClientChannel : IClientChannel
             var actionSocket = new ClientWebSocket();
             actionSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
             await actionSocket.ConnectAsync(joinUri, cancellationToken);
-            var joinMessage = await actionSocket.ReceiveMessageAsync<ConnectMessage>(cancellationToken);
+            var joinMessage = await actionSocket.ReceiveMessageAsync<ConnectMessage>(DecksterJson.Options, cancellationToken);
 
             Console.WriteLine($"Got join message: {joinMessage.Pretty()}");
             switch (joinMessage)
@@ -195,7 +196,7 @@ public class WebSocketClientChannel : IClientChannel
                     notificationSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
                     await notificationSocket.ConnectAsync(uri.ToWebSocketUri($"join/{hello.ConnectionId}/finish"), cancellationToken);
 
-                    var finishMessage = await notificationSocket.ReceiveMessageAsync<ConnectMessage>(cancellationToken: cancellationToken);
+                    var finishMessage = await notificationSocket.ReceiveMessageAsync<ConnectMessage>(DecksterJson.Options, cancellationToken);
                     Console.WriteLine($"Got finish message: {finishMessage.Pretty()}");
                     switch (finishMessage)
                     {

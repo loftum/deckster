@@ -5,6 +5,7 @@ using System.Net.WebSockets;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Communication.WebSockets;
+using Deckster.Client.Serialization;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.CrazyEights;
@@ -55,7 +56,7 @@ public class GameHostRegistry
             await actionSocket.SendMessageAsync(new ConnectFailureMessage
             {
                 ErrorMessage = $"Unknown game '{gameName}'" 
-            });
+            }, DecksterJson.Options);
             return false;
         }
 
@@ -70,7 +71,7 @@ public class GameHostRegistry
             await actionSocket.SendMessageAsync(new ConnectFailureMessage
             {
                 ErrorMessage = "ConnectionId conflict"
-            });
+            }, DecksterJson.Options);
             return false;
         }
 
@@ -78,7 +79,7 @@ public class GameHostRegistry
         {
             ConnectionId = connectingPlayer.ConnectionId,
             Player = connectingPlayer.Player
-        });
+        }, DecksterJson.Options);
 
         await connectingPlayer.TaskCompletionSource.Task;
         return true;
@@ -91,7 +92,7 @@ public class GameHostRegistry
             await eventSocket.SendMessageAsync<ConnectMessage>(new ConnectFailureMessage
             {
                 ErrorMessage = $"Invalid connectionId: '{connectionId}'"
-            });
+            }, DecksterJson.Options);
             return false;
         }
         
@@ -101,13 +102,13 @@ public class GameHostRegistry
             await eventSocket.SendMessageAsync<ConnectMessage>(new ConnectFailureMessage
             {
                 ErrorMessage = error
-            });
+            }, DecksterJson.Options);
             await channel.DisconnectAsync();
             channel.Dispose();
             return false;
         }
         
-        await eventSocket.SendMessageAsync<ConnectMessage>(new ConnectSuccessMessage());
+        await eventSocket.SendMessageAsync<ConnectMessage>(new ConnectSuccessMessage(), DecksterJson.Options);
         await connecting.TaskCompletionSource.Task;
         return true;
     }

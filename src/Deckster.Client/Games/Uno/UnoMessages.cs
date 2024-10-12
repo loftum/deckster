@@ -7,7 +7,7 @@ namespace Deckster.Client.Games.Uno;
 [JsonDerived<UnoGameNotification>]
 public abstract class UnoGameNotification: IHaveDiscriminator
 {
-    public string Type { get; }
+    public string Type => GetType().Name;
 }
 
 public class PlayerPutCardNotification : UnoGameNotification

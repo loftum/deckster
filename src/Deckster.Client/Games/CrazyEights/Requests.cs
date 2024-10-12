@@ -1,8 +1,10 @@
 using Deckster.Client.Games.Common;
 using Deckster.Client.Protocol;
+using Deckster.Client.Serialization;
 
 namespace Deckster.Client.Games.CrazyEights;
 
+[JsonDerived<CrazyEightsRequest>]
 public abstract class CrazyEightsRequest : IHaveDiscriminator
 {
     public string Type { get; }
