@@ -4,6 +4,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Net.WebSockets;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
+using Deckster.Client.Communication.Handshake;
 using Deckster.Client.Communication.WebSockets;
 using Deckster.Client.Serialization;
 using Deckster.Server.Communication;

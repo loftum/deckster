@@ -9,9 +9,9 @@ using Deckster.Server.Games.Common;
 namespace Deckster.Server.Games.TestGame;
 
 public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost
-    where TRequest : IHaveDiscriminator
-    where TResponse : IHaveDiscriminator
-    where TNotification : IHaveDiscriminator
+    where TRequest : DecksterMessage
+    where TResponse : DecksterMessage
+    where TNotification : DecksterMessage
 
 {
     public event EventHandler<IGameHost>? OnEnded;
@@ -21,9 +21,7 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost
 
     protected readonly JsonSerializerOptions JsonOptions = DecksterJson.Create(o =>
     {
-        o.Converters.Add(new DerivedTypeConverter<TRequest>());
-        o.Converters.Add(new DerivedTypeConverter<TResponse>());
-        o.Converters.Add(new DerivedTypeConverter<TNotification>());
+        o.AddAll<TRequest>().AddAll<TResponse>().AddAll<TNotification>();
     });
 
     public abstract Task Start();
@@ -32,3 +30,4 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost
     public abstract Task CancelAsync();
     public abstract ICollection<PlayerData> GetPlayers();
 }
+

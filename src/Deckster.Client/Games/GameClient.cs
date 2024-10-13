@@ -7,17 +7,16 @@ using Deckster.Client.Serialization;
 namespace Deckster.Client.Games;
 
 public abstract class GameClient<TRequest, TResponse, TNotification> : IDisposable, IAsyncDisposable
-    where TRequest : IHaveDiscriminator
-    where TResponse : IHaveDiscriminator
-    where TNotification : IHaveDiscriminator
+    where TRequest : DecksterMessage
+    where TResponse : DecksterMessage
+    where TNotification : DecksterMessage
 {
     protected readonly IClientChannel Channel;
     public event Action<string>? Disconnected;
-    protected readonly JsonSerializerOptions JsonOptions = DecksterJson.Create(o =>
+
+    private static readonly JsonSerializerOptions JsonOptions = DecksterJson.Create(o =>
     {
-        o.Converters.Add(new DerivedTypeConverter<TRequest>());
-        o.Converters.Add(new DerivedTypeConverter<TResponse>());
-        o.Converters.Add(new DerivedTypeConverter<TNotification>());
+        o.AddAll<TRequest>().AddAll<TResponse>().AddAll<TNotification>();
     });
 
     protected GameClient(IClientChannel channel)
@@ -31,19 +30,24 @@ public abstract class GameClient<TRequest, TResponse, TNotification> : IDisposab
 
     protected async Task<TWanted> GetAsync<TWanted>(TRequest request, CancellationToken cancellationToken = default) where TWanted : TResponse
     {
-        var result = await Channel.SendAsync<TRequest, TResponse>(request, JsonOptions, cancellationToken);
-        return result switch
+        var response = await SendAsync(request, cancellationToken);
+        return response switch
         {
-            null => throw new Exception("Result is null. Wat"),
-            FailureResponse r => throw new Exception(r.Message),
             TWanted r => r,
-            _ => throw new Exception($"Unknown result '{result.GetType().Name}'")
+            _ => throw new Exception($"Unexpected response '{response.GetType().Name}'")
         };
     }
 
-    protected Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken = default)
+    protected async Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken = default)
     {
-        return Channel.SendAsync<TRequest, TResponse>(request, JsonOptions, cancellationToken);
+        var response = await Channel.SendAsync<DecksterResponse>(request, JsonOptions, cancellationToken);
+        return response switch
+        {
+            TResponse expected => expected,
+            FailureResponse f => throw new Exception(f.Message),
+            null => throw new Exception("Result is null. Wat"),
+            _ => throw new Exception($"Unknown result '{response.GetType().Name}'")
+        };
     }
 
     public async Task DisconnectAsync()

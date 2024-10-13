@@ -8,6 +8,6 @@ public interface IClientChannel : IDisposable, IAsyncDisposable
     PlayerData PlayerData { get; }
     event Action<string>? OnDisconnected;
     Task DisconnectAsync();
-    Task<TResponse> SendAsync<TRequest, TResponse>(TRequest request, JsonSerializerOptions options, CancellationToken cancellationToken = default);
+    Task<TResponse> SendAsync<TResponse>(object request, JsonSerializerOptions options, CancellationToken cancellationToken = default);
     void StartReadNotifications<TNotification>(Action<TNotification> handle, JsonSerializerOptions options);
 }

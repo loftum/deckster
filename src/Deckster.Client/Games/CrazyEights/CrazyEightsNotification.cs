@@ -1,15 +1,10 @@
 using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Protocol;
-using Deckster.Client.Serialization;
 
 namespace Deckster.Client.Games.CrazyEights;
 
-[JsonDerived<CrazyEightsNotification>]
-public abstract class CrazyEightsNotification : IHaveDiscriminator
-{
-    public string Type => GetType().Name;
-}
+public abstract class CrazyEightsNotification : DecksterMessage;
 
 public class PlayerPutCardNotification : CrazyEightsNotification
 {

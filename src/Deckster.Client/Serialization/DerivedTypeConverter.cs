@@ -5,19 +5,37 @@ using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Serialization;
 
-public class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscriminator
+public class DecksterMessageConverter : JsonConverterFactory
+{
+    private static readonly Type BaseType = typeof(DecksterMessage);
+    private readonly Dictionary<string, Type> _typeMap;
+
+    public DecksterMessageConverter(Dictionary<string, Type> typeMap)
+    {
+        _typeMap = typeMap;
+    }
+
+    public override bool CanConvert(Type typeToConvert)
+    {
+        return typeToConvert.IsSubclassOf(BaseType) && typeToConvert.IsAbstract;
+    }
+
+    public override JsonConverter? CreateConverter(Type typeToConvert, JsonSerializerOptions options)
+    {
+        var ctor = typeof(DerivedTypeConverter<>).MakeGenericType(typeToConvert).GetConstructors()[0];
+        var instance = ctor.Invoke([_typeMap]);
+        return (JsonConverter) instance;
+    }
+}
+
+public class DerivedTypeConverter<T> : JsonConverter<T> where T : DecksterMessage
 {
     // ReSharper disable once StaticMemberInGenericType
-    private static readonly Dictionary<string, Type> TypeMap;
+    private readonly Dictionary<string, Type> _typeMap;
 
-    static DerivedTypeConverter()
+    public DerivedTypeConverter(Dictionary<string, Type> typeMap)
     {
-        var types = from t in AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes())
-            where t.IsClass &&
-                  !t.IsAbstract &&
-                  typeof(T).IsAssignableFrom(t)
-            select t;
-        TypeMap = types.ToDictionary(t => t.GetGameNamespacedName(), t => t, StringComparer.OrdinalIgnoreCase); // We don't care about casing, do we? Nah..
+        _typeMap = typeMap;
     }
 
     public override T? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
@@ -29,7 +47,7 @@ public class DerivedTypeConverter<T> : JsonConverter<T> where T : IHaveDiscrimin
             return default;
         }
 
-        if (TypeMap.TryGetValue(discriminator, out var type))
+        if (_typeMap.TryGetValue(discriminator, out var type))
         {
             return (T?) node.Deserialize(type, options);
         }

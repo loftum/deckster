@@ -1,14 +1,9 @@
 using Deckster.Client.Common;
 using Deckster.Client.Protocol;
-using Deckster.Client.Serialization;
 
 namespace Deckster.Client.Games.Uno;
 
-[JsonDerived<UnoGameNotification>]
-public abstract class UnoGameNotification: IHaveDiscriminator
-{
-    public string Type => GetType().Name;
-}
+public abstract class UnoGameNotification: DecksterNotification;
 
 public class PlayerPutCardNotification : UnoGameNotification
 {

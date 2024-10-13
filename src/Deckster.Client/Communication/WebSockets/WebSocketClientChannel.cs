@@ -1,6 +1,7 @@
 using System.Net.WebSockets;
 using System.Text.Json;
 using Deckster.Client.Common;
+using Deckster.Client.Communication.Handshake;
 using Deckster.Client.Logging;
 using Deckster.Client.Serialization;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,7 @@ public class WebSocketClientChannel : IClientChannel
         _notificationSocket = notificationSocket;
     }
 
-    public async Task<TResponse> SendAsync<TRequest, TResponse>(TRequest request, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public async Task<TResponse> SendAsync<TResponse>(object request, JsonSerializerOptions options, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
         try
@@ -171,6 +172,11 @@ public class WebSocketClientChannel : IClientChannel
             }
         }
     }
+
+    private static readonly JsonSerializerOptions JsonOptions = DecksterJson.Create(m =>
+    {
+        m.AddAll<ConnectMessage>();
+    });
     
     public static async Task<WebSocketClientChannel> ConnectAsync(Uri uri, string gameName, string token, CancellationToken cancellationToken = default)
     {
@@ -181,7 +187,7 @@ public class WebSocketClientChannel : IClientChannel
             var actionSocket = new ClientWebSocket();
             actionSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
             await actionSocket.ConnectAsync(joinUri, cancellationToken);
-            var joinMessage = await actionSocket.ReceiveMessageAsync<ConnectMessage>(DecksterJson.Options, cancellationToken);
+            var joinMessage = await actionSocket.ReceiveMessageAsync<ConnectMessage>(JsonOptions, cancellationToken);
 
             Console.WriteLine($"Got join message: {joinMessage.Pretty()}");
             switch (joinMessage)
@@ -196,7 +202,7 @@ public class WebSocketClientChannel : IClientChannel
                     notificationSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
                     await notificationSocket.ConnectAsync(uri.ToWebSocketUri($"join/{hello.ConnectionId}/finish"), cancellationToken);
 
-                    var finishMessage = await notificationSocket.ReceiveMessageAsync<ConnectMessage>(DecksterJson.Options, cancellationToken);
+                    var finishMessage = await notificationSocket.ReceiveMessageAsync<ConnectMessage>(JsonOptions, cancellationToken);
                     Console.WriteLine($"Got finish message: {finishMessage.Pretty()}");
                     switch (finishMessage)
                     {

@@ -1,8 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
-using Deckster.Client.Protocol;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
 

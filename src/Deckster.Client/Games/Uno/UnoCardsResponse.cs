@@ -1,13 +1,8 @@
 using Deckster.Client.Protocol;
-using Deckster.Client.Serialization;
 
 namespace Deckster.Client.Games.Uno;
 
-[JsonDerived<UnoResponse>]
-public abstract class UnoResponse : IHaveDiscriminator
-{
-    public string Type => GetType().Name;
-}
+public abstract class UnoResponse : DecksterResponse;
 
 public class UnoCardsResponse : UnoResponse
 {
