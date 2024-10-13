@@ -20,8 +20,9 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
         return Task.CompletedTask;
     }
 
-    private async void MessageReceived(PlayerData player, ChatRequest request)
+    private async void MessageReceived(IServerChannel channel, ChatRequest request)
     {
+        var player = channel.Player;
         Console.WriteLine($"Received: {request.Pretty()}");
 
         switch (request)
