@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using Deckster.Client;
+﻿using Deckster.Client;
 using Deckster.Client.Games.Uno;
 using Microsoft.Extensions.Configuration;
 
@@ -17,14 +14,9 @@ class Program
             .AddJsonFile("appsettings.local.json", optional: true, reloadOnChange: true)            ;
         var config = builder.Build();
         var settings = config.GetSection("Deckster").Get<DecksterSettings>();
-        
-        
-        
-        
-        if (!TryGetUrl(argz, out _))
+        if (settings == null)
         {
-            PrintUsage();
-            return 0;
+            throw new Exception("OMG APPSETTINGS IZ NULLZ");
         }
         
         try
@@ -32,9 +24,19 @@ class Program
             using var cts = new CancellationTokenSource();
             Console.CancelKeyPress += (_, _) => cts.Cancel();
             
-            var deckster = new DecksterClient(settings.ServerUrl, settings.Token);
-            Console.WriteLine("Enter game name");
-            var gamename = Console.ReadLine();
+            var deckster = await DecksterClient.LogInOrRegisterAsync(settings.ServerUrl, "Kamuf Larsen", "hest");
+            
+            string? gamename = null;
+            while (gamename == null)
+            {
+                Console.WriteLine("Enter game name:");
+                gamename = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(gamename))
+                {
+                    Console.WriteLine("Not nearly good enough.");
+                }
+            }
+            
             var game = await deckster.Uno().CreateAndJoinAsync(gamename, cts.Token);
             var noob = new UnoNoob(game);
             noob.StartPlaying();
@@ -46,28 +48,5 @@ class Program
             Console.WriteLine(e);
             return 1;
         }
-    }
-
-    private static bool TryGetUrl(string[] args, [MaybeNullWhen(false)] out Uri uri)
-    {
-        foreach (var a in args)
-        {
-            if (Uri.TryCreate(a, UriKind.Absolute, out uri))
-            {
-                return true;
-            }
-        }
-
-        uri = new Uri($"ws://localhost:13992/crazyeights/join/{Guid.Empty}");
-        return true;
-    }
-
-    private static void PrintUsage()
-    {
-        var usage = new StringBuilder()
-            .AppendLine("Usage:")
-            .AppendLine($"{Process.GetCurrentProcess().ProcessName} <uri>")
-            .AppendLine($"e.g {Process.GetCurrentProcess().ProcessName} deckster://localhost:23023/123456");
-        Console.WriteLine(usage);
     }
 }
