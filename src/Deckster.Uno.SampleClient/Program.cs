@@ -2,9 +2,10 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Deckster.Client;
+using Deckster.Client.Games.Uno;
 using Microsoft.Extensions.Configuration;
 
-namespace Deckster.CrazyEights.SampleClient;
+namespace Deckster.Uno.SampleClient;
 
 class Program
 {
@@ -34,7 +35,7 @@ class Program
             var deckster = new DecksterClient(settings.ServerUrl, settings.Token);
             Console.WriteLine("Enter game name");
             var gamename = Console.ReadLine();
-            var game = await deckster.Uno.CreateAndJoinAsync(gamename, cts.Token);
+            var game = await deckster.Uno().CreateAndJoinAsync(gamename, cts.Token);
             var noob = new UnoNoob(game);
             noob.StartPlaying();
             
