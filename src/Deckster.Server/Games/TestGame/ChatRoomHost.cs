@@ -27,7 +27,7 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
         switch (request)
         {
             case SendChatMessage message:
-                await _players[player.Id].ReplyAsync(new SuccessResponse(), JsonOptions);
+                await _players[player.Id].ReplyAsync(new ChatResponse(), JsonOptions);
                 await BroadcastAsync(new ChatNotification
                 {
                     Sender = player.Name,

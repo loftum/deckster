@@ -42,7 +42,7 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
         }
 
         var result = await HandleRequestAsync(player.Id, message, channel);
-        if (result is SuccessResponse)
+        if (result is UnoSuccessResponse)
         {
             if (_game.State == GameState.Finished)
             {
