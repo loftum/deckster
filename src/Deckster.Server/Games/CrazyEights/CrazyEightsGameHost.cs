@@ -1,10 +1,12 @@
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Common;
 using Deckster.Client.Games.CrazyEights;
+using Deckster.CrazyEights.SampleClient;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.ChatRoom;
 using Deckster.Server.Games.Common;
+using Deckster.Server.Games.Common.Fakes;
 using Deckster.Server.Games.CrazyEights.Core;
 
 namespace Deckster.Server.Games.CrazyEights;
@@ -18,6 +20,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
     private CrazyEightsGame? _game;
     private readonly IRepo _repo;
     private IEventThing<CrazyEightsGame>? _events;
+    private readonly List<CrazyEightsPoorAi> _bots = [];
 
     public CrazyEightsGameHost(IRepo repo)
     {
@@ -42,6 +45,21 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
         return true;
     }
 
+    public override bool TryAddBot([MaybeNullWhen(true)] out string error)
+    {
+        var channel = new InMemoryChannel
+        {
+            Player = new PlayerData
+            {
+                Id = Guid.NewGuid(),
+                Name = TestNames.Random()
+            }
+        };
+        var bot = new CrazyEightsPoorAi(new CrazyEightsClient(channel));
+        _bots.Add(bot);
+        return TryAddPlayer(channel, out error);
+    }
+
     private async void MessageReceived(IServerChannel channel, CrazyEightsRequest request)
     {
         if (_game == null || _game.State == GameState.Finished)
@@ -64,10 +82,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
             await Cts.CancelAsync();
             Cts.Dispose();
             OnEnded?.Invoke(this);
-            return;
         }
-        var currentPlayerId = _game.CurrentPlayer.Id;
-        await _players[currentPlayerId].SendNotificationAsync(new ItsYourTurnNotification(), JsonOptions);
     }
 
     public override async Task StartAsync()
@@ -91,7 +106,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
         {
             player.Start<CrazyEightsRequest>(MessageReceived, JsonOptions, Cts.Token);
         }
-        var currentPlayerId = _game.CurrentPlayer.Id;
-        await _players[currentPlayerId].SendNotificationAsync(new ItsYourTurnNotification(), JsonOptions);
+
+        await _game.StartAsync();
     }
 }

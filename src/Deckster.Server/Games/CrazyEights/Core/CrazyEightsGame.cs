@@ -226,7 +226,10 @@ public class CrazyEightsGame : GameObject
         }
         
         MoveToNextPlayer();
-        await _context.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification());
+        await _context.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification
+        {
+            PlayerViewOfGame = GetPlayerViewOfGame(CurrentPlayer)
+        });
     }
 
     public Task Apply(DrawCardRequest @event) => DrawCard(@event.PlayerId);
@@ -381,5 +384,13 @@ public class CrazyEightsGame : GameObject
             Name = player.Name,
             NumberOfCards = player.Cards.Count
         };
+    }
+
+    public Task StartAsync()
+    {
+        return _context.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification
+        {
+            PlayerViewOfGame = GetPlayerViewOfGame(CurrentPlayer)
+        });
     }
 }

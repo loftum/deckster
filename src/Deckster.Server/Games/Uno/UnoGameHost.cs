@@ -4,7 +4,9 @@ using Deckster.Client.Games.Uno;
 using Deckster.Server.Communication;
 using Deckster.Server.Games.ChatRoom;
 using Deckster.Server.Games.Common;
+using Deckster.Server.Games.Common.Fakes;
 using Deckster.Server.Games.Uno.Core;
+using Deckster.Uno.SampleClient;
 
 namespace Deckster.Server.Games.Uno;
 
@@ -16,6 +18,7 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
     public override GameState State => _game.State;
 
     private readonly UnoGame _game;
+    private readonly List<UnoNoob> _bots = [];
 
     public UnoGameHost()
     {
@@ -66,6 +69,21 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
 
         error = default;
         return true;
+    }
+    
+    public override bool TryAddBot([MaybeNullWhen(true)] out string error)
+    {
+        var channel = new InMemoryChannel
+        {
+            Player = new PlayerData
+            {
+                Id = Guid.NewGuid(),
+                Name = TestNames.Random()
+            }
+        };
+        var bot = new UnoNoob(new UnoClient(channel));
+        _bots.Add(bot);
+        return TryAddPlayer(channel, out error);
     }
 
     private async Task<UnoResponse> HandleRequestAsync(IServerChannel channel, UnoRequest message)

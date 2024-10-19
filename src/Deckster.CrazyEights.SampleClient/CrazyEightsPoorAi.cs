@@ -34,6 +34,7 @@ public class CrazyEightsPoorAi
 
     private void GameStarted(GameStartedNotification notification)
     {
+        _logger.LogInformation("Game started");
         _view = notification.PlayerViewOfGame;
     }
 

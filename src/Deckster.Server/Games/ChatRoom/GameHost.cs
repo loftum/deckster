@@ -31,6 +31,7 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost, 
     public abstract Task StartAsync();
 
     public abstract bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error);
+    public abstract bool TryAddBot([MaybeNullWhen(true)] out string error);
     
 
     public ICollection<PlayerData> GetPlayers()

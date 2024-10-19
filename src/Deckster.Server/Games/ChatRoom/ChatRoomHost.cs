@@ -63,6 +63,12 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
         return true;
     }
 
+    public override bool TryAddBot([MaybeNullWhen(true)] out string error)
+    {
+        error = "Bots not supported";
+        return false;
+    }
+
     private async void ChannelDisconnected(IServerChannel channel)
     {
         Console.WriteLine($"{channel.Player.Name} disconnected");

@@ -18,11 +18,11 @@ public class CrazyEightsClient : GameClient<CrazyEightsRequest, CrazyEightsRespo
     public event Action<GameStartedNotification>? GameStarted;
     public event Action<GameEndedNotification>? GameEnded;
 
-    public PlayerData PlayerData => Channel.PlayerData;
+    public PlayerData PlayerData => Channel.Player;
 
     public CrazyEightsClient(IClientChannel channel) : base(channel)
     {
-        _logger = Log.Factory.CreateLogger(channel.PlayerData.Name);
+        _logger = Log.Factory.CreateLogger(channel.Player.Name);
     }
 
     public Task<CrazyEightsResponse> PutCardAsync(Card card, CancellationToken cancellationToken = default)
