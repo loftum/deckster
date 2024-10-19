@@ -1,9 +1,9 @@
-using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Common;
 using Deckster.Client.Games.ChatRoom;
 using Deckster.Client.Serialization;
 using Deckster.Server.Communication;
+using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
 
 namespace Deckster.Server.Games.ChatRoom;
@@ -13,9 +13,21 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
     public override string GameType => "ChatRoom";
     public override GameState State => GameState.Running;
 
-    private readonly ConcurrentDictionary<Guid, IServerChannel> _players = new();
+    private readonly IRepo _repo;
+    private readonly IEventStream _events;
+    private readonly Chat _chat;
     
-    public override Task Start()
+
+    public ChatRoomHost(IRepo repo)
+    {
+        _repo = repo;
+        var started = new ChatCreated();
+        _events = repo.GetEventStream<Chat>(started.Id);
+        _chat = new Chat(started);
+        _events.Append(started);
+    }
+
+    public override Task StartAsync()
     {
         return Task.CompletedTask;
     }
@@ -28,6 +40,9 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
         switch (request)
         {
             case SendChatMessage message:
+                _chat.Apply(message);
+                _events.Append(message);
+                await _events.SaveChangesAsync();
                 await _players[player.Id].ReplyAsync(new ChatResponse(), JsonOptions);
                 await BroadcastMessageAsync(new ChatNotification
                 {
@@ -67,5 +82,29 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
             Sender = channel.Player.Name,
             Message = "Disconnected"
         });
+    }
+}
+
+public class ChatCreated
+{
+    public Guid Id { get; init; } = Guid.NewGuid();
+    public DateTimeOffset StartedTime { get; init; } = DateTimeOffset.UtcNow;
+}
+
+public class Chat : DatabaseObject
+{
+    public DateTimeOffset StartedTime { get; init; }
+    
+    public List<SendChatMessage> Transcript { get; init; } = [];
+
+    public Chat(ChatCreated e)
+    {
+        Id = e.Id;
+        StartedTime = e.StartedTime;
+    }
+    
+    public void Apply(SendChatMessage request)
+    {
+        Transcript.Add(request);
     }
 }

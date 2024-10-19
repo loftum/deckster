@@ -96,7 +96,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
     //     }
     // }
 
-    public override async Task Start()
+    public override async Task StartAsync()
     {
         if (_game != null)
         {

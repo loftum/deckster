@@ -19,16 +19,16 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost
     public abstract string GameType { get; }
     public string Name { get; set; }
     public abstract GameState State { get; }
+    
+    protected readonly ConcurrentDictionary<Guid, IServerChannel> _players = new();
+    protected readonly CancellationTokenSource Cts = new();
 
     protected readonly JsonSerializerOptions JsonOptions = DecksterJson.Create(o =>
     {
         o.AddAll<TRequest>().AddAll<TResponse>().AddAll<TNotification>();
     });
 
-    protected readonly ConcurrentDictionary<Guid, IServerChannel> _players = new();
-    protected readonly CancellationTokenSource Cts = new();
-
-    public abstract Task Start();
+    public abstract Task StartAsync();
 
     public abstract bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error);
     

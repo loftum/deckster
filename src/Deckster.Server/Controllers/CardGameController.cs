@@ -99,7 +99,7 @@ public abstract class CardGameController<TGameClient, TGameHost> : Controller, I
             return StatusCode(404, new ResponseMessage("Game not found: '{id}'"));
         }
         
-        await host.Start();
+        await host.StartAsync();
         return StatusCode(200, new ResponseMessage("Game '{id}' started"));
     }
     

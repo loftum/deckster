@@ -14,7 +14,6 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
 
     public override string GameType => "Uno";
     public override GameState State => _game.State;
-    public string Name { get; init; } = Guid.NewGuid().ToString();
 
     private readonly UnoGame _game;
 
@@ -106,7 +105,7 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
         }
     }
 
-    public override async Task Start()
+    public override async Task StartAsync()
     {
         _game.NewRound(DateTimeOffset.Now);
         foreach (var player in _players.Values)
