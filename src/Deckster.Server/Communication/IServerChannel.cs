@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Deckster.Client.Common;
+using Deckster.Client.Protocol;
 
 namespace Deckster.Server.Communication;
 
@@ -13,5 +14,5 @@ public interface IServerChannel : IDisposable
     Task WeAreDoneHereAsync(CancellationToken cancellationToken = default);
     Task DisconnectAsync();
     
-    void Start<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken);
+    void Start<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken) where TRequest : DecksterRequest;
 }

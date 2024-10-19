@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.Server.Data;
@@ -6,8 +7,18 @@ using Deckster.Server.Games.Common;
 
 namespace Deckster.Server.Games.CrazyEights.Core;
 
+public class CrazyEightsGameStartedEvent
+{
+    public int Seed { get; init; } = DateTimeOffset.UtcNow.Nanosecond;
+    public List<PlayerData> Players { get; init; } = [];
+    public List<Card> Deck { get; init; } = [];
+}
+
 public class CrazyEightsGame : DatabaseObject
 {
+    public int Version { get; set; }
+    public int Seed { get; set; }
+    
     private readonly int _initialCardsPerPlayer = 5;
     
     public List<CrazyEightsPlayer> DonePlayers { get; } = new();
@@ -19,7 +30,7 @@ public class CrazyEightsGame : DatabaseObject
     /// <summary>
     /// All the (shuffled) cards in the game
     /// </summary>
-    public Deck Deck { get; set; } = Deck.Standard;
+    public List<Card> Deck { get; set; }
 
     /// <summary>
     /// Where players draw cards from
@@ -42,25 +53,21 @@ public class CrazyEightsGame : DatabaseObject
 
     public CrazyEightsPlayer CurrentPlayer => State == GameState.Finished ? CrazyEightsPlayer.Null : Players[_currentPlayerIndex];
 
-    public bool TryAddPlayer(Guid id, string name, [MaybeNullWhen(true)] out string reason)
+    public static CrazyEightsGame Create(CrazyEightsGameStartedEvent started)
     {
-        if (Players.Any(p => p.Id == id))
+        var game = new CrazyEightsGame
         {
-            reason = "Player already exists";
-            return false;
-        }
-        
-        if (Deck.Cards.Count <= (Players.Count + 1) * _initialCardsPerPlayer)
-        {
-            reason = "Too many players";
-            return false;
-        }
-        Players.Add(new CrazyEightsPlayer { Id = id, Name = name });
-        
-        reason = default;
-        return true;
-    }
+            Players = started.Players.Select(p => new CrazyEightsPlayer
+            {
+                Id = p.Id,
+                Name = p.Name
+            }).ToList(),
+            Deck = started.Deck
+        };
 
+        return game;
+    }
+    
     public void Reset()
     {
         foreach (var player in Players)
@@ -71,7 +78,7 @@ public class CrazyEightsGame : DatabaseObject
         _currentPlayerIndex = 0;
         DonePlayers.Clear();
         StockPile.Clear();
-        StockPile.PushRange(Deck.Cards);
+        StockPile.PushRange(Deck);
         for (var ii = 0; ii < _initialCardsPerPlayer; ii++)
         {
             foreach (var player in Players)
@@ -85,8 +92,37 @@ public class CrazyEightsGame : DatabaseObject
         DonePlayers.Clear();
     }
 
+    public void Apply(PutCardRequest request, out CrazyEightsResponse response)
+    {
+        response = PutCard(request.PlayerId, request.Card);
+    }
+    
+    public void Apply(PutEightRequest request, out CrazyEightsResponse response)
+    {
+        response = PutEight(request.PlayerId, request.Card, request.NewSuit);
+    }
+    
+    public void Apply(DrawCardRequest request, out CrazyEightsResponse response)
+    {
+        response = DrawCard(request.PlayerId);
+    }
+    
+    public void Apply(PassRequest request, out CrazyEightsResponse response)
+    {
+        response = Pass(request.PlayerId);
+    }
+
+    private void IncrementSeed()
+    {
+        unchecked
+        {
+            Seed++;
+        }
+    }
+
     public CrazyEightsResponse PutCard(Guid playerId, Card card)
     {
+        IncrementSeed();
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
             return new CrazyEightsFailureResponse("It is not your turn");
@@ -117,6 +153,7 @@ public class CrazyEightsGame : DatabaseObject
 
     public CrazyEightsResponse PutEight(Guid playerId, Card card, Suit newSuit)
     {
+        IncrementSeed();
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
             return new CrazyEightsFailureResponse("It is not your turn");
@@ -154,6 +191,7 @@ public class CrazyEightsGame : DatabaseObject
     
     public CrazyEightsResponse DrawCard(Guid playerId)
     {
+        IncrementSeed();
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
             return new CrazyEightsFailureResponse("It is not your turn");
@@ -178,6 +216,7 @@ public class CrazyEightsGame : DatabaseObject
     
     public CrazyEightsResponse Pass(Guid playerId)
     {
+        IncrementSeed();
         if (!TryGetCurrentPlayer(playerId, out _))
         {
             return new CrazyEightsFailureResponse("It is not your turn");
@@ -258,21 +297,10 @@ public class CrazyEightsGame : DatabaseObject
         }
 
         var topOfPile = DiscardPile.Pop();
-        var reshuffledCards = DiscardPile.ToList().KnuthShuffle();
+        var reshuffledCards = DiscardPile.ToList().KnuthShuffle(Seed);
         DiscardPile.Clear();
         DiscardPile.Push(topOfPile);
         StockPile.PushRange(reshuffledCards);
-    }
-
-    public PlayerViewOfGame GetStateFor(Guid userId)
-    {
-        var player = Players.FirstOrDefault(p => p.Id == userId);
-        if (player == null)
-        {
-            throw new Exception($"There is no player '{userId}'");
-        }
-
-        return GetPlayerViewOfGame(player);
     }
 
     private static OtherCrazyEightsPlayer ToOtherPlayer(CrazyEightsPlayer player)
@@ -282,20 +310,5 @@ public class CrazyEightsGame : DatabaseObject
             Name = player.Name,
             NumberOfCards = player.Cards.Count
         };
-    }
-
-    public void RemovePlayer(Guid id)
-    {
-        Players.RemoveAll(p => p.Id == id);
-    }
-
-    private readonly object _lock = new object();
-    
-    public bool ContainsPlayer(Guid userId)
-    {
-        lock (_lock)
-        {
-            return Players.Any(p => p.Id == userId);
-        }
     }
 }

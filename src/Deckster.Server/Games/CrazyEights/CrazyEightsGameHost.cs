@@ -15,13 +15,13 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
     public override string GameType => "CrazyEights";
     public override GameState State => _game.State;
 
-    private readonly CrazyEightsGame _game = new() { Id = Guid.NewGuid() };
+    private CrazyEightsGame? _game;
 
     public override bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error)
     {
-        if (!_game.TryAddPlayer(channel.Player.Id, channel.Player.Name, out error))
+        if (_players.Count >= 4)
         {
-            error = "Could not add player";
+            error = "Too many players";
             return false;
         }
 
@@ -37,7 +37,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
 
     private async void MessageReceived(IServerChannel channel, CrazyEightsRequest request)
     {
-        if (_game.State != GameState.Running)
+        if (_game == null)
         {
             await channel.ReplyAsync(new FailureResponse("Game is not running"), JsonOptions);
             return;
@@ -75,11 +75,16 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
 
     public override async Task Start()
     {
-        if (_game.State != GameState.Waiting)
+        if (_game != null)
         {
             return;
         }
-        _game.Reset();
+
+        _game = CrazyEightsGame.Create(new CrazyEightsGameStartedEvent
+        {
+            Players = _players.Values.Select(p => p.Player).ToList(),
+            Deck = Decks.Standard.KnuthShuffle(DateTimeOffset.UtcNow.Nanosecond)
+        });
         foreach (var player in _players.Values)
         {
             player.Start<CrazyEightsRequest>(MessageReceived, JsonOptions, Cts.Token);

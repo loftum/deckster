@@ -14,7 +14,7 @@ public class CrazyEightsGameTest
     public void Print()
     {
         var game = CreateGame();
-        Console.WriteLine(game.Deck.Cards.Count);
+        Console.WriteLine(game.Deck.Count);
         Console.WriteLine(JsonSerializer.Serialize(game.Players[0], new JsonSerializerOptions{WriteIndented = true, Converters = { new JsonStringEnumConverter() }}));
         Console.WriteLine(game.TopOfPile);
     }
@@ -24,7 +24,7 @@ public class CrazyEightsGameTest
     {
         var game = SetUpGame(g =>
         {
-            var cards = g.Deck.Cards;
+            var cards = g.Deck;
             g.CurrentPlayer.Cards.Add(cards.Get(new Card(10, Suit.Hearts)));
             g.DiscardPile.Push(cards.Get(new Card(9, Suit.Hearts)));
         });
@@ -51,7 +51,7 @@ public class CrazyEightsGameTest
     {
         var game = SetUpGame(g =>
         {
-            var cards = g.Deck.Cards;
+            var cards = g.Deck;
             g.Players[0].Cards.Add(cards.Get(11, Suit.Hearts));
             g.Players[0].Cards.Add(cards.Get(12, Suit.Clubs));
             
@@ -99,7 +99,7 @@ public class CrazyEightsGameTest
     {
         var game = SetUpGame(g =>
         {
-            var cards = TestDeck.Cards;
+            var cards = TestDeck;
             g.Players[0].Cards.Add(cards.Get(8, Suit.Clubs));
             g.Players[0].Cards.Add(cards.Get(8, Suit.Diamonds));
             g.Players[0].Cards.Add(cards.Get(8, Suit.Spades));
@@ -244,7 +244,7 @@ public class CrazyEightsGameTest
         return game;
     }
 
-    private static Deck TestDeck => new(GetCards());
+    private static List<Card> TestDeck => GetCards().ToList();
 
     // Make sure all players have all suits
     private static IEnumerable<Card> GetCards()

@@ -3,6 +3,7 @@ using System.Text;
 using System.Text.Json;
 using Deckster.Client.Common;
 using Deckster.Client.Communication.WebSockets;
+using Deckster.Client.Protocol;
 using Deckster.Client.Serialization;
 
 namespace Deckster.Server.Communication;
@@ -27,7 +28,7 @@ public class WebSocketServerChannel : IServerChannel
         _taskCompletionSource = taskCompletionSource;
     }
 
-    public void Start<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken)
+    public void Start<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken) where TRequest : DecksterRequest
     {
         _listenTask = ListenAsync(handle, options, cancellationToken);
     }
@@ -51,7 +52,7 @@ public class WebSocketServerChannel : IServerChannel
         return DisconnectAsync();
     }
     
-    private async Task ListenAsync<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken)
+    private async Task ListenAsync<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken) where TRequest : DecksterRequest
     {
         try
         {
@@ -79,6 +80,7 @@ public class WebSocketServerChannel : IServerChannel
                 }
             
                 var request = JsonSerializer.Deserialize<TRequest>(new ArraySegment<byte>(buffer, 0, result.Count), options);
+                
                 if (request == null)
                 {
                     Console.WriteLine("Command is null.");
@@ -87,6 +89,7 @@ public class WebSocketServerChannel : IServerChannel
                 }
                 else
                 {
+                    request.PlayerId = Player.Id;
                     Console.WriteLine($"Got request: {request.Pretty()}");
                     handle(this, request);
                 }
