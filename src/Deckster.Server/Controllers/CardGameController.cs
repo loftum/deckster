@@ -11,7 +11,7 @@ namespace Deckster.Server.Controllers;
 public interface ICardGameController;
 
 public abstract class CardGameController<TGameClient, TGameHost> : Controller, ICardGameController
-    where TGameHost : IGameHost, new()
+    where TGameHost : IGameHost
 {
     protected readonly GameHostRegistry HostRegistry;
 
@@ -79,11 +79,9 @@ public abstract class CardGameController<TGameClient, TGameHost> : Controller, I
         {
             return StatusCode(400, new ResponseMessage("Name is required"));
         }
-        
-        var host = new TGameHost
-        {
-            Name = name
-        };
+
+        var host = HttpContext.RequestServices.GetRequiredService<TGameHost>();
+        host.Name = name;
         HostRegistry.Add(host);
         return StatusCode(200, new {Id = host.Name });
     }

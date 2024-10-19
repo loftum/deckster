@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
+using Deckster.Client.Protocol;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
 
@@ -9,13 +10,16 @@ namespace Deckster.Server.Games.CrazyEights.Core;
 
 public class CrazyEightsGameStartedEvent
 {
-    public int Seed { get; init; } = DateTimeOffset.UtcNow.Nanosecond;
+    public Guid Id { get; init; }
+    public int InitialSeed { get; init; } = DateTimeOffset.UtcNow.Nanosecond;
     public List<PlayerData> Players { get; init; } = [];
     public List<Card> Deck { get; init; } = [];
 }
 
 public class CrazyEightsGame : DatabaseObject
 {
+    // ReSharper disable once UnusedMember.Global
+    // Used by Marten
     public int Version { get; set; }
     public int Seed { get; set; }
     
@@ -26,11 +30,11 @@ public class CrazyEightsGame : DatabaseObject
     private int _cardsDrawn;
     
     public GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
-    
+
     /// <summary>
     /// All the (shuffled) cards in the game
     /// </summary>
-    public List<Card> Deck { get; set; }
+    public List<Card> Deck { get; init; } = [];
 
     /// <summary>
     /// Where players draw cards from
@@ -57,18 +61,21 @@ public class CrazyEightsGame : DatabaseObject
     {
         var game = new CrazyEightsGame
         {
+            Id = started.Id,
             Players = started.Players.Select(p => new CrazyEightsPlayer
             {
                 Id = p.Id,
                 Name = p.Name
             }).ToList(),
-            Deck = started.Deck
+            Deck = started.Deck,
+            Seed = started.InitialSeed
         };
+        game.Reset();
 
         return game;
     }
     
-    public void Reset()
+    private void Reset()
     {
         foreach (var player in Players)
         {
@@ -92,24 +99,46 @@ public class CrazyEightsGame : DatabaseObject
         DonePlayers.Clear();
     }
 
-    public void Apply(PutCardRequest request, out CrazyEightsResponse response)
+    public void Apply(PutCardRequest request, out DecksterResponse response)
     {
         response = PutCard(request.PlayerId, request.Card);
     }
     
-    public void Apply(PutEightRequest request, out CrazyEightsResponse response)
+    public void Apply(PutEightRequest request, out DecksterResponse response)
     {
         response = PutEight(request.PlayerId, request.Card, request.NewSuit);
     }
     
-    public void Apply(DrawCardRequest request, out CrazyEightsResponse response)
+    public void Apply(DrawCardRequest request, out DecksterResponse response)
     {
         response = DrawCard(request.PlayerId);
     }
     
-    public void Apply(PassRequest request, out CrazyEightsResponse response)
+    public void Apply(PassRequest request, out DecksterResponse response)
     {
         response = Pass(request.PlayerId);
+    }
+
+    public bool TryApply(DecksterRequest request, [MaybeNullWhen(false)] out DecksterResponse response)
+    {
+        switch (request)
+        {
+            case PutCardRequest r:
+                Apply(r, out response);
+                return true;
+            case PutEightRequest r:
+                Apply(r, out response);
+                return true;
+            case DrawCardRequest r:
+                Apply(r, out response);
+                return true;
+            case PassRequest r:
+                Apply(r, out response);
+                return true;
+            default:
+                response = default;
+                return false;
+        }
     }
 
     private void IncrementSeed()

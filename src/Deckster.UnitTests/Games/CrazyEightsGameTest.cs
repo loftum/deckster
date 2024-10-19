@@ -210,38 +210,37 @@ public class CrazyEightsGameTest
 
     private static CrazyEightsGame CreateGame()
     {
-        var players = new List<CrazyEightsPlayer>
+        return CrazyEightsGame.Create(new CrazyEightsGameStartedEvent
         {
-            new()
-            {
-                Id = Some.Id,
-                Name = Some.PlayerName
-            },
-            new()
-            {
-                Id = Some.OtherId,
-                Name = Some.OtherPlayerName
-            },
-            new()
-            {
-                Id = Some.YetAnotherId,
-                Name = Some.YetAnotherPlayerName
-            },
-            new()
-            {
-                Id = Some.TotallyDifferentId,
-                Name = Some.TotallyDifferentPlayerName
-            }
-        };
-        
-        var game = new CrazyEightsGame
-        {
+            Players =
+            [
+                new()
+                {
+                    Id = Some.Id,
+                    Name = Some.PlayerName
+                },
+
+                new()
+                {
+                    Id = Some.OtherId,
+                    Name = Some.OtherPlayerName
+                },
+
+                new()
+                {
+                    Id = Some.YetAnotherId,
+                    Name = Some.YetAnotherPlayerName
+                },
+
+                new()
+                {
+                    Id = Some.TotallyDifferentId,
+                    Name = Some.TotallyDifferentPlayerName
+                }
+            ],
             Deck = TestDeck,
-            Players = players,
-        };
-        game.Reset();
-        
-        return game;
+            InitialSeed = Some.Seed 
+        });
     }
 
     private static List<Card> TestDeck => GetCards().ToList();

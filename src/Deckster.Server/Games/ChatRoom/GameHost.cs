@@ -17,7 +17,7 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost
     public event Action<IGameHost>? OnEnded;
     
     public abstract string GameType { get; }
-    public string Name { get; init; }
+    public string Name { get; set; }
     public abstract GameState State { get; }
 
     protected readonly JsonSerializerOptions JsonOptions = DecksterJson.Create(o =>

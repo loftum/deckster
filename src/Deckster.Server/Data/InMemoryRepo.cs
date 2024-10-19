@@ -26,6 +26,11 @@ public class InMemoryRepo : IRepo
         return GetCollection<T>().Values.AsQueryable();
     }
 
+    public IEventStream GetEventStream<T>(Guid id) where T : DatabaseObject
+    {
+        return new InMemoryEventStream();
+    }
+
     public Task SaveAsync<T>(T item, CancellationToken cancellationToken = default) where T : DatabaseObject
     {
         if (item.Id == default)
