@@ -8,6 +8,11 @@ public class TurnContext
     public DecksterResponse? Response { get; set; }
     public List<DecksterNotification> Notifications { get; } = [];
 
+    public TurnContext(DecksterRequest request)
+    {
+        Request = request;
+    }
+
     public void SetResponse(DecksterResponse response)
     {
         Response = response;

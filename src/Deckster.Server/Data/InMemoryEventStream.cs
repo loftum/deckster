@@ -1,11 +1,13 @@
+using Deckster.Server.Games;
+
 namespace Deckster.Server.Data;
 
-public class InMemoryEventStream : IEventStream
+public class InMemoryEventThing<T> : IEventThing<T> where T : GameObject
 {
     public Guid Id { get; }
     public List<object> Events { get; } = [];
 
-    public InMemoryEventStream(Guid id, IEnumerable<object> startEvents)
+    public InMemoryEventThing(Guid id, IEnumerable<object> startEvents)
     {
         Id = id;
         Events.AddRange(startEvents);

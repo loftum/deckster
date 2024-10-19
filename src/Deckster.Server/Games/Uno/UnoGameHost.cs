@@ -38,7 +38,7 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
         {
             if (_game.State == GameState.Finished)
             {
-                await BroadcastMessageAsync(new GameEndedNotification());
+                await BroadcastNotificationAsync(new GameEndedNotification());
                 await Task.WhenAll(_players.Values.Select(p => p.WeAreDoneHereAsync()));
                 await Cts.CancelAsync();
                 Cts.Dispose();
@@ -46,7 +46,7 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
                 return;
             }
             var currentPlayerId = _game.CurrentPlayer.Id;
-            await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification(), JsonOptions);
+            await _players[currentPlayerId].SendNotificationAsync(new ItsYourTurnNotification(), JsonOptions);
         }
     }
 
@@ -113,6 +113,6 @@ public class UnoGameHost : GameHost<UnoRequest,UnoResponse,UnoGameNotification>
             player.Start<UnoRequest>(MessageReceived, JsonOptions, Cts.Token);
         }
         var currentPlayerId = _game.CurrentPlayer.Id;
-        await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification(), JsonOptions);
+        await _players[currentPlayerId].SendNotificationAsync(new ItsYourTurnNotification(), JsonOptions);
     }
 }

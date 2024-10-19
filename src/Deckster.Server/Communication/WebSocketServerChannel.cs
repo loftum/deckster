@@ -39,7 +39,7 @@ public class WebSocketServerChannel : IServerChannel
         return _actionSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
     }
 
-    public ValueTask PostMessageAsync<TNotification>(TNotification notification, JsonSerializerOptions options, CancellationToken cancellationToken = default)
+    public ValueTask SendNotificationAsync<TNotification>(TNotification notification, JsonSerializerOptions options, CancellationToken cancellationToken = default)
     {
         
         var bytes = JsonSerializer.SerializeToUtf8Bytes(notification, options);

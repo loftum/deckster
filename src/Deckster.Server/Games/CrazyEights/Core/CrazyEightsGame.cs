@@ -3,8 +3,6 @@ using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.Client.Protocol;
 using Deckster.Server.Games.Common;
-using Marten.Events.Aggregation;
-using Marten.Events.Projections;
 
 namespace Deckster.Server.Games.CrazyEights.Core;
 
@@ -90,9 +88,39 @@ public class CrazyEightsGame : GameObject
         DonePlayers.Clear();
     }
 
-    public void Apply(PutCardRequest @event) => Handle(@event, out _, out _);
+    public void Apply(PutCardRequest @event) => Handle(@event, null);
+    public void Apply(PutEightRequest @event) => Handle(@event, null);
+    public void Apply(DrawCardRequest @event) => Handle(@event, null);
+    public void Apply(PassRequest @event) => Handle(@event, null);
 
-    public void Handle(PutCardRequest request, TurnContext? context)
+    public void Handle(DecksterRequest request, TurnContext? context)
+    {
+        switch (request)
+        {
+            case PutCardRequest r:
+            {
+                Handle(r, context);
+                break;
+            }
+            case PutEightRequest r:
+            {
+                Handle(r, context);
+                break;
+            }
+            case DrawCardRequest r:
+            {
+                Handle(r, context);
+                break;
+            }
+            case PassRequest r:
+            {
+                Handle(r, context);
+                break;
+            }
+        }
+    }
+    
+    public void Handle(PutCardRequest request)
     {
         PutCard(request.PlayerId, request.Card);
     }
@@ -128,34 +156,19 @@ public class CrazyEightsGame : GameObject
         return GetPlayerViewOfGame(player);
     }
     
-    public void Handle(PutEightRequest request, out DecksterResponse response, out DecksterNotification? notification)
+    public void Handle(PutEightRequest request)
     {
-        notification = default;
-        response = PutEight(request.PlayerId, request.Card, request.NewSuit);
+        PutEight(request.PlayerId, request.Card, request.NewSuit);
     }
     
-    public void Handle(DrawCardRequest request, out DecksterResponse response, out DecksterNotification? notification)
+    public void Handle(DrawCardRequest request)
     {
-        notification = default;
-        response = DrawCard(request.PlayerId);
+        DrawCard(request.PlayerId);
     }
     
-    public void Handle(PassRequest request, out DecksterResponse response, out DecksterNotification? notification)
+    public void Handle(PassRequest request)
     {
-        notification = default;
-        response = Pass(request.PlayerId);
-    }
-
-    private void Handle(object invalid, out DecksterResponse? response, out DecksterNotification? notification)
-    {
-        response = null;
-        notification = null;
-    }
-
-    public bool TryHandle(DecksterRequest request, [MaybeNullWhen(false)] out DecksterResponse response, out DecksterNotification? notification)
-    {
-        Handle((dynamic) request, out response, out notification);
-        return response != null;
+        Pass(request.PlayerId);
     }
 
     private void IncrementSeed()
@@ -165,8 +178,6 @@ public class CrazyEightsGame : GameObject
             Seed++;
         }
     }
-
-    
 
     public CrazyEightsResponse PutEight(Guid playerId, Card card, Suit newSuit)
     {
@@ -328,9 +339,4 @@ public class CrazyEightsGame : GameObject
             NumberOfCards = player.Cards.Count
         };
     }
-}
-
-public class CrazyEightsProjection : SingleStreamProjection<CrazyEightsGame>
-{
-    
 }

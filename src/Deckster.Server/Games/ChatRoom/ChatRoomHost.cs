@@ -4,7 +4,6 @@ using Deckster.Client.Serialization;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
-using Deckster.Server.Games.CrazyEights.Core;
 
 namespace Deckster.Server.Games.ChatRoom;
 
@@ -14,13 +13,14 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
     public override GameState State => GameState.Running;
 
     private readonly IRepo _repo;
-    private readonly IEventStream _events;
+    private readonly IEventThing<Chat> _events;
     private readonly Chat _chat;
 
     public ChatRoomHost(IRepo repo)
     {
         _repo = repo;
-        var started = new ChatCreated();
+        var started = new ChatCreated().WithContext(this);
+        
         _events = repo.StartEventStream<Chat>(started.Id, started);
         _chat = Chat.Create(started);
         _events.Append(started);
@@ -33,23 +33,14 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
 
     private async void MessageReceived(IServerChannel channel, ChatRequest request)
     {
-        var player = channel.Player;
         Console.WriteLine($"Received: {request.Pretty()}");
 
-
-        var context = new TurnContext();
         switch (request)
         {
             case SendChatMessage message:
-                await _chat.HandleAsync(message, context);
+                await _chat.HandleAsync(message);
                 _events.Append(message);
                 await _events.SaveChangesAsync();
-                // await _repo.SaveAsync(_chat);
-                await _players[player.Id].ReplyAsync(context.Response, JsonOptions);
-                foreach (var notification in context.Notifications)
-                {
-                    await BroadcastMessageAsync(notification);
-                }
                 return;
         }
     }
@@ -76,7 +67,7 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
     {
         Console.WriteLine($"{channel.Player.Name} disconnected");
         _players.Remove(channel.Player.Id, out _);
-        await BroadcastMessageAsync(new ChatNotification
+        await BroadcastNotificationAsync(new ChatNotification
         {
             Sender = channel.Player.Name,
             Message = "Disconnected"

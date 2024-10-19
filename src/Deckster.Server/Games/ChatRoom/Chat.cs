@@ -1,10 +1,10 @@
 using Deckster.Client.Games.ChatRoom;
-using Deckster.Server.Games.CrazyEights.Core;
 
 namespace Deckster.Server.Games.ChatRoom;
 
 public class Chat : GameObject
 {
+    private IGameContext _context;
     public List<SendChatMessage> Transcript { get; init; } = [];
 
     public static Chat Create(ChatCreated e)
@@ -12,15 +12,16 @@ public class Chat : GameObject
         return new Chat
         {
             Id = e.Id,
-            StartedTime = e.StartedTime
+            StartedTime = e.StartedTime,
+            _context = e.GetContext()
         };
     }
     
-    public async Task HandleAsync(SendChatMessage @event, TurnContext? context)
+    public async Task HandleAsync(SendChatMessage @event)
     {
         await Apply(@event);
-        context?.SetResponse(new ChatResponse());
-        context?.AddNotification(new ChatNotification
+        await _context.RespondAsync(@event.PlayerId, new ChatResponse());
+        await _context.BroadcastNotificationAsync(new ChatNotification
         {
             Sender = @event.PlayerId.ToString(),
             Message = @event.Message

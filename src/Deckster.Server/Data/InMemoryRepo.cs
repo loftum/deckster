@@ -27,9 +27,9 @@ public class InMemoryRepo : IRepo
         return GetCollection<T>().Values.AsQueryable();
     }
 
-    public IEventStream StartEventStream<T>(Guid id, IEnumerable<object> startEvents) where T : DatabaseObject
+    public IEventThing<T> StartEventStream<T>(Guid id, IEnumerable<object> startEvents) where T : GameObject
     {
-        return new InMemoryEventStream(id, startEvents);
+        return new InMemoryEventThing<T>(id, startEvents);
     }
 
     public Task SaveAsync<T>(T item, CancellationToken cancellationToken = default) where T : DatabaseObject

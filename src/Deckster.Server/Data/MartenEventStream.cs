@@ -1,13 +1,14 @@
+using Deckster.Server.Games;
 using Marten;
 
 namespace Deckster.Server.Data;
 
-public class MartenEventStream : IEventStream
+public class MartenEventThing<T> : IEventThing<T> where T : GameObject
 {
     private readonly Guid _id;
     private readonly IDocumentSession _session;
 
-    public MartenEventStream(Guid id, IDocumentSession session)
+    public MartenEventThing(Guid id, IDocumentSession session)
     {
         _id = id;
         _session = session;
@@ -18,15 +19,14 @@ public class MartenEventStream : IEventStream
         _session.Events.Append(_id, e);
     }
 
-    public async Task Hest<T>(Guid id) where T : class
+    public async Task SaveChangesAsync()
     {
-        var stream = await _session.Events.AggregateStreamAsync<T>(id);
-        
-    }
-
-    public Task SaveChangesAsync()
-    {
-        return _session.SaveChangesAsync();
+        var item = await _session.Events.AggregateStreamAsync<T>(_id);
+        if (item != null)
+        {
+            _session.Store(item);    
+        }
+        await _session.SaveChangesAsync();
     }
 
     public void Dispose()
