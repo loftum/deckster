@@ -9,7 +9,7 @@ using Deckster.Server.Games.Common;
 
 namespace Deckster.Server.Games.ChatRoom;
 
-public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost, IGameContext
+public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost, ICommunicationContext
     where TRequest : DecksterRequest
     where TResponse : DecksterResponse
     where TNotification : DecksterNotification
@@ -38,7 +38,7 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost, 
         return _players.Values.Select(c => c.Player).ToArray();
     }
 
-    public Task BroadcastNotificationAsync(DecksterNotification notification, CancellationToken cancellationToken = default)
+    public Task NotifyAllAsync(DecksterNotification notification, CancellationToken cancellationToken = default)
     {
         return Task.WhenAll(_players.Values.Select(p => p.SendNotificationAsync(notification, JsonOptions, cancellationToken).AsTask()));
     }
@@ -51,7 +51,7 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost, 
         }
     }
 
-    public async Task SendNotificationAsync(Guid playerId, DecksterNotification notification, CancellationToken cancellationToken = default)
+    public async Task NotifyAsync(Guid playerId, DecksterNotification notification, CancellationToken cancellationToken = default)
     {
         if (_players.TryGetValue(playerId, out var channel))
         {

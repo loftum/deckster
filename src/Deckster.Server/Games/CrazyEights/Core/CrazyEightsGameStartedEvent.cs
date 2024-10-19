@@ -3,7 +3,7 @@ using Deckster.Client.Games.Common;
 
 namespace Deckster.Server.Games.CrazyEights.Core;
 
-public class CrazyEightsGameStartedEvent
+public class CrazyEightsGameCreatedEvent : GameCreatedEvent
 {
     public Guid Id { get; init; }
     public int InitialSeed { get; init; } = DateTimeOffset.UtcNow.Nanosecond;

@@ -1127,6 +1127,33 @@
           }
         ]
       },
+      "CrazyEights.YouAreDoneNotification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CrazyEights.CrazyEightsNotification"
+          },
+          {
+            "type": "object"
+          }
+        ]
+      },
+      "CrazyEights.PlayerIsDoneNotification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/CrazyEights.CrazyEightsNotification"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "playerId": {
+                "type": "object"
+              }
+            }
+          }
+        ]
+      },
       "CrazyEights.CrazyEightsSuccessResponse": {
         "type": "object",
         "allOf": [

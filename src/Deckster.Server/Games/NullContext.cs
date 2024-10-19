@@ -1,12 +1,12 @@
 using Deckster.Client.Protocol;
 
-namespace Deckster.Server.Games.ChatRoom;
+namespace Deckster.Server.Games;
 
-public class NullContext : IGameContext
+public class NullContext : ICommunicationContext
 {
     public static NullContext Instance { get; } = new();
     
-    public Task BroadcastNotificationAsync(DecksterNotification notification, CancellationToken cancellationToken = default)
+    public Task NotifyAllAsync(DecksterNotification notification, CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
     }
@@ -16,7 +16,7 @@ public class NullContext : IGameContext
         return Task.CompletedTask;
     }
 
-    public Task SendNotificationAsync(Guid playerId, DecksterNotification notification, CancellationToken cancellationToken = default)
+    public Task NotifyAsync(Guid playerId, DecksterNotification notification, CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
     }

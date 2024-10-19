@@ -4,10 +4,10 @@ namespace Deckster.Server.Games.ChatRoom;
 
 public class Chat : GameObject
 {
-    private IGameContext _context;
+    private ICommunicationContext _context;
     public List<SendChatMessage> Transcript { get; init; } = [];
 
-    public static Chat Create(ChatCreated e)
+    public static Chat Create(ChatCreatedEvent e)
     {
         return new Chat
         {
@@ -21,7 +21,7 @@ public class Chat : GameObject
     {
         await Apply(@event);
         await _context.RespondAsync(@event.PlayerId, new ChatResponse());
-        await _context.BroadcastNotificationAsync(new ChatNotification
+        await _context.NotifyAllAsync(new ChatNotification
         {
             Sender = @event.PlayerId.ToString(),
             Message = @event.Message

@@ -1,4 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
+using System.Reflection;
+using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.Client.Protocol;
@@ -8,6 +10,24 @@ namespace Deckster.Server.Games.CrazyEights.Core;
 
 public class CrazyEightsGame : GameObject
 {
+    static CrazyEightsGame()
+    {
+        var methods = from method in typeof(CrazyEightsGame)
+                .GetMethods()
+            where method.Name == "Apply" && method.ReturnType == typeof(Task)
+            let parameters = method.GetParameters()
+            where parameters.Length == 1 && parameters[0].ParameterType.IsSubclassOf(typeof(DecksterRequest))
+            let parameter = parameters[0]
+            select (parameter, method);
+        _applies = methods.ToDictionary(p => p.parameter.ParameterType,
+            p => p.method);
+
+    }
+
+    private static readonly Dictionary<Type, MethodInfo> _applies;
+    
+    private ICommunicationContext _context;
+    
     // ReSharper disable once UnusedMember.Global
     // Used by Marten
     public int Seed { get; set; }
@@ -46,18 +66,19 @@ public class CrazyEightsGame : GameObject
 
     public CrazyEightsPlayer CurrentPlayer => State == GameState.Finished ? CrazyEightsPlayer.Null : Players[_currentPlayerIndex];
 
-    public static CrazyEightsGame Create(CrazyEightsGameStartedEvent started)
+    public static CrazyEightsGame Create(CrazyEightsGameCreatedEvent created)
     {
         var game = new CrazyEightsGame
         {
-            Id = started.Id,
-            Players = started.Players.Select(p => new CrazyEightsPlayer
+            Id = created.Id,
+            Players = created.Players.Select(p => new CrazyEightsPlayer
             {
                 Id = p.Id,
                 Name = p.Name
             }).ToList(),
-            Deck = started.Deck,
-            Seed = started.InitialSeed
+            Deck = created.Deck,
+            Seed = created.InitialSeed,
+            _context = created.GetContext()
         };
         game.Reset();
 
@@ -88,59 +109,41 @@ public class CrazyEightsGame : GameObject
         DonePlayers.Clear();
     }
 
-    public void Apply(PutCardRequest @event) => Handle(@event, null);
-    public void Apply(PutEightRequest @event) => Handle(@event, null);
-    public void Apply(DrawCardRequest @event) => Handle(@event, null);
-    public void Apply(PassRequest @event) => Handle(@event, null);
-
-    public void Handle(DecksterRequest request, TurnContext? context)
+    public Task HandleAsync(DecksterRequest request)
     {
-        switch (request)
+        if (!_applies.TryGetValue(request.GetType(), out var del))
         {
-            case PutCardRequest r:
-            {
-                Handle(r, context);
-                break;
-            }
-            case PutEightRequest r:
-            {
-                Handle(r, context);
-                break;
-            }
-            case DrawCardRequest r:
-            {
-                Handle(r, context);
-                break;
-            }
-            case PassRequest r:
-            {
-                Handle(r, context);
-                break;
-            }
+            return _context.RespondAsync(request.PlayerId, new FailureResponse($"Unsupported request: '{request.GetType().Name}'"));
         }
+
+        return (Task) del.Invoke(this, new object?[]{request});
     }
     
-    public void Handle(PutCardRequest request)
-    {
-        PutCard(request.PlayerId, request.Card);
-    }
-    
-    public CrazyEightsResponse PutCard(Guid playerId, Card card)
+
+    public Task Apply(PutCardRequest @event) => PutCard(@event.PlayerId, @event.Card);
+
+    public async Task<CrazyEightsResponse> PutCard(Guid playerId, Card card)
     {
         IncrementSeed();
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            return new CrazyEightsFailureResponse("It is not your turn");
+            var response = new CrazyEightsFailureResponse("It is not your turn");
+            await _context.RespondAsync(playerId, response);
+            return response;
         }
 
         if (!player.HasCard(card))
         {
-            return new CrazyEightsFailureResponse($"You don't have '{card}'");
+            var response = new CrazyEightsFailureResponse($"You don't have '{card}'");
+            await _context.RespondAsync(playerId, response);
+            return response;
         }
 
         if (!CanPut(card))
         {
-            return new CrazyEightsFailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
+            var response = new CrazyEightsFailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
+            await _context.RespondAsync(playerId, response);
+            return response;
         }
         
         player.Cards.Remove(card);
@@ -155,20 +158,135 @@ public class CrazyEightsGame : GameObject
         
         return GetPlayerViewOfGame(player);
     }
-    
-    public void Handle(PutEightRequest request)
+
+    public Task Apply(PutEightRequest @event)
     {
-        PutEight(request.PlayerId, request.Card, request.NewSuit);
+        return PutEight(@event.PlayerId, @event.Card, @event.NewSuit);
     }
     
-    public void Handle(DrawCardRequest request)
+    public async Task<CrazyEightsResponse> PutEight(Guid playerId, Card card, Suit newSuit)
     {
-        DrawCard(request.PlayerId);
+        IncrementSeed();
+        CrazyEightsResponse response;
+        if (!TryGetCurrentPlayer(playerId, out var player))
+        {
+            response = new CrazyEightsFailureResponse("It is not your turn");
+            await _context.RespondAsync(playerId, response);
+            return response;
+        }
+
+        if (!player.HasCard(card))
+        {
+            response = new CrazyEightsFailureResponse($"You don't have '{card}'");
+            await _context.RespondAsync(playerId, response);
+            return response;
+        }
+        
+        if (card.Rank != 8)
+        {
+            response = new CrazyEightsFailureResponse("Card rank must be '8'");
+            await _context.RespondAsync(playerId, response);
+            return response;
+        }
+
+        if (!CanPut(card))
+        {
+            response = _newSuit.HasValue
+                ? new CrazyEightsFailureResponse($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{_newSuit.Value}')")
+                : new CrazyEightsFailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
+            await _context.RespondAsync(playerId, response);
+            return response;
+        }
+
+        player.Cards.Remove(card);
+        DiscardPile.Push(card);
+        _newSuit = newSuit != card.Suit ? newSuit : null;
+        
+        response = GetPlayerViewOfGame(player);
+        await _context.RespondAsync(playerId, response);
+        
+        if (!player.Cards.Any())
+        {
+            DonePlayers.Add(player);
+            await _context.NotifyAllAsync(new PlayerIsDoneNotification
+            {
+                PlayerId = playerId
+            });
+        }
+
+        await MoveToNextPlayerOrFinishAsync();
+        return response;
     }
-    
-    public void Handle(PassRequest request)
+
+    private async Task MoveToNextPlayerOrFinishAsync()
     {
-        Pass(request.PlayerId);
+        if (State == GameState.Finished)
+        {
+            await _context.NotifyAllAsync(new GameEndedNotification());
+        }
+        
+        MoveToNextPlayer();
+        await _context.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification());
+    }
+
+    public Task Apply(DrawCardRequest @event) => DrawCard(@event.PlayerId);
+
+    public async Task<CrazyEightsResponse> DrawCard(Guid playerId)
+    {
+        IncrementSeed();
+        CrazyEightsResponse response;
+        if (!TryGetCurrentPlayer(playerId, out var player))
+        {
+            response = new CrazyEightsFailureResponse("It is not your turn"); 
+            await _context.RespondAsync(playerId, response);
+            return response;
+        }
+        
+        if (_cardsDrawn > 2)
+        {
+            response = new CrazyEightsFailureResponse("You can only draw 3 cards");
+            await _context.RespondAsync(playerId, response);
+            return response;
+        }
+        
+        ShufflePileIfNecessary();
+        if (!StockPile.Any())
+        {
+            response = new CrazyEightsFailureResponse("Stock pile is empty");
+            await _context.RespondAsync(playerId, response);
+            return response;
+        }
+        var card = StockPile.Pop();
+        player.Cards.Add(card);
+        _cardsDrawn++;
+        
+        response = new CardResponse(card);
+        await _context.RespondAsync(playerId, response);
+
+        await _context.NotifyAllAsync(new PlayerDrewCardNotification
+        {
+            PlayerId = playerId
+        });
+        return response;
+    }
+
+    public Task Apply(PassRequest @event) => Pass(@event.PlayerId);
+
+    public async Task<CrazyEightsResponse> Pass(Guid playerId)
+    {
+        IncrementSeed();
+        CrazyEightsResponse response;
+        if (!TryGetCurrentPlayer(playerId, out _))
+        {
+            response = new CrazyEightsFailureResponse("It is not your turn");
+            await _context.RespondAsync(playerId, response);
+            return response;
+        }
+        
+        response = new CrazyEightsSuccessResponse();
+        await _context.RespondAsync(playerId, response);
+        await MoveToNextPlayerOrFinishAsync();
+        return response;
     }
 
     private void IncrementSeed()
@@ -177,81 +295,6 @@ public class CrazyEightsGame : GameObject
         {
             Seed++;
         }
-    }
-
-    public CrazyEightsResponse PutEight(Guid playerId, Card card, Suit newSuit)
-    {
-        IncrementSeed();
-        if (!TryGetCurrentPlayer(playerId, out var player))
-        {
-            return new CrazyEightsFailureResponse("It is not your turn");
-        }
-
-        if (!player.HasCard(card))
-        {
-            return new CrazyEightsFailureResponse($"You don't have '{card}'");
-        }
-        
-        if (card.Rank != 8)
-        {
-            return new CrazyEightsFailureResponse("Card rank must be '8'");
-        }
-
-        if (!CanPut(card))
-        {
-            return _newSuit.HasValue
-                ? new CrazyEightsFailureResponse($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{_newSuit.Value}')")
-                : new CrazyEightsFailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
-        }
-
-        player.Cards.Remove(card);
-        DiscardPile.Push(card);
-        _newSuit = newSuit != card.Suit ? newSuit : null;
-        if (!player.Cards.Any())
-        {
-            DonePlayers.Add(player);
-        }
-
-        MoveToNextPlayer();
-        
-        return GetPlayerViewOfGame(player);
-    }
-    
-    public CrazyEightsResponse DrawCard(Guid playerId)
-    {
-        IncrementSeed();
-        if (!TryGetCurrentPlayer(playerId, out var player))
-        {
-            return new CrazyEightsFailureResponse("It is not your turn");
-        }
-        
-        if (_cardsDrawn > 2)
-        {
-            return new CrazyEightsFailureResponse("You can only draw 3 cards");
-        }
-        
-        ShufflePileIfNecessary();
-        if (!StockPile.Any())
-        {
-            return new CrazyEightsFailureResponse("Stock pile is empty");
-        }
-        var card = StockPile.Pop();
-        player.Cards.Add(card);
-        _cardsDrawn++;
-        
-        return new CardResponse(card);
-    }
-    
-    public CrazyEightsResponse Pass(Guid playerId)
-    {
-        IncrementSeed();
-        if (!TryGetCurrentPlayer(playerId, out _))
-        {
-            return new CrazyEightsFailureResponse("It is not your turn");
-        }
-        
-        MoveToNextPlayer();
-        return new CrazyEightsSuccessResponse();
     }
 
     private PlayerViewOfGame GetPlayerViewOfGame(CrazyEightsPlayer player)

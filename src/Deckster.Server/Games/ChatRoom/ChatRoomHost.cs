@@ -19,7 +19,7 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
     public ChatRoomHost(IRepo repo)
     {
         _repo = repo;
-        var started = new ChatCreated().WithContext(this);
+        var started = new ChatCreatedEvent().WithCommunicationContext(this);
         
         _events = repo.StartEventStream<Chat>(started.Id, started);
         _chat = Chat.Create(started);
@@ -67,7 +67,7 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
     {
         Console.WriteLine($"{channel.Player.Name} disconnected");
         _players.Remove(channel.Player.Id, out _);
-        await BroadcastNotificationAsync(new ChatNotification
+        await NotifyAllAsync(new ChatNotification
         {
             Sender = channel.Player.Name,
             Message = "Disconnected"

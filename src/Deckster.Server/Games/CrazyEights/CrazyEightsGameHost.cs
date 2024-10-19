@@ -6,7 +6,6 @@ using Deckster.Server.Data;
 using Deckster.Server.Games.ChatRoom;
 using Deckster.Server.Games.Common;
 using Deckster.Server.Games.CrazyEights.Core;
-using Marten.Events;
 
 namespace Deckster.Server.Games.CrazyEights;
 
@@ -51,17 +50,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
             return;
         }
 
-        var context = new TurnContext(request);
-        _game.Handle(request, context);
-
-        if (context.Response == null)
-        {
-            await channel.ReplyAsync(new CrazyEightsFailureResponse($"Unknown command '{request.Type}'"), JsonOptions);
-            return;
-        }
-        
-        await channel.ReplyAsync(context.Response, JsonOptions);
-        
+        await _game.HandleAsync(request);
         
         if (_game.State == GameState.Finished)
         {
@@ -70,7 +59,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
             _events = null;
             _game = null;
                 
-            await BroadcastNotificationAsync(new GameEndedNotification());
+            await NotifyAllAsync(new GameEndedNotification());
             await Task.WhenAll(_players.Values.Select(p => p.WeAreDoneHereAsync()));
             await Cts.CancelAsync();
             Cts.Dispose();
@@ -88,12 +77,12 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
             return;
         }
 
-        var startEvent = new CrazyEightsGameStartedEvent
+        var startEvent = new CrazyEightsGameCreatedEvent
         {
             Id = Guid.NewGuid(),
             Players = _players.Values.Select(p => p.Player).ToList(),
             Deck = Decks.Standard.KnuthShuffle(DateTimeOffset.UtcNow.Nanosecond)
-        }; 
+        }.WithCommunicationContext(this);
         
         _game = CrazyEightsGame.Create(startEvent);
         _events = _repo.StartEventStream<CrazyEightsGame>(_game.Id, startEvent);

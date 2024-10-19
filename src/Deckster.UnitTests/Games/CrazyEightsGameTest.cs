@@ -20,7 +20,7 @@ public class CrazyEightsGameTest
     }
 
     [Test]
-    public void PutCard_Succeeds()
+    public async Task PutCard_Succeeds()
     {
         var game = SetUpGame(g =>
         {
@@ -30,16 +30,16 @@ public class CrazyEightsGameTest
         });
         
         var card = new Card(10, Suit.Hearts);
-        var result = game.PutCard(game.CurrentPlayer.Id, card);
+        var result = await game.PutCard(game.CurrentPlayer.Id, card);
         AssertSuccess(result);
     }
     
     [Test]
-    public void PutCard_Fails_WhenNotYourTurn()
+    public async Task PutCard_Fails_WhenNotYourTurn()
     {
         var game = CreateGame();
         var player = game.Players[1];
-        var result = game.PutCard(player.Id, player.Cards[0]);
+        var result = await game.PutCard(player.Id, player.Cards[0]);
         
         AssertFail(result, "It is not your turn");
     }
@@ -47,7 +47,7 @@ public class CrazyEightsGameTest
     [Test]
     [TestCase(1, Suit.Clubs, "You don't have 'A♧'")]
     [TestCase(12, Suit.Clubs, "Cannot put 'Q♧' on '4♤'")]
-    public void PutCard_Fails(int rank, Suit suit, string errorMessage)
+    public async Task PutCard_Fails(int rank, Suit suit, string errorMessage)
     {
         var game = SetUpGame(g =>
         {
@@ -62,31 +62,31 @@ public class CrazyEightsGameTest
         var player = game.Players[0];
         var card = new Card(rank, suit);
         
-        var result = game.PutCard(player.Id, card);
+        var result = await game.PutCard(player.Id, card);
         AssertFail(result, errorMessage);
     }
 
     [Test]
-    public void DrawCard_Fails_AfterThreeAttempts()
+    public async Task DrawCard_Fails_AfterThreeAttempts()
     {
         var game = CreateGame();
         var player = game.Players[0];
 
         for (var ii = 0; ii < 3; ii++)
         {
-            game.DrawCard(player.Id);
+            await game.DrawCard(player.Id);
         }
         
-        var result = game.DrawCard(player.Id);
+        var result = await game.DrawCard(player.Id);
         AssertFail(result, "You can only draw 3 cards");
     }
 
     [Test]
-    public void Pass_SucceedsAlways()
+    public async Task Pass_SucceedsAlways()
     {
         var game = CreateGame();
         var player = game.Players[0];
-        var result = game.Pass(player.Id);
+        var result = await game.Pass(player.Id);
         AssertSuccess(result);
     }
 
@@ -95,7 +95,7 @@ public class CrazyEightsGameTest
     [TestCase(Suit.Diamonds)]
     [TestCase(Suit.Spades)]
     [TestCase(Suit.Hearts)]
-    public void PutEight_ChangesSuit(Suit newSuit)
+    public async Task PutEight_ChangesSuit(Suit newSuit)
     {
         var game = SetUpGame(g =>
         {
@@ -114,32 +114,32 @@ public class CrazyEightsGameTest
         });
         var player = game.CurrentPlayer;
         var eight = new Card(8, Suit.Spades);
-        AssertSuccess(game.PutEight(player.Id, eight, newSuit));
+        AssertSuccess(await game.PutEight(player.Id, eight, newSuit));
         Assert.That(game.CurrentSuit, Is.EqualTo(newSuit));
 
         var nextPlayer = game.CurrentPlayer;
         var cardWithNewSuit = nextPlayer.Cards.First(c => c.Suit == newSuit && c.Rank != 8);
         
-        AssertSuccess(game.PutCard(nextPlayer.Id, cardWithNewSuit));
+        AssertSuccess(await game.PutCard(nextPlayer.Id, cardWithNewSuit));
     }
 
     [Test]
-    public void PutEight_Fails_WhenNotEight()
+    public async Task PutEight_Fails_WhenNotEight()
     {
         var game = CreateGame();
         var player = game.Players[0];
         var notEight = player.Cards[0];
-        var result = game.PutEight(player.Id, notEight, Suit.Clubs); 
+        var result = await game.PutEight(player.Id, notEight, Suit.Clubs); 
         AssertFail(result, "Card rank must be '8'");
     }
 
     [Test]
-    public void Draw_Fails_WhenNoMoreCards()
+    public async Task Draw_Fails_WhenNoMoreCards()
     {
         var game = CreateGame();
         game.StockPile.Clear();
         
-        var result = game.DrawCard(game.CurrentPlayer.Id);
+        var result = await game.DrawCard(game.CurrentPlayer.Id);
         Console.WriteLine(Pretty(result));
         AssertFail(result, "Stock pile is empty");
     }
@@ -210,7 +210,7 @@ public class CrazyEightsGameTest
 
     private static CrazyEightsGame CreateGame()
     {
-        return CrazyEightsGame.Create(new CrazyEightsGameStartedEvent
+        return CrazyEightsGame.Create(new CrazyEightsGameCreatedEvent
         {
             Players =
             [
