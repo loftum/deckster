@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Concurrent;
+using Deckster.Server.Games;
 
 namespace Deckster.Server.Data;
 
@@ -26,9 +27,9 @@ public class InMemoryRepo : IRepo
         return GetCollection<T>().Values.AsQueryable();
     }
 
-    public IEventStream GetEventStream<T>(Guid id) where T : DatabaseObject
+    public IEventStream StartEventStream<T>(Guid id, IEnumerable<object> startEvents) where T : DatabaseObject
     {
-        return new InMemoryEventStream();
+        return new InMemoryEventStream(id, startEvents);
     }
 
     public Task SaveAsync<T>(T item, CancellationToken cancellationToken = default) where T : DatabaseObject
@@ -44,6 +45,11 @@ public class InMemoryRepo : IRepo
         return Task.CompletedTask;
     }
 
+    public Task<T?> GetGameAsync<T>(Guid id, long version, CancellationToken cancellationToken = default) where T : GameObject
+    {
+        return GetAsync<T>(id, cancellationToken);
+    }
+    
     public Task<T?> GetAsync<T>(Guid id, CancellationToken cancellationToken = default) where T : DatabaseObject
     {
         var collection = GetCollection<T>();

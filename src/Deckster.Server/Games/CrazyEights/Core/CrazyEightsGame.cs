@@ -1,31 +1,22 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.Client.Protocol;
-using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
+using Marten.Events.Aggregation;
+using Marten.Events.Projections;
 
 namespace Deckster.Server.Games.CrazyEights.Core;
 
-public class CrazyEightsGameStartedEvent
-{
-    public Guid Id { get; init; }
-    public int InitialSeed { get; init; } = DateTimeOffset.UtcNow.Nanosecond;
-    public List<PlayerData> Players { get; init; } = [];
-    public List<Card> Deck { get; init; } = [];
-}
-
-public class CrazyEightsGame : DatabaseObject
+public class CrazyEightsGame : GameObject
 {
     // ReSharper disable once UnusedMember.Global
     // Used by Marten
-    public int Version { get; set; }
     public int Seed { get; set; }
     
     private readonly int _initialCardsPerPlayer = 5;
     
-    public List<CrazyEightsPlayer> DonePlayers { get; } = new();
+    public List<CrazyEightsPlayer> DonePlayers { get; } = [];
     private int _currentPlayerIndex;
     private int _cardsDrawn;
     
@@ -99,56 +90,13 @@ public class CrazyEightsGame : DatabaseObject
         DonePlayers.Clear();
     }
 
-    public void Apply(PutCardRequest request, out DecksterResponse response)
+    public void Apply(PutCardRequest @event) => Handle(@event, out _, out _);
+
+    public void Handle(PutCardRequest request, TurnContext? context)
     {
-        response = PutCard(request.PlayerId, request.Card);
+        PutCard(request.PlayerId, request.Card);
     }
     
-    public void Apply(PutEightRequest request, out DecksterResponse response)
-    {
-        response = PutEight(request.PlayerId, request.Card, request.NewSuit);
-    }
-    
-    public void Apply(DrawCardRequest request, out DecksterResponse response)
-    {
-        response = DrawCard(request.PlayerId);
-    }
-    
-    public void Apply(PassRequest request, out DecksterResponse response)
-    {
-        response = Pass(request.PlayerId);
-    }
-
-    public bool TryApply(DecksterRequest request, [MaybeNullWhen(false)] out DecksterResponse response)
-    {
-        switch (request)
-        {
-            case PutCardRequest r:
-                Apply(r, out response);
-                return true;
-            case PutEightRequest r:
-                Apply(r, out response);
-                return true;
-            case DrawCardRequest r:
-                Apply(r, out response);
-                return true;
-            case PassRequest r:
-                Apply(r, out response);
-                return true;
-            default:
-                response = default;
-                return false;
-        }
-    }
-
-    private void IncrementSeed()
-    {
-        unchecked
-        {
-            Seed++;
-        }
-    }
-
     public CrazyEightsResponse PutCard(Guid playerId, Card card)
     {
         IncrementSeed();
@@ -174,11 +122,51 @@ public class CrazyEightsGame : DatabaseObject
         {
             DonePlayers.Add(player);
         }
-
+        
         MoveToNextPlayer();
         
         return GetPlayerViewOfGame(player);
     }
+    
+    public void Handle(PutEightRequest request, out DecksterResponse response, out DecksterNotification? notification)
+    {
+        notification = default;
+        response = PutEight(request.PlayerId, request.Card, request.NewSuit);
+    }
+    
+    public void Handle(DrawCardRequest request, out DecksterResponse response, out DecksterNotification? notification)
+    {
+        notification = default;
+        response = DrawCard(request.PlayerId);
+    }
+    
+    public void Handle(PassRequest request, out DecksterResponse response, out DecksterNotification? notification)
+    {
+        notification = default;
+        response = Pass(request.PlayerId);
+    }
+
+    private void Handle(object invalid, out DecksterResponse? response, out DecksterNotification? notification)
+    {
+        response = null;
+        notification = null;
+    }
+
+    public bool TryHandle(DecksterRequest request, [MaybeNullWhen(false)] out DecksterResponse response, out DecksterNotification? notification)
+    {
+        Handle((dynamic) request, out response, out notification);
+        return response != null;
+    }
+
+    private void IncrementSeed()
+    {
+        unchecked
+        {
+            Seed++;
+        }
+    }
+
+    
 
     public CrazyEightsResponse PutEight(Guid playerId, Card card, Suit newSuit)
     {
@@ -340,4 +328,9 @@ public class CrazyEightsGame : DatabaseObject
             NumberOfCards = player.Cards.Count
         };
     }
+}
+
+public class CrazyEightsProjection : SingleStreamProjection<CrazyEightsGame>
+{
+    
 }

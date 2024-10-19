@@ -44,57 +44,42 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
 
     private async void MessageReceived(IServerChannel channel, CrazyEightsRequest request)
     {
-        if (_game == null)
+        if (_game == null || _game.State == GameState.Finished)
         {
             await channel.ReplyAsync(new FailureResponse("Game is not running"), JsonOptions);
             return;
         }
 
-        if (!_game.TryApply(request, out var result))
+        if (!_game.TryHandle(request, out var response, out var notification))
         {
             await channel.ReplyAsync(new CrazyEightsFailureResponse($"Unknown command '{request.Type}'"), JsonOptions);
             return;
         }
         
-        await channel.ReplyAsync(result, JsonOptions);
-        if (result is CrazyEightsSuccessResponse)
+        
+        
+        await channel.ReplyAsync(response, JsonOptions);
+        if (notification != null)
         {
-            if (_game.State == GameState.Finished)
-            {
-                await _events.SaveChangesAsync();
-                await _events.DisposeAsync();
-                _events = null;
-                _game = null;
-                
-                await BroadcastMessageAsync(new GameEndedNotification());
-                await Task.WhenAll(_players.Values.Select(p => p.WeAreDoneHereAsync()));
-                await Cts.CancelAsync();
-                Cts.Dispose();
-                OnEnded?.Invoke(this);
-                
-                return;
-            }
-            var currentPlayerId = _game.CurrentPlayer.Id;
-            await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification(), JsonOptions);
+            await BroadcastMessageAsync(notification);
         }
+        if (_game.State == GameState.Finished)
+        {
+            await _events.SaveChangesAsync();
+            await _events.DisposeAsync();
+            _events = null;
+            _game = null;
+                
+            await BroadcastMessageAsync(new GameEndedNotification());
+            await Task.WhenAll(_players.Values.Select(p => p.WeAreDoneHereAsync()));
+            await Cts.CancelAsync();
+            Cts.Dispose();
+            OnEnded?.Invoke(this);
+            return;
+        }
+        var currentPlayerId = _game.CurrentPlayer.Id;
+        await _players[currentPlayerId].PostMessageAsync(new ItsYourTurnNotification(), JsonOptions);
     }
-
-    // private DecksterResponse HandleRequest(IServerChannel channel, CrazyEightsRequest message)
-    // {
-    //     switch (message)
-    //     {
-    //         case PutCardRequest r:
-    //             return _game.PutCard(channel.Player.Id, r.Card);
-    //         case PutEightRequest r:
-    //             return _game.PutEight(channel.Player.Id, r.Card, r.NewSuit);
-    //         case DrawCardRequest r:
-    //             return _game.DrawCard(channel.Player.Id);
-    //         case PassRequest r:
-    //             return _game.Pass(channel.Player.Id);
-    //         default:
-    //             return new CrazyEightsFailureResponse($"Unknown command '{message.Type}'");
-    //     }
-    // }
 
     public override async Task StartAsync()
     {
@@ -103,16 +88,16 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
             return;
         }
 
-        var e = new CrazyEightsGameStartedEvent
+        var startEvent = new CrazyEightsGameStartedEvent
         {
             Id = Guid.NewGuid(),
             Players = _players.Values.Select(p => p.Player).ToList(),
             Deck = Decks.Standard.KnuthShuffle(DateTimeOffset.UtcNow.Nanosecond)
         }; 
         
-        _game = CrazyEightsGame.Create(e);
-        _events = _repo.GetEventStream<CrazyEightsGame>(_game.Id);
-        _events.Append(e);
+        _game = CrazyEightsGame.Create(startEvent);
+        _events = _repo.StartEventStream<CrazyEightsGame>(_game.Id, startEvent);
+        _events.Append(startEvent);
         foreach (var player in _players.Values)
         {
             player.Start<CrazyEightsRequest>(MessageReceived, JsonOptions, Cts.Token);

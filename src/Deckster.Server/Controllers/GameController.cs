@@ -1,6 +1,7 @@
 using System.Net.WebSockets;
 using Deckster.Server.Authentication;
 using Deckster.Server.CodeGeneration.Meta;
+using Deckster.Server.Data;
 using Deckster.Server.Games;
 using Deckster.Server.Middleware;
 using Microsoft.AspNetCore.Mvc;
@@ -8,16 +9,19 @@ using Microsoft.AspNetCore.Mvc;
 namespace Deckster.Server.Controllers;
 
 // Marker interface for discoverability
-public interface ICardGameController;
+public interface IGameController;
 
-public abstract class CardGameController<TGameClient, TGameHost> : Controller, ICardGameController
+public abstract class GameController<TGameClient, TGameHost, TGame> : Controller, IGameController
     where TGameHost : IGameHost
+    where TGame : GameObject
 {
     protected readonly GameHostRegistry HostRegistry;
+    protected readonly IRepo Repo;
 
-    protected CardGameController(GameHostRegistry hostRegistry)
+    protected GameController(GameHostRegistry hostRegistry, IRepo repo)
     {
         HostRegistry = hostRegistry;
+        Repo = repo;
     }
 
     [HttpGet("metadata")]
@@ -62,6 +66,7 @@ public abstract class CardGameController<TGameClient, TGameHost> : Controller, I
         {
             return StatusCode(404, new ResponseMessage("Game not found: '{id}'"));
         }
+        
         var vm = new GameVm
         {
             Id = host.Name,
@@ -69,6 +74,21 @@ public abstract class CardGameController<TGameClient, TGameHost> : Controller, I
         };
 
         return Request.AcceptsJson() ? vm : View(vm);
+    }
+
+    [HttpGet("previousgames")]
+    public async Task<object> PreviousGames()
+    {
+        var games = await Repo.Query<TGame>().ToListAsync();
+
+        return games;
+    }
+    
+    [HttpGet("previousgames/{id}/{version}")]
+    public async Task<object> PreviousGames(Guid id, long version)
+    {
+        var game = await Repo.GetGameAsync<TGame>(id, version);
+        return game;
     }
     
     [HttpPost("create/{name}")]

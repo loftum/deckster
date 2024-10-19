@@ -1,10 +1,10 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Common;
 using Deckster.Client.Games.ChatRoom;
 using Deckster.Client.Serialization;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
+using Deckster.Server.Games.CrazyEights.Core;
 
 namespace Deckster.Server.Games.ChatRoom;
 
@@ -16,14 +16,13 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
     private readonly IRepo _repo;
     private readonly IEventStream _events;
     private readonly Chat _chat;
-    
 
     public ChatRoomHost(IRepo repo)
     {
         _repo = repo;
         var started = new ChatCreated();
-        _events = repo.GetEventStream<Chat>(started.Id);
-        _chat = new Chat(started);
+        _events = repo.StartEventStream<Chat>(started.Id, started);
+        _chat = Chat.Create(started);
         _events.Append(started);
     }
 
@@ -37,22 +36,22 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
         var player = channel.Player;
         Console.WriteLine($"Received: {request.Pretty()}");
 
+
+        var context = new TurnContext();
         switch (request)
         {
             case SendChatMessage message:
-                _chat.Apply(message);
+                await _chat.HandleAsync(message, context);
                 _events.Append(message);
                 await _events.SaveChangesAsync();
-                await _players[player.Id].ReplyAsync(new ChatResponse(), JsonOptions);
-                await BroadcastMessageAsync(new ChatNotification
+                // await _repo.SaveAsync(_chat);
+                await _players[player.Id].ReplyAsync(context.Response, JsonOptions);
+                foreach (var notification in context.Notifications)
                 {
-                    Sender = player.Name,
-                    Message = message.Message
-                });
+                    await BroadcastMessageAsync(notification);
+                }
                 return;
         }
-        
-        await _players[player.Id].ReplyAsync(new FailureResponse($"Unknown request type {request.Type}"), JsonOptions);
     }
 
     public override bool TryAddPlayer(IServerChannel channel, [MaybeNullWhen(true)] out string error)
@@ -82,29 +81,5 @@ public class ChatRoomHost : GameHost<ChatRequest, ChatResponse, ChatNotification
             Sender = channel.Player.Name,
             Message = "Disconnected"
         });
-    }
-}
-
-public class ChatCreated
-{
-    public Guid Id { get; init; } = Guid.NewGuid();
-    public DateTimeOffset StartedTime { get; init; } = DateTimeOffset.UtcNow;
-}
-
-public class Chat : DatabaseObject
-{
-    public DateTimeOffset StartedTime { get; init; }
-    
-    public List<SendChatMessage> Transcript { get; init; } = [];
-
-    public Chat(ChatCreated e)
-    {
-        Id = e.Id;
-        StartedTime = e.StartedTime;
-    }
-    
-    public void Apply(SendChatMessage request)
-    {
-        Transcript.Add(request);
     }
 }
