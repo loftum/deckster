@@ -9,15 +9,15 @@ namespace Deckster.Server.Games.Common.Fakes;
 public partial class InMemoryChannel : IClientChannel
 {
     public event Action<string>? OnDisconnected;
-    private readonly MessagePipe<byte[]> _requests = new();
-    private readonly MessagePipe<byte[]> _responses = new();
+    private readonly AsyncMessageQueue<byte[]> _requests = new();
+    private readonly AsyncMessageQueue<byte[]> _responses = new();
     private Task _readNotificationsTask;
     private readonly CancellationTokenSource _cts = new();
     
     public async Task<TResponse> SendAsync<TResponse>(object request, JsonSerializerOptions options, CancellationToken cancellationToken = default)
     {
         _requests.Add(JsonSerializer.SerializeToUtf8Bytes(request, options));
-        var bytes = await _responses.ReadAsync();
+        var bytes = await _responses.ReadAsync(cancellationToken);
         var response = JsonSerializer.Deserialize<TResponse>(bytes, options);
         if (response == null)
         {
@@ -59,24 +59,25 @@ public partial class InMemoryChannel : IServerChannel
     public PlayerData Player { get; init; }
 
     private Task _readRequestsTask;
-
-    private readonly MessagePipe<byte[]> _notifications = new();
+    private readonly AsyncMessageQueue<byte[]> _notifications = new();
 
     public void Start<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken) where TRequest : DecksterRequest
     {
         _readRequestsTask = ReadRequestsAsync(handle, options, cancellationToken);
     }
 
-    private async Task ReadRequestsAsync<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken)
+    private async Task ReadRequestsAsync<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken)  where TRequest : DecksterRequest
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            var bytes = await _requests.ReadAsync();
+            var bytes = await _requests.ReadAsync(cancellationToken);
             var request = JsonSerializer.Deserialize<TRequest>(bytes, options);
             if (request == null)
             {
                 throw new Exception("OMG GOT NULLZ REKWEST!");
             }
+
+            request.PlayerId = Player.Id;
 
             handle(this, request);
         }
