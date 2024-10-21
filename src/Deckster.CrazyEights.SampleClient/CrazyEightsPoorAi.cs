@@ -85,6 +85,7 @@ public class CrazyEightsPoorAi
                         _logger.LogInformation("Putting card: {card} ({turn})", card, turn);
                         var r = await _client.PutCardAsync(card);
                         _logger.LogInformation("Result: {result}", r.GetType().Name);
+                        return;
                     }
                     catch (Exception e)
                     {

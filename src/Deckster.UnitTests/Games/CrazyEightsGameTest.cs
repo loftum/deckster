@@ -1,7 +1,9 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
+using Deckster.Client.Protocol;
 using Deckster.Server.Games.CrazyEights.Core;
 using NUnit.Framework;
 
@@ -144,23 +146,23 @@ public class CrazyEightsGameTest
         AssertFail(result, "Stock pile is empty");
     }
 
-    private static void AssertSuccess(CrazyEightsResponse result)
+    private static void AssertSuccess(DecksterResponse result)
     {
         switch (result)
         {
-            case CrazyEightsSuccessResponse:
+            case PassOkResponse:
                 break;
-            case CrazyEightsFailureResponse r:
+            case FailureResponse r:
                 Assert.Fail($"Expeced success, but got '{r.Message}'");
                 break;
         }
     }
 
-    private static void AssertFail(CrazyEightsResponse result, string message)
+    private static void AssertFail(DecksterResponse result, string message)
     {
         switch (result)
         {
-            case CrazyEightsFailureResponse r:
+            case FailureResponse r:
                 Assert.That(r.Message, Is.EqualTo(message));
                 break;
             default:

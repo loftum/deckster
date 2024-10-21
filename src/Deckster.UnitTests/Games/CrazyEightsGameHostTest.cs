@@ -1,29 +1,19 @@
-using System.Diagnostics;
+using Deckster.Client.Serialization;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
 using Deckster.Server.Games.CrazyEights;
+using Deckster.Server.Games.CrazyEights.Core;
 using NUnit.Framework;
 
 namespace Deckster.UnitTests.Games;
 
 public class CrazyEightsGameHostTest
 {
-    [OneTimeSetUp]
-    public void Setup()
-    {
-        Trace.Listeners.Add(new ConsoleTraceListener());
-    }
-
-    [OneTimeTearDown]
-    public void TearDown()
-    {
-        Trace.Flush();
-    }
-    
     [Test]
     public async ValueTask Game()
     {
-        var host = new CrazyEightsGameHost(new InMemoryRepo());
+        var repo = new InMemoryRepo();
+        var host = new CrazyEightsGameHost(repo);
 
         Console.WriteLine("Add bot");
         if (!host.TryAddBot(out var error))
@@ -36,12 +26,28 @@ public class CrazyEightsGameHostTest
             Assert.Fail(error);
         }
         Console.WriteLine("Starting");
-        await host.StartAsync();
-
-        Console.WriteLine("Running");
-        while (host.State != GameState.Finished)
+        try
         {
-            await Task.Delay(1000);
+            await host.StartAsync();
+        
+            Console.WriteLine("Running");
+            while (host.State != GameState.Finished)
+            {
+                await Task.Delay(1000);
+            }
         }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            var thing = repo.EventThings.Values.Cast<InMemoryEventThing<CrazyEightsGame>>().SingleOrDefault();
+            if (thing != null)
+            {
+                foreach (var evt in thing.Events)
+                {
+                    Console.WriteLine(evt.Pretty());
+                }
+            }
+        }
+        
     }
 }

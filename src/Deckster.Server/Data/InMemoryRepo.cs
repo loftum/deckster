@@ -8,6 +8,8 @@ public class InMemoryRepo : IRepo
 {
     private readonly ConcurrentDictionary<Type, IDictionary> _collections = new();
 
+    public ConcurrentDictionary<Guid, IEventThing> EventThings { get;  }= new();
+
     public InMemoryRepo()
     {
         _collections[typeof(DecksterUser)] = new ConcurrentDictionary<Guid, DecksterUser>
@@ -29,7 +31,8 @@ public class InMemoryRepo : IRepo
 
     public IEventThing<T> StartEventStream<T>(Guid id, IEnumerable<object> startEvents) where T : GameObject
     {
-        return new InMemoryEventThing<T>(id, startEvents);
+        var thing = EventThings.GetOrAdd(id, k => new InMemoryEventThing<T>(k, startEvents));
+        return (IEventThing<T>) thing;
     }
 
     public Task SaveAsync<T>(T item, CancellationToken cancellationToken = default) where T : DatabaseObject
