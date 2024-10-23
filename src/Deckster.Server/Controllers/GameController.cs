@@ -147,6 +147,7 @@ public abstract class GameController<TGameClient, TGameHost, TGame> : Controller
     [RequireUser]
     public async Task Join(string gameName)
     {
+        //HttpContext.Response.Headers.Connection = "close";
         if (!HttpContext.WebSockets.IsWebSocketRequest)
         {
             HttpContext.Response.StatusCode = 400;
@@ -174,6 +175,7 @@ public abstract class GameController<TGameClient, TGameHost, TGame> : Controller
     [RequireUser]
     public async Task FinishJoin(Guid connectionId)
     {
+        //HttpContext.Response.Headers.Connection = "close";
         if (!HttpContext.WebSockets.IsWebSocketRequest)
         {
             HttpContext.Response.StatusCode = 400;
@@ -192,4 +194,12 @@ public abstract class GameController<TGameClient, TGameHost, TGame> : Controller
             }
         }
     }
+}
+
+public static class WebSocketDefaults
+{
+    public static readonly WebSocketAcceptContext AcceptContext = new()
+    {
+        KeepAliveInterval = TimeSpan.FromSeconds(5)
+    };
 }

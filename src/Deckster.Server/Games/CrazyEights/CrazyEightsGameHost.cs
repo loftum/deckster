@@ -72,11 +72,21 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
         
         if (_game.State == GameState.Finished)
         {
-            await _events.SaveChangesAsync();
-            await _events.DisposeAsync();
-            _events = null;
-            _game = null;
-            await CancelAsync();
+            try
+            {
+                await _events.SaveChangesAsync();
+                await _events.DisposeAsync();
+            }
+            catch (ObjectDisposedException)
+            {
+                // ¯\_(ツ)_/¯
+            }
+            finally
+            {
+                _events = null;
+                _game = null;
+                await CancelAsync();    
+            }
         }
     }
 

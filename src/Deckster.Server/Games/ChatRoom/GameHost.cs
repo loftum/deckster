@@ -35,7 +35,13 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost, 
 
     protected void FireEnded()
     {
-        OnEnded?.Invoke(this);
+        if (OnEnded == null)
+        {
+            return;
+        }
+        var onEnded = OnEnded;
+        OnEnded = null;
+        onEnded?.Invoke(this);
     }
     
     public ICollection<PlayerData> GetPlayers()
@@ -64,6 +70,11 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost, 
         }
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        await CancelAsync();
+    }
+    
     public async Task CancelAsync()
     {
         if (!Cts.IsCancellationRequested)
@@ -75,6 +86,7 @@ public abstract class GameHost<TRequest, TResponse, TNotification> : IGameHost, 
             await player.DisconnectAsync();
             player.Dispose();
         }
+        _players.Clear();
         FireEnded();
     }
 }
