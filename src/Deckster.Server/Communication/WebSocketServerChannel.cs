@@ -47,11 +47,6 @@ public class WebSocketServerChannel : IServerChannel
         return _notificationSocket.SendAsync(bytes, WebSocketMessageType.Text, WebSocketMessageFlags.EndOfMessage, cancellationToken);
     }
     
-    public Task WeAreDoneHereAsync(CancellationToken cancellationToken = default)
-    {
-        return DisconnectAsync();
-    }
-    
     private async Task ListenAsync<TRequest>(Action<IServerChannel, TRequest> handle, JsonSerializerOptions options, CancellationToken cancellationToken) where TRequest : DecksterRequest
     {
         try

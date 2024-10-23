@@ -25,6 +25,7 @@ public class GameHostRegistry
     public void Add<TGameHost>(TGameHost host) where TGameHost : IGameHost
     {
         var games = GetCollection<TGameHost>();
+        host.OnEnded += RemoveHost;
         games.TryAdd(host.Name, host);
     }
 

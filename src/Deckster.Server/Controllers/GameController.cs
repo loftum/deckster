@@ -185,8 +185,11 @@ public abstract class GameController<TGameClient, TGameHost, TGame> : Controller
 
         if (!await HostRegistry.FinishJoinAsync(connectionId, eventSocket))
         {
-            HttpContext.Response.StatusCode = 400;
-            await HttpContext.Response.WriteAsJsonAsync(new ResponseMessage("Could not connect"));
+            if (!HttpContext.Response.HasStarted)
+            {
+                HttpContext.Response.StatusCode = 400;
+                await HttpContext.Response.WriteAsJsonAsync(new ResponseMessage("Could not connect"));    
+            }
         }
     }
 }

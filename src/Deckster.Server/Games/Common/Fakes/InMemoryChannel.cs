@@ -100,11 +100,6 @@ public partial class InMemoryChannel : IServerChannel
         return ValueTask.CompletedTask;
     }
 
-    public Task WeAreDoneHereAsync(CancellationToken cancellationToken = default)
-    {
-        return DisconnectAsync();
-    }
-
     public Task DisconnectAsync()
     {
         OnDisconnected?.Invoke("hest");

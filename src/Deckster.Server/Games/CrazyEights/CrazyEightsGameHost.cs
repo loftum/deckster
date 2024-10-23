@@ -76,11 +76,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
             await _events.DisposeAsync();
             _events = null;
             _game = null;
-                
-            await Task.WhenAll(_players.Values.Select(p => p.WeAreDoneHereAsync()));
-            await Cts.CancelAsync();
-            Cts.Dispose();
-            OnEnded?.Invoke(this);
+            await CancelAsync();
         }
     }
 
