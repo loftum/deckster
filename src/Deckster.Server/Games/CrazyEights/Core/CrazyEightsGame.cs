@@ -10,6 +10,8 @@ namespace Deckster.Server.Games.CrazyEights.Core;
 
 public class CrazyEightsGame : GameObject
 {
+    private static readonly Dictionary<Type, MethodInfo> _applies;
+    
     static CrazyEightsGame()
     {
         var methods = from method in typeof(CrazyEightsGame)
@@ -21,12 +23,9 @@ public class CrazyEightsGame : GameObject
             select (parameter, method);
         _applies = methods.ToDictionary(p => p.parameter.ParameterType,
             p => p.method);
-
     }
-
-    private static readonly Dictionary<Type, MethodInfo> _applies;
     
-    private ICommunicationContext _context;
+    private ICommunicationContext _context = NullContext.Instance;
     
     // ReSharper disable once UnusedMember.Global
     // Used by Marten
@@ -65,6 +64,11 @@ public class CrazyEightsGame : GameObject
     public Suit CurrentSuit => _newSuit ?? TopOfPile.Suit;
 
     public CrazyEightsPlayer CurrentPlayer => State == GameState.Finished ? CrazyEightsPlayer.Null : Players[_currentPlayerIndex];
+
+    private CrazyEightsGame()
+    {
+        
+    }
 
     public static CrazyEightsGame Create(CrazyEightsGameCreatedEvent created)
     {
@@ -297,6 +301,7 @@ public class CrazyEightsGame : GameObject
         if (State == GameState.Finished)
         {
             await _context.NotifyAllAsync(new GameEndedNotification());
+            return;
         }
         
         MoveToNextPlayer();

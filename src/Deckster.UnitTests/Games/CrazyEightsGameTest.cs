@@ -173,7 +173,7 @@ public class CrazyEightsGameTest
     
     private static CrazyEightsGame SetUpGame(Action<CrazyEightsGame> configure)
     {
-        var players = new List<CrazyEightsPlayer>
+        var players = new List<PlayerData>
         {
             new()
             {
@@ -197,15 +197,14 @@ public class CrazyEightsGameTest
             }
         };
 
-        var game = new CrazyEightsGame
+        var game = CrazyEightsGame.Create(new CrazyEightsGameCreatedEvent
         {
-            Deck = TestDeck,
+            Id = Some.Id,
             Players = players,
-        };
+            Deck = TestDeck
+        });
+
         configure(game);
-        
-        
-        
         
         return game;
     }
