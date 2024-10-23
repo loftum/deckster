@@ -2,7 +2,8 @@ namespace Deckster.Server.Games.Common.Fakes;
 
 public class AsyncMessageQueue<TMessage>
 {
-    private TaskCompletionSource<TMessage> _tcs = new();
+    private readonly Queue<TaskCompletionSource<TMessage>> _waitingLine = new();
+    
     private readonly Queue<TMessage> _messages = new();
 
     private readonly object _lock = new();
@@ -11,16 +12,12 @@ public class AsyncMessageQueue<TMessage>
     {
         lock (_lock)
         {
+            if (_waitingLine.TryDequeue(out var waiting))
+            {
+                waiting.SetResult(message);
+                return;
+            }
             _messages.Enqueue(message);
-            TryDequeueMessage();
-        }
-    }
-
-    private void TryDequeueMessage()
-    {
-        if (!_tcs.Task.IsCompleted && _messages.TryDequeue(out var m))
-        {
-            _tcs.SetResult(m);
         }
     }
 
@@ -28,14 +25,15 @@ public class AsyncMessageQueue<TMessage>
     {
         lock (_lock)
         {
-            var current = _tcs;
-            if (current.Task.IsCompleted)
+            if (_messages.TryDequeue(out var message))
             {
-                _tcs = new TaskCompletionSource<TMessage>();
-                TryDequeueMessage();
+                return Task.FromResult(message);
             }
-            cancellationToken.Register(() => current.SetCanceled(cancellationToken));
-            return current.Task;
+
+            var tcs = new TaskCompletionSource<TMessage>();
+            _waitingLine.Enqueue(tcs);
+            cancellationToken.Register(() => tcs.TrySetCanceled(cancellationToken));
+            return tcs.Task;
         }
     }
 }

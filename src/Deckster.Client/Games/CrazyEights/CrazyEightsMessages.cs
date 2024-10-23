@@ -24,6 +24,8 @@ public abstract class CrazyEightsResponse : DecksterResponse;
 
 public class PassOkResponse : CrazyEightsResponse;
 
+public class PutCardOkResponse : CrazyEightsResponse;
+
 public class CardResponse : CrazyEightsResponse
 {
     public Card Card { get; init; }

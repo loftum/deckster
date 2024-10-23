@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Deckster.Client.Common;
 using Deckster.Client.Communication;
 using Deckster.Client.Games.Common;
@@ -6,6 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Games.CrazyEights;
 
+[DebuggerDisplay("CrazyEightsClient {PlayerData}")]
 public class CrazyEightsClient : GameClient<CrazyEightsRequest, CrazyEightsResponse, CrazyEightsNotification>
 {
     private readonly ILogger _logger;

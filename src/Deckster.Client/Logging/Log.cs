@@ -8,6 +8,6 @@ public static class Log
     
     static Log()
     {
-        Factory = LoggerFactory.Create(b => b.AddConsole().SetMinimumLevel(LogLevel.Trace));
+        Factory = LoggerFactory.Create(b => b.AddConsole().SetMinimumLevel(LogLevel.Information));
     }
 }

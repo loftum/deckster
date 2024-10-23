@@ -125,23 +125,24 @@ public class CrazyEightsGame : GameObject
     public async Task<DecksterResponse> PutCard(Guid playerId, Card card)
     {
         IncrementSeed();
+        DecksterResponse response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            var response = new FailureResponse("It is not your turn");
+            response = new FailureResponse("It is not your turn");
             await _context.RespondAsync(playerId, response);
             return response;
         }
 
         if (!player.HasCard(card))
         {
-            var response = new FailureResponse($"You don't have '{card}'");
+            response = new FailureResponse($"You don't have '{card}'");
             await _context.RespondAsync(playerId, response);
             return response;
         }
 
         if (!CanPut(card))
         {
-            var response = new FailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
+            response = new FailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
             await _context.RespondAsync(playerId, response);
             return response;
         }
@@ -154,9 +155,12 @@ public class CrazyEightsGame : GameObject
             DonePlayers.Add(player);
         }
 
+        response = GetPlayerViewOfGame(player);
+        await _context.RespondAsync(playerId, response);
+
         await MoveToNextPlayerOrFinishAsync();
         
-        return GetPlayerViewOfGame(player);
+        return response;
     }
 
     public Task Apply(PutEightRequest @event) => PutEight(@event.PlayerId, @event.Card, @event.NewSuit);
@@ -271,6 +275,7 @@ public class CrazyEightsGame : GameObject
         
         response = new PassOkResponse();
         await _context.RespondAsync(playerId, response);
+        
         await _context.NotifyAllAsync(new PlayerPassedNotification
         {
             PlayerId = playerId

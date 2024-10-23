@@ -37,4 +37,9 @@
       <Folder Include="Views\CrazyEights\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Games\Common\Fakes\testusers.txt" />
+      <EmbeddedResource Include="Games\Common\Fakes\testusers.txt" />
+    </ItemGroup>
+
 </Project>

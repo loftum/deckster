@@ -51,6 +51,11 @@ public partial class InMemoryChannel : IClientChannel
         _cts.Dispose();
         return ValueTask.CompletedTask;
     }
+
+    public override string ToString()
+    {
+        return $"{GetType().Name} {Player}";
+    }
 }
 
 public partial class InMemoryChannel : IServerChannel

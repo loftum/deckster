@@ -15,15 +15,12 @@ public class CrazyEightsGameHostTest
         var repo = new InMemoryRepo();
         var host = new CrazyEightsGameHost(repo);
 
-        Console.WriteLine("Add bot");
-        if (!host.TryAddBot(out var error))
+        for (var ii = 0; ii < 4; ii++)
         {
-            Assert.Fail(error);
-        }
-        Console.WriteLine("Add bot");
-        if (!host.TryAddBot(out error))
-        {
-            Assert.Fail(error);
+            if (!host.TryAddBot(out var error))
+            {
+                Assert.Fail(error);
+            }    
         }
         Console.WriteLine("Starting");
         try

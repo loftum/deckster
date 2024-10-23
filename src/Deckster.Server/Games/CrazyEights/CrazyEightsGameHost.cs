@@ -60,7 +60,7 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
         return TryAddPlayer(channel, out error);
     }
 
-    private async void MessageReceived(IServerChannel channel, CrazyEightsRequest request)
+    private async void RequestReceived(IServerChannel channel, CrazyEightsRequest request)
     {
         if (_game == null || _game.State == GameState.Finished)
         {
@@ -77,7 +77,6 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
             _events = null;
             _game = null;
                 
-            await NotifyAllAsync(new GameEndedNotification());
             await Task.WhenAll(_players.Values.Select(p => p.WeAreDoneHereAsync()));
             await Cts.CancelAsync();
             Cts.Dispose();
@@ -85,11 +84,11 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
         }
     }
 
-    public override async Task StartAsync()
+    public override Task StartAsync()
     {
         if (_game != null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         var startEvent = new CrazyEightsGameCreatedEvent
@@ -104,9 +103,9 @@ public class CrazyEightsGameHost : GameHost<CrazyEightsRequest, CrazyEightsRespo
         _events.Append(startEvent);
         foreach (var player in _players.Values)
         {
-            player.Start<CrazyEightsRequest>(MessageReceived, JsonOptions, Cts.Token);
+            player.Start<CrazyEightsRequest>(RequestReceived, JsonOptions, Cts.Token);
         }
 
-        await _game.StartAsync();
+        return _game.StartAsync();
     }
 }
