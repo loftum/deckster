@@ -77,11 +77,31 @@ public class CrazyEightsGameHost : GameHost
                 return;
             }
 
-            if (!await CrazyEightsProjection.HandleAsync(request, game))
+            switch (request)
             {
-                await channel.ReplyAsync(new FailureResponse($"Unsupported request: '{request.GetType().Name}'"), JsonOptions);
-                return;
+                case PutCardRequest put:
+                    await CrazyEightsProjection.Apply(put, game);
+                    break;
+                case PutEightRequest put:
+                    await CrazyEightsProjection.Apply(put, game);
+                    break;
+                case DrawCardRequest put:
+                    await CrazyEightsProjection.Apply(put, game);
+                    break;
+                case PassRequest put:
+                    await CrazyEightsProjection.Apply(put, game);
+                    break;
+                default:
+                    await channel.ReplyAsync(new FailureResponse($"Unsupported request: '{request.GetType().Name}'"), JsonOptions);
+                    return;    
+                
             }
+            
+            // if (!await CrazyEightsProjection.HandleAsync(request, game))
+            // {
+            //     await channel.ReplyAsync(new FailureResponse($"Unsupported request: '{request.GetType().Name}'"), JsonOptions);
+            //     return;
+            // }
 
             
             if (events == null)
@@ -135,9 +155,11 @@ public class CrazyEightsGameHost : GameHost
             Id = Guid.NewGuid(),
             Players = Players.Values.Select(p => p.Player).ToList(),
             Deck = Decks.Standard.KnuthShuffle(DateTimeOffset.UtcNow.Nanosecond)
-        }.WithCommunicationContext(this);
+        }
+            .WithCommunicationContext(this);
         
         game = CrazyEightsProjection.Create(startEvent);
+        // game.SetCommunicationContext(this);
         var events = _repo.StartEventQueue<CrazyEightsGame>(game.Id, startEvent);
         
         foreach (var player in Players.Values)
