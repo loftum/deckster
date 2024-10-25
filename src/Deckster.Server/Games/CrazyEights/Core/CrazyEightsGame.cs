@@ -3,34 +3,10 @@ using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.Client.Protocol;
+using Deckster.Server.Collections;
 using Deckster.Server.Games.Common;
 
 namespace Deckster.Server.Games.CrazyEights.Core;
-
-public static class ListExtensions
-{
-    public static void PushRange<T>(this List<T> list, IEnumerable<T> items)
-    {
-        list.AddRange(items);
-    }
-
-    public static void Push<T>(this List<T> list, T item)
-    {
-        list.Add(item);
-    }
-
-    public static T Pop<T>(this List<T> list)
-    {
-        var last = list.Last();
-        list.RemoveAt(list.Count - 1);
-        return last;
-    }
-
-    public static T Peek<T>(this List<T> list)
-    {
-        return list.Last();
-    }
-}
 
 public class CrazyEightsGame : GameObject
 {
