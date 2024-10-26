@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Common;
+using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.CrazyEights.SampleClient;
 using Deckster.Server.Communication;
@@ -164,7 +164,7 @@ public class CrazyEightsGameHost : GameHost
         
         foreach (var player in Players.Values)
         {
-            player.Start<CrazyEightsRequest>(RequestReceived, JsonOptions, Cts.Token);
+            player.StartReading<CrazyEightsRequest>(RequestReceived, JsonOptions, Cts.Token);
         }
 
         _game.Value = game;

@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Common;
+using Deckster.Client.Games.Common;
 using Deckster.Server.Communication;
 using Deckster.Server.Games.Common;
 

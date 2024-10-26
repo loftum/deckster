@@ -1,5 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Common;
+using Deckster.Client.Games.Common;
 using Deckster.Client.Games.Uno;
 using Deckster.Server.Communication;
 using Deckster.Server.Games.ChatRoom;
@@ -128,7 +128,7 @@ public class UnoGameHost : GameHost
         _game.NewRound(DateTimeOffset.Now);
         foreach (var player in Players.Values)
         {
-            player.Start<UnoRequest>(MessageReceived, JsonOptions, Cts.Token);
+            player.StartReading<UnoRequest>(MessageReceived, JsonOptions, Cts.Token);
         }
         var currentPlayerId = _game.CurrentPlayer.Id;
         await Players[currentPlayerId].SendNotificationAsync(new ItsYourTurnNotification(), JsonOptions);

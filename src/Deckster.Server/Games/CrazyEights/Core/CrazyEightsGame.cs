@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Common;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
 using Deckster.Client.Protocol;
@@ -361,9 +360,13 @@ public class CrazyEightsGame : GameObject
         };
     }
 
-    public Task StartAsync()
+    public async Task StartAsync()
     {
-        return _context.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification
+        await _context.NotifyAllAsync(new GameStartedNotification
+        {
+            GameId = Id,
+        });
+        await _context.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification
         {
             PlayerViewOfGame = GetPlayerViewOfGame(CurrentPlayer)
         });

@@ -57,7 +57,7 @@ public class ChatRoomHost : GameHost
         Console.WriteLine($"Added player {channel.Player.Name}");
         channel.Disconnected += ChannelDisconnected;
         
-        channel.Start<ChatRequest>(MessageReceived, JsonOptions, Cts.Token);
+        channel.StartReading<ChatRequest>(MessageReceived, JsonOptions, Cts.Token);
 
         error = default;
         return true;
