@@ -2,22 +2,9 @@ using Deckster.Client.Games.Uno;
 
 namespace Deckster.Server.Games.Uno.Core;
 
-public class Deck
+public static class UnoDeck
 {
-    public List<UnoCard> Cards { get; }
-
-    public Deck(IEnumerable<UnoCard> cards)
-    {
-        Cards = cards.ToList();
-    }
-
-    public Deck Shuffle()
-    {
-        Cards.KnuthShuffle();
-        return this;
-    }
-    
-    public static Deck Standard
+    public static List<UnoCard> Standard
     {
         get
         {
@@ -52,35 +39,7 @@ public class Deck
                 }
             }
             
-            return new Deck(ret);
+            return ret;
         }
     }
-}
-
-
-public static class UnoDeckExtensions
-{
-    
-  
-    
-    public static List<UnoCard> KnuthShuffle(this List<UnoCard> cards, DateTimeOffset? shufflePerformedAtEpochTime = null)
-    {
-        var random = new Random((int)(shufflePerformedAtEpochTime??DateTimeOffset.UtcNow).Ticks%int.MaxValue);
-        var ii = cards.Count;
-        while (ii > 1)
-        {
-            var k = random.Next(ii--);
-            (cards[ii], cards[k]) = (cards[k], cards[ii]);
-        }
-
-        return cards;
-    }
-    
-    public static IEnumerable<UnoCard> Shuffle(this IEnumerable<UnoCard> cards, DateTimeOffset? shufflePerformedAtEpochTime = null)
-    {
-        var random = new Random((int)(shufflePerformedAtEpochTime??DateTimeOffset.UtcNow).Ticks%int.MaxValue);
-        return cards.OrderBy(c => random.Next());
-    }
-    
-    
 }

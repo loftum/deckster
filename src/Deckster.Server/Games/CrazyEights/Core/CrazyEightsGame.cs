@@ -132,8 +132,6 @@ public class CrazyEightsGame : GameObject
         return response;
     }
 
-    
-
     public async Task<DecksterResponse> PutEight(Guid playerId, Card card, Suit newSuit)
     {
         IncrementSeed();
@@ -248,14 +246,6 @@ public class CrazyEightsGame : GameObject
         await MoveToNextPlayerOrFinishAsync();
         return response;
     }
-
-    private void IncrementSeed()
-    {
-        unchecked
-        {
-            Seed++;
-        }
-    }
     
     private async Task MoveToNextPlayerOrFinishAsync()
     {
@@ -360,13 +350,26 @@ public class CrazyEightsGame : GameObject
 
     public override async Task StartAsync()
     {
-        await Communication.NotifyAllAsync(new GameStartedNotification
+        foreach (var player in Players)
         {
-            GameId = Id,
-        });
+            await Communication.NotifyAsync(player.Id, new GameStartedNotification
+            {
+                GameId = Id,
+                PlayerViewOfGame = GetPlayerViewOfGame(player)
+            });
+        }
+
         await Communication.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification
         {
             PlayerViewOfGame = GetPlayerViewOfGame(CurrentPlayer)
         });
+    }
+    
+    private void IncrementSeed()
+    {
+        unchecked
+        {
+            Seed++;
+        }
     }
 }

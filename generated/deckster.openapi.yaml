@@ -367,10 +367,37 @@ components:
         - $ref: '#/components/schemas/Uno.UnoGameNotification'
         - type: object
           properties:
-            players:
-              type: array
-              items:
-                $ref: '#/components/schemas/Common.PlayerData'
+            gameId:
+              type: object
+            playerViewOfGame:
+              type: object
+              allOf:
+                - $ref: '#/components/schemas/Uno.UnoResponse'
+                - type: object
+                  properties:
+                    cards:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Uno.UnoCard'
+                    topOfPile:
+                      type: object
+                      properties:
+                        color:
+                          type: string
+                        value:
+                          type: string
+                    currentSuit:
+                      type: string
+                    stockPileCount:
+                      type: integer
+                      format: int32
+                    discardPileCount:
+                      type: integer
+                      format: int32
+                    otherPlayers:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Uno.OtherUnoPlayer'
     Uno.GameEndedNotification:
       type: object
       allOf:

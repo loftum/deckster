@@ -35,7 +35,8 @@ public class ItsYourTurnNotification : UnoGameNotification
 
 public class GameStartedNotification : UnoGameNotification
 {
-    public List<PlayerData> Players { get; init; }
+    public Guid GameId { get; init; }
+    public PlayerViewOfUnoGame PlayerViewOfGame { get; init; }
 }
 
 public class GameEndedNotification : UnoGameNotification
