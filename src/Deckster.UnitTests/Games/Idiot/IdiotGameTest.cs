@@ -15,9 +15,9 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Get(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
         var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(8, Suit.Spades)]);
@@ -30,9 +30,9 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Get(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
         var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(9, Suit.Spades)]);
@@ -45,9 +45,9 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Get(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
         var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, []);
@@ -60,10 +60,10 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Get(8, Suit.Spades));
-            g.Players[0].CardsOnHand.Push(deck.Get(9, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
         var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(8, Suit.Spades), new Card(9, Suit.Spades)]);
@@ -76,12 +76,12 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Get(8, Suit.Spades));
-            g.Players[0].CardsOnHand.Push(deck.Get(9, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
             
-            g.DiscardPile.Push(deck.Get(10, Suit.Spades));
+            g.DiscardPile.Push(deck.Steal(10, Suit.Spades));
         });
 
         var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(8, Suit.Spades)]);
@@ -96,12 +96,12 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Get(10, Suit.Spades));
-            g.Players[0].CardsOnHand.Push(deck.Get(2, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.Steal(10, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Steal(2, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
             
-            g.DiscardPile.Push(deck.Get(12, Suit.Spades));
+            g.DiscardPile.Push(deck.Steal(12, Suit.Spades));
         });
 
         Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(rank, suit)]));
@@ -113,17 +113,38 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Get(10, Suit.Spades));
-            g.Players[0].CardsOnHand.Push(deck.Get(9, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.Steal(10, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
         Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(10, Suit.Spades)]));
         Assert.That(game.DiscardPile, Is.Empty);
     }
     
-    
+    [Test]
+    public async ValueTask PutFourOfSameRank_FlushesDiscardPile()
+    {
+        Card[] cards = [new(7, Suit.Spades), new(7, Suit.Clubs), new(7, Suit.Hearts), new(7, Suit.Diamonds)];
+        
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            foreach (var card in cards)
+            {
+                g.Players[0].CardsOnHand.Push(deck.Steal(card));    
+            }
+            
+            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+        });
+
+        
+        Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, cards));
+        Assert.That(game.DiscardPile, Is.Empty);
+    }
     
     private static IdiotGame SetUpGame(Action<IdiotGame> configure)
     {

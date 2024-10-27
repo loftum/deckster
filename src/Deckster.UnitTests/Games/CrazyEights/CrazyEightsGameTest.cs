@@ -24,8 +24,8 @@ public class CrazyEightsGameTest
         var game = SetUpGame(g =>
         {
             var cards = g.Deck;
-            g.CurrentPlayer.Cards.Add(cards.Get(new Card(10, Suit.Hearts)));
-            g.DiscardPile.Push(cards.Get(new Card(9, Suit.Hearts)));
+            g.CurrentPlayer.Cards.Add(cards.Steal(new Card(10, Suit.Hearts)));
+            g.DiscardPile.Push(cards.Steal(new Card(9, Suit.Hearts)));
         });
         
         var card = new Card(10, Suit.Hearts);
@@ -51,12 +51,12 @@ public class CrazyEightsGameTest
         var game = SetUpGame(g =>
         {
             var cards = g.Deck;
-            g.Players[0].Cards.Add(cards.Get(11, Suit.Hearts));
-            g.Players[0].Cards.Add(cards.Get(12, Suit.Clubs));
+            g.Players[0].Cards.Add(cards.Steal(11, Suit.Hearts));
+            g.Players[0].Cards.Add(cards.Steal(12, Suit.Clubs));
             
-            g.Players[1].Cards.Add(cards.Get(8, Suit.Diamonds));
+            g.Players[1].Cards.Add(cards.Steal(8, Suit.Diamonds));
             
-            g.DiscardPile.Push(cards.Get(4, Suit.Spades));
+            g.DiscardPile.Push(cards.Steal(4, Suit.Spades));
         });
         var player = game.Players[0];
         var card = new Card(rank, suit);
@@ -99,17 +99,17 @@ public class CrazyEightsGameTest
         var game = SetUpGame(g =>
         {
             var cards = TestDeck;
-            g.Players[0].Cards.Add(cards.Get(8, Suit.Clubs));
-            g.Players[0].Cards.Add(cards.Get(8, Suit.Diamonds));
-            g.Players[0].Cards.Add(cards.Get(8, Suit.Spades));
-            g.Players[0].Cards.Add(cards.Get(8, Suit.Hearts));
+            g.Players[0].Cards.Add(cards.Steal(8, Suit.Clubs));
+            g.Players[0].Cards.Add(cards.Steal(8, Suit.Diamonds));
+            g.Players[0].Cards.Add(cards.Steal(8, Suit.Spades));
+            g.Players[0].Cards.Add(cards.Steal(8, Suit.Hearts));
             
-            g.Players[1].Cards.Add(cards.Get(9, Suit.Clubs));
-            g.Players[1].Cards.Add(cards.Get(9, Suit.Diamonds));
-            g.Players[1].Cards.Add(cards.Get(9, Suit.Spades));
-            g.Players[1].Cards.Add(cards.Get(9, Suit.Hearts));
+            g.Players[1].Cards.Add(cards.Steal(9, Suit.Clubs));
+            g.Players[1].Cards.Add(cards.Steal(9, Suit.Diamonds));
+            g.Players[1].Cards.Add(cards.Steal(9, Suit.Spades));
+            g.Players[1].Cards.Add(cards.Steal(9, Suit.Hearts));
             
-            g.DiscardPile.Push(cards.Get(10, Suit.Clubs));
+            g.DiscardPile.Push(cards.Steal(10, Suit.Clubs));
         });
         var player = game.CurrentPlayer;
         var eight = new Card(8, Suit.Spades);

@@ -25,3 +25,4 @@ public class ItsYourTurnNotification : IdiotNotification
 }
 
 public class GameEndedNotification : IdiotNotification;
+
