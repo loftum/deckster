@@ -128,14 +128,6 @@ components:
           properties:
             errorMessage:
               type: string
-    Uno.UnoFailureResponse:
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/Uno.UnoResponse'
-        - type: object
-          properties:
-            message:
-              type: string
     Uno.UnoSuccessResponse:
       type: object
       allOf:
@@ -260,14 +252,8 @@ components:
         - $ref: '#/components/schemas/Uno.UnoGameNotification'
         - type: object
           properties:
-            player:
+            playerId:
               type: object
-              properties:
-                name:
-                  type: string
-                numberOfCards:
-                  type: integer
-                  format: int32
             card:
               type: object
               properties:
@@ -281,14 +267,8 @@ components:
         - $ref: '#/components/schemas/Uno.UnoGameNotification'
         - type: object
           properties:
-            player:
+            playerId:
               type: object
-              properties:
-                name:
-                  type: string
-                numberOfCards:
-                  type: integer
-                  format: int32
             card:
               type: object
               properties:
@@ -304,28 +284,16 @@ components:
         - $ref: '#/components/schemas/Uno.UnoGameNotification'
         - type: object
           properties:
-            player:
+            playerId:
               type: object
-              properties:
-                name:
-                  type: string
-                numberOfCards:
-                  type: integer
-                  format: int32
     Uno.PlayerPassedNotification:
       type: object
       allOf:
         - $ref: '#/components/schemas/Uno.UnoGameNotification'
         - type: object
           properties:
-            player:
+            playerId:
               type: object
-              properties:
-                name:
-                  type: string
-                numberOfCards:
-                  type: integer
-                  format: int32
     Uno.ItsYourTurnNotification:
       type: object
       allOf:

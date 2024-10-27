@@ -7,25 +7,25 @@ public abstract class UnoGameNotification: DecksterNotification;
 
 public class PlayerPutCardNotification : UnoGameNotification
 {
-    public OtherUnoPlayer Player { get; set; }
-    public UnoCard Card { get; set; }
+    public Guid PlayerId { get; init; }
+    public UnoCard Card { get; init; }
 }
 
 public class PlayerPutWildNotification : UnoGameNotification
 {
-    public OtherUnoPlayer Player { get; set; }
-    public UnoCard Card { get; set; }
-    public UnoColor NewColor { get; set; }
+    public Guid PlayerId { get; init; }
+    public UnoCard Card { get; init; }
+    public UnoColor NewColor { get; init; }
 }
 
 public class PlayerDrewCardNotification : UnoGameNotification
 {
-    public OtherUnoPlayer Player { get; set; }
+    public Guid PlayerId { get; init; }
 }
 
 public class PlayerPassedNotification : UnoGameNotification
 {
-    public OtherUnoPlayer Player { get; set; }
+    public Guid PlayerId { get; init; }
 }
 
 public class ItsYourTurnNotification : UnoGameNotification

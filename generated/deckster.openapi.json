@@ -255,22 +255,6 @@
           }
         ]
       },
-      "Uno.UnoFailureResponse": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Uno.UnoResponse"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "message": {
-                "type": "string"
-              }
-            }
-          }
-        ]
-      },
       "Uno.UnoSuccessResponse": {
         "type": "object",
         "allOf": [
@@ -493,17 +477,8 @@
           {
             "type": "object",
             "properties": {
-              "player": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "numberOfCards": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
-                }
+              "playerId": {
+                "type": "object"
               },
               "card": {
                 "type": "object",
@@ -529,17 +504,8 @@
           {
             "type": "object",
             "properties": {
-              "player": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "numberOfCards": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
-                }
+              "playerId": {
+                "type": "object"
               },
               "card": {
                 "type": "object",
@@ -568,17 +534,8 @@
           {
             "type": "object",
             "properties": {
-              "player": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "numberOfCards": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
-                }
+              "playerId": {
+                "type": "object"
               }
             }
           }
@@ -593,17 +550,8 @@
           {
             "type": "object",
             "properties": {
-              "player": {
-                "type": "object",
-                "properties": {
-                  "name": {
-                    "type": "string"
-                  },
-                  "numberOfCards": {
-                    "type": "integer",
-                    "format": "int32"
-                  }
-                }
+              "playerId": {
+                "type": "object"
               }
             }
           }

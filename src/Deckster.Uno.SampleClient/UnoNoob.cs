@@ -6,13 +6,14 @@ namespace Deckster.Uno.SampleClient;
 
 public class UnoNoob
 {
+    private PlayerViewOfUnoGame _playerViewOfGame;
+    
     public UnoClient client { get; set; }
     
     public UnoNoob(UnoClient client)
     {
         this.client = client;
     }
-
 
     public void StartPlaying()
     {
@@ -41,30 +42,28 @@ public class UnoNoob
 
     private void OnPlayerPassed(PlayerPassedNotification obj)
     {
-        Console.WriteLine($"==> {obj.Player.Name} passed");
+        Console.WriteLine($"==> {obj.PlayerId} passed");
     }
 
     private void OnPlayerDrewCard(PlayerDrewCardNotification obj)
     {
-        Console.WriteLine($"==> {obj.Player.Name} Drew");
+        Console.WriteLine($"==> {obj.PlayerId} Drew");
     }
 
     private void OnPlayerPutWild(PlayerPutWildNotification obj)
     {
-        Console.WriteLine($"==> {obj.Player.Name} Played {obj.Card} and changed color to {obj.NewColor}");
+        Console.WriteLine($"==> {obj.PlayerId} Played {obj.Card} and changed color to {obj.NewColor}");
     }
 
     private void OnPlayerPutCard(PlayerPutCardNotification obj)
     {
-        Console.WriteLine($"==> {obj.Player.Name} Played {obj.Card}");
+        Console.WriteLine($"==> {obj.PlayerId} Played {obj.Card}");
     }
 
-    private void OnItsYourTurn(ItsYourTurnNotification obj)
+    private async void OnItsYourTurn(ItsYourTurnNotification obj)
     {
-        Console.WriteLine($"==> Heads up! It's your turn");
-        DoSomethingInteractive(obj).Wait();
-
-
+        Console.WriteLine("==> Heads up! It's your turn");
+        await DoSomethingInteractive(obj);
     }
 
     private async Task DoSomethingInteractive(ItsYourTurnNotification obj)
@@ -139,11 +138,12 @@ public class UnoNoob
 
     private void OnRoundStarted(RoundStartedMessage obj)
     {
-        Console.WriteLine($"==> Round started");
+        Console.WriteLine("==> Round started");
     }
 
-    private void OnGameStarted(GameStartedNotification obj)
+    private void OnGameStarted(GameStartedNotification notification)
     {
-        Console.WriteLine($"==> Game started");
+        _playerViewOfGame = notification.PlayerViewOfGame;
+        Console.WriteLine("==> Game started");
     }
 }
