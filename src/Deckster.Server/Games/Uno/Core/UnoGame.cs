@@ -60,7 +60,7 @@ public class UnoGame : GameObject
             Deck = created.Deck,
             Seed = created.InitialSeed
         };
-
+        game.NewRound();
         return game;
     }
 
@@ -68,8 +68,8 @@ public class UnoGame : GameObject
     {
         winner.Score += Players.Where(x => x.Id != winner.Id).Sum(p => p.CalculateHandScore());
     }
-    
-    public void NewRound()
+
+    private void NewRound()
     {
         foreach (var player in Players)
         {

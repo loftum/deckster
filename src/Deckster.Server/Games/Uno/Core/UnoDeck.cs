@@ -15,8 +15,8 @@ public static class UnoDeck
                 {
                     for (var i = 0; i < 4; i++)
                     {
-                        ret.Add(new UnoCard(color, UnoValue.Wild));
-                        ret.Add(new UnoCard(color, UnoValue.WildDrawFour));
+                        ret.Add(new UnoCard(UnoValue.Wild, color));
+                        ret.Add(new UnoCard(UnoValue.WildDrawFour, color));
                     }
                 }
                 else
@@ -33,7 +33,7 @@ public static class UnoDeck
                             {
                                 continue;
                             }
-                            ret.Add(new UnoCard(color, value));
+                            ret.Add(new UnoCard(value, color));
                         }
                     }
                 }
