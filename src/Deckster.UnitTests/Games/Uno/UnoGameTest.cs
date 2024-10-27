@@ -148,29 +148,7 @@ public class UnoGameTest
     
     private static UnoGame SetUpGame(Action<UnoGame> configure)
     {
-        var players = new List<PlayerData>
-        {
-            new()
-            {
-                Id = Some.Id,
-                Name = Some.PlayerName
-            },
-            new()
-            {
-                Id = Some.OtherId,
-                Name = Some.OtherPlayerName
-            },
-            new()
-            {
-                Id = Some.YetAnotherId,
-                Name = Some.YetAnotherPlayerName
-            },
-            new()
-            {
-                Id = Some.TotallyDifferentId,
-                Name = Some.TotallyDifferentPlayerName
-            }
-        };
+        var players = Some.FourPlayers();
 
         var game = UnoGame.Create(new UnoGameCreatedEvent
         {
@@ -188,32 +166,7 @@ public class UnoGameTest
     {
         return UnoGame.Create(new UnoGameCreatedEvent
         {
-            Players =
-            [
-                new()
-                {
-                    Id = Some.Id,
-                    Name = Some.PlayerName
-                },
-
-                new()
-                {
-                    Id = Some.OtherId,
-                    Name = Some.OtherPlayerName
-                },
-
-                new()
-                {
-                    Id = Some.YetAnotherId,
-                    Name = Some.YetAnotherPlayerName
-                },
-
-                new()
-                {
-                    Id = Some.TotallyDifferentId,
-                    Name = Some.TotallyDifferentPlayerName
-                }
-            ],
+            Players = Some.FourPlayers(),
             Deck = TestDeck,
             InitialSeed = Some.Seed 
         });

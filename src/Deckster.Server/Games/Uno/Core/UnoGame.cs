@@ -130,7 +130,7 @@ public class UnoGame : GameObject
         {
             ScoreRound(player);
             NewRound();
-            response = new UnoSuccessResponse();
+            response = new SuccessResponse();
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -215,7 +215,7 @@ public class UnoGame : GameObject
         {
             ScoreRound(player);
             NewRound();
-            response = new UnoSuccessResponse();
+            response = new SuccessResponse();
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -264,7 +264,10 @@ public class UnoGame : GameObject
         player.Cards.Add(card);
         CardsDrawn++;
         
-        response = new UnoCardResponse(card);
+        response = new UnoCardResponse
+        {
+            Card = card
+        };
         await Communication.RespondAsync(playerId, response);
 
         await Communication.NotifyAllAsync(new PlayerDrewCardNotification
@@ -298,7 +301,7 @@ public class UnoGame : GameObject
             return response;
         }
         
-        response = new UnoSuccessResponse();
+        response = new SuccessResponse();
         await Communication.NotifyAllAsync(new PlayerPassedNotification
         {
             PlayerId = playerId

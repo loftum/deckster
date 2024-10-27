@@ -145,34 +145,10 @@ public class CrazyEightsGameTest
 
     private static CrazyEightsGame SetUpGame(Action<CrazyEightsGame> configure)
     {
-        var players = new List<PlayerData>
-        {
-            new()
-            {
-                Id = Some.Id,
-                Name = Some.PlayerName
-            },
-            new()
-            {
-                Id = Some.OtherId,
-                Name = Some.OtherPlayerName
-            },
-            new()
-            {
-                Id = Some.YetAnotherId,
-                Name = Some.YetAnotherPlayerName
-            },
-            new()
-            {
-                Id = Some.TotallyDifferentId,
-                Name = Some.TotallyDifferentPlayerName
-            }
-        };
-
         var game = CrazyEightsGame.Create(new CrazyEightsGameCreatedEvent
         {
             Id = Some.Id,
-            Players = players,
+            Players = Some.FourPlayers(),
             Deck = TestDeck
         });
 
@@ -185,32 +161,7 @@ public class CrazyEightsGameTest
     {
         return CrazyEightsGame.Create(new CrazyEightsGameCreatedEvent
         {
-            Players =
-            [
-                new()
-                {
-                    Id = Some.Id,
-                    Name = Some.PlayerName
-                },
-
-                new()
-                {
-                    Id = Some.OtherId,
-                    Name = Some.OtherPlayerName
-                },
-
-                new()
-                {
-                    Id = Some.YetAnotherId,
-                    Name = Some.YetAnotherPlayerName
-                },
-
-                new()
-                {
-                    Id = Some.TotallyDifferentId,
-                    Name = Some.TotallyDifferentPlayerName
-                }
-            ],
+            Players = Some.FourPlayers(),
             Deck = TestDeck,
             InitialSeed = Some.Seed 
         });

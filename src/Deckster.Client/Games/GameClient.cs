@@ -30,7 +30,7 @@ public abstract class GameClient<TRequest, TResponse> : IGameClient
         {
             TResponse expected => expected,
             FailureResponse f => throw new Exception(f.Message),
-            null => throw new Exception("Result is null. Wat"),
+            null => throw new Exception("OMG RESPAWNS IZ NULLZ"),
             _ => throw new Exception($"Unknown result '{response.GetType().Name}'")
         };
     }

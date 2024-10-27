@@ -75,6 +75,11 @@ components:
       allOf:
         - $ref: '#/components/schemas/Protocol.DecksterNotification'
         - type: object
+    Common.SuccessResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterResponse'
+        - type: object
     Common.FailureResponse:
       type: object
       allOf:
@@ -138,11 +143,6 @@ components:
           properties:
             errorMessage:
               type: string
-    Uno.UnoSuccessResponse:
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/Uno.UnoResponse'
-        - type: object
     Uno.UnoCardResponse:
       type: object
       allOf:
@@ -375,6 +375,77 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Common.PlayerData'
+    Idiot.PlayerViewOfGame:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotResponse'
+        - type: object
+          properties:
+            cardsOnHand:
+              type: array
+              items:
+                $ref: '#/components/schemas/Common.Card'
+            topOfPile:
+              type: object
+              properties:
+                hasValue:
+                  type: boolean
+                value:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      format: int32
+                    suit:
+                      type: string
+            stockPileCount:
+              type: integer
+              format: int32
+            discardPileCount:
+              type: integer
+              format: int32
+            otherPlayers:
+              type: array
+              items:
+                $ref: '#/components/schemas/Idiot.OtherIdiotPlayer'
+    Common.Card:
+      type: object
+      properties:
+        rank:
+          type: integer
+          format: int32
+        suit:
+          type: string
+    '0.0, Culture=neutral, PublicKeyToken=null]]':
+      type: object
+      properties:
+        hasValue:
+          type: boolean
+        value:
+          type: object
+          properties:
+            rank:
+              type: integer
+              format: int32
+            suit:
+              type: string
+    Idiot.OtherIdiotPlayer:
+      type: object
+      properties:
+        playerId:
+          type: object
+        name:
+          type: string
+        cardsOnHandCount:
+          type: integer
+          format: int32
+        visibleTableCards:
+          type: array
+          items:
+            $ref: '#/components/schemas/Common.Card'
+        hiddenTableCardsCount:
+          type: integer
+          format: int32
     CrazyEights.PutCardRequest:
       type: object
       allOf:
@@ -389,14 +460,6 @@ components:
                   format: int32
                 suit:
                   type: string
-    Common.Card:
-      type: object
-      properties:
-        rank:
-          type: integer
-          format: int32
-        suit:
-          type: string
     CrazyEights.PutEightRequest:
       type: object
       allOf:
