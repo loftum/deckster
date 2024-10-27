@@ -264,7 +264,7 @@ public class UnoGame : GameObject
         player.Cards.Add(card);
         CardsDrawn++;
         
-        response = new UnoCardsResponse(card);
+        response = new UnoCardResponse(card);
         await Communication.RespondAsync(playerId, response);
 
         await Communication.NotifyAllAsync(new PlayerDrewCardNotification

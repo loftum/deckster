@@ -1,6 +1,6 @@
 using Deckster.Client.Games.Uno;
 
-namespace Deckster.UnitTests.Games;
+namespace Deckster.UnitTests.Games.Uno;
 
 public static class UnoListExtensions
 {

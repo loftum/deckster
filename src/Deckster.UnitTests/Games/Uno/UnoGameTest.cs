@@ -5,7 +5,7 @@ using Deckster.Server.Collections;
 using Deckster.Server.Games.Uno.Core;
 using NUnit.Framework;
 
-namespace Deckster.UnitTests.Games;
+namespace Deckster.UnitTests.Games.Uno;
 
 public class UnoGameTest
 {
