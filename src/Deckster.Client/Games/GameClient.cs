@@ -7,10 +7,9 @@ namespace Deckster.Client.Games;
 
 public interface IGameClient : IDisposable, IAsyncDisposable;
 
-public abstract class GameClient<TRequest, TResponse, TNotification> : IGameClient 
+public abstract class GameClient<TRequest, TResponse> : IGameClient 
     where TRequest : DecksterRequest
     where TResponse : DecksterResponse
-    where TNotification : DecksterNotification
 {
     protected readonly IClientChannel Channel;
     public event Action<string>? Disconnected;

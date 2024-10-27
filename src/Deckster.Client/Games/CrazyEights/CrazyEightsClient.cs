@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 namespace Deckster.Client.Games.CrazyEights;
 
 [DebuggerDisplay("CrazyEightsClient {PlayerData}")]
-public class CrazyEightsClient : GameClient<CrazyEightsRequest, CrazyEightsResponse, CrazyEightsNotification>
+public class CrazyEightsClient : GameClient<CrazyEightsRequest, CrazyEightsResponse>
 {
     private readonly ILogger _logger;
     

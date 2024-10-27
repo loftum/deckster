@@ -13,6 +13,8 @@ public abstract class StandardGameHost<TGame> : GameHost where TGame : GameObjec
     protected readonly Locked<TGame> Game = new();
     private readonly IRepo _repo;
     protected IEventQueue<TGame>? Events;
+    
+    public override GameState State => Game.Value?.State ?? GameState.Waiting;
 
     protected StandardGameHost(IRepo repo, GameProjection<TGame> projection, int? playerLimit) : base(playerLimit)
     {

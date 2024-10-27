@@ -3,7 +3,7 @@ using Deckster.Client.Protocol;
 
 namespace Deckster.Client.Games.ChatRoom;
 
-public class ChatRoomClient : GameClient<ChatRequest, ChatResponse, ChatNotification>
+public class ChatRoomClient : GameClient<ChatRequest, ChatResponse>
 {
     public event Action<ChatNotification>? OnMessage;
     public event Action<string>? OnDisconnected;

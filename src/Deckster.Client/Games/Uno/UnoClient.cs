@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Games.Uno;
 
-public class UnoClient : GameClient<UnoRequest, UnoResponse, UnoGameNotification>
+public class UnoClient : GameClient<UnoRequest, UnoResponse>
 {
     private readonly ILogger _logger;
     

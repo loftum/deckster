@@ -54,13 +54,13 @@ public class CrazyEightsGame : GameObject
         {
             Id = created.Id,
             StartedTime = created.StartedTime,
+            Seed = created.InitialSeed,
+            Deck = created.Deck,
             Players = created.Players.Select(p => new CrazyEightsPlayer
             {
                 Id = p.Id,
                 Name = p.Name
-            }).ToList(),
-            Deck = created.Deck,
-            Seed = created.InitialSeed,
+            }).ToList()
         };
         game.Reset();
 

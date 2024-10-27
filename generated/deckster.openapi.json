@@ -100,6 +100,28 @@
           }
         ]
       },
+      "Idiot.IdiotRequest": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Protocol.DecksterRequest"
+          },
+          {
+            "type": "object"
+          }
+        ]
+      },
+      "Idiot.IdiotResponse": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Protocol.DecksterResponse"
+          },
+          {
+            "type": "object"
+          }
+        ]
+      },
       "CrazyEights.CrazyEightsRequest": {
         "type": "object",
         "allOf": [
@@ -444,30 +466,6 @@
           },
           {
             "type": "object"
-          }
-        ]
-      },
-      "Uno.UnoCardsResponse": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Uno.UnoResponse"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "card": {
-                "type": "object",
-                "properties": {
-                  "color": {
-                    "type": "string"
-                  },
-                  "value": {
-                    "type": "string"
-                  }
-                }
-              }
-            }
           }
         ]
       },

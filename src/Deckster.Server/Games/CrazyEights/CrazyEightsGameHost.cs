@@ -4,7 +4,6 @@ using Deckster.Client.Games.CrazyEights;
 using Deckster.CrazyEights.SampleClient;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
-using Deckster.Server.Games.Common;
 using Deckster.Server.Games.Common.Fakes;
 using Deckster.Server.Games.CrazyEights.Core;
 
@@ -13,7 +12,6 @@ namespace Deckster.Server.Games.CrazyEights;
 public class CrazyEightsGameHost : StandardGameHost<CrazyEightsGame>
 {
     public override string GameType => "CrazyEights";
-    public override GameState State => Game.Value?.State ?? GameState.Waiting;
 
     private readonly List<CrazyEightsPoorAi> _bots = [];
 
