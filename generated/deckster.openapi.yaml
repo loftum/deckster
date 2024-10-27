@@ -638,7 +638,7 @@ components:
           properties:
             playerId:
               type: object
-    ChatRoom.SendChatMessage:
+    ChatRoom.SendChatRequest:
       type: object
       allOf:
         - $ref: '#/components/schemas/ChatRoom.ChatRequest'

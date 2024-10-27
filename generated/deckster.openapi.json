@@ -1163,7 +1163,7 @@
           }
         ]
       },
-      "ChatRoom.SendChatMessage": {
+      "ChatRoom.SendChatRequest": {
         "type": "object",
         "allOf": [
           {

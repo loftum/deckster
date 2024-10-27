@@ -13,7 +13,7 @@ public class UnoGame: GameObject
     private int _cardsDrawn;
     private int _gameDirection = 1;
 
-    public GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
+    public override GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
 
     /// <summary>
     /// All the (shuffled) cards in the game
@@ -41,23 +41,9 @@ public class UnoGame: GameObject
     
     public UnoPlayer CurrentPlayer => State == GameState.Finished ? UnoPlayer.Null : Players[_currentPlayerIndex];
 
-    public bool TryAddPlayer(Guid id, string name, [MaybeNullWhen(true)] out string reason)
+    public override Task StartAsync()
     {
-        if (Players.Any(p => p.Id == id))
-        {
-            reason = "Player already exists";
-            return false;
-        }
-        
-        if (Players.Count>=10)
-        {
-            reason = "Too many players";
-            return false;
-        }
-        Players.Add(new UnoPlayer() { Id = id, Name = name });
-        
-        reason = default;
-        return true;
+        throw new NotImplementedException();
     }
 
     public void ScoreRound(UnoPlayer winner)

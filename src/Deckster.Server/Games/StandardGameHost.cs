@@ -1,49 +1,43 @@
-using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Games.Common;
-using Deckster.Client.Games.CrazyEights;
 using Deckster.Client.Protocol;
-using Deckster.CrazyEights.SampleClient;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
-using Deckster.Server.Games.Common.Fakes;
-using Deckster.Server.Games.CrazyEights.Core;
+using Deckster.Server.Games.CrazyEights;
 
-namespace Deckster.Server.Games.CrazyEights;
+namespace Deckster.Server.Games;
 
-public class CrazyEightsGameHost : StandardGameHost<CrazyEightsGame>
+public abstract class StandardGameHost<TGame> : GameHost where TGame : GameObject
 {
-    public override string GameType => "CrazyEights";
-    public override GameState State => Game.Value?.State ?? GameState.Waiting;
-
+    protected GameProjection<TGame> _projection;
+    protected readonly Locked<TGame> Game = new();
     private readonly IRepo _repo;
-    private readonly List<CrazyEightsPoorAi> _bots = [];
+    protected IEventQueue<TGame>? Events;
 
-    public CrazyEightsGameHost(IRepo repo) : base(repo, new CrazyEightsProjection(), 4)
+    protected StandardGameHost(IRepo repo, GameProjection<TGame> projection, int? playerLimit) : base(playerLimit)
     {
+        _projection = projection;
         _repo = repo;
     }
 
-    protected override void ChannelDisconnected(IServerChannel channel)
+    public override async Task StartAsync()
     {
-        
-    }
-
-    public override bool TryAddBot([MaybeNullWhen(true)] out string error)
-    {
-        var channel = new InMemoryChannel
+        var game = Game.Value;
+        if (game != null)
         {
-            Player = new PlayerData
-            {
-                Id = Guid.NewGuid(),
-                Name = TestNames.Random()
-            }
-        };
-        var bot = new CrazyEightsPoorAi(new CrazyEightsClient(channel));
-        _bots.Add(bot);
-        return TryAddPlayer(channel, out error);
-    }
+            return;
+        }
+        
+        (game, var startEvent) = _projection.Create(this);
+        game.SetCommunication(this);
+        var events = _repo.StartEventQueue<TGame>(game.Id, startEvent);
 
+        Game.Value = game;
+        Events = events;
+        
+        await game.StartAsync();
+    }
+    
     protected override async void RequestReceived(IServerChannel channel, DecksterRequest request)
     {
         await _semaphore.WaitAsync();
