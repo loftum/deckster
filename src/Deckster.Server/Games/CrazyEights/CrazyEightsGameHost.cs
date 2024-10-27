@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
-using Deckster.Client.Protocol;
 using Deckster.CrazyEights.SampleClient;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
@@ -16,12 +15,10 @@ public class CrazyEightsGameHost : StandardGameHost<CrazyEightsGame>
     public override string GameType => "CrazyEights";
     public override GameState State => Game.Value?.State ?? GameState.Waiting;
 
-    private readonly IRepo _repo;
     private readonly List<CrazyEightsPoorAi> _bots = [];
 
     public CrazyEightsGameHost(IRepo repo) : base(repo, new CrazyEightsProjection(), 4)
     {
-        _repo = repo;
     }
 
     protected override void ChannelDisconnected(IServerChannel channel)
@@ -42,57 +39,5 @@ public class CrazyEightsGameHost : StandardGameHost<CrazyEightsGame>
         var bot = new CrazyEightsPoorAi(new CrazyEightsClient(channel));
         _bots.Add(bot);
         return TryAddPlayer(channel, out error);
-    }
-
-    protected override async void RequestReceived(IServerChannel channel, DecksterRequest request)
-    {
-        await _semaphore.WaitAsync();
-        var game = Game.Value;
-        var events = Events;
-        try
-        {
-            if (game == null || game.State == GameState.Finished)
-            {
-                await channel.ReplyAsync(new FailureResponse("Game is not running"), JsonOptions);
-                return;
-            }
-            
-            if (!await _projection.HandleAsync(request, game))
-            {
-                await channel.ReplyAsync(new FailureResponse($"Unsupported request: '{request.GetType().Name}'"), JsonOptions);
-                return;
-            }
-            events?.Append(request);
-        }
-        finally
-        {
-            _semaphore.Release();
-        }
-        
-        
-        if (game.State == GameState.Finished)
-        {
-            await _endSemaphore.WaitAsync();
-            try
-            {
-                if (Game.Value == null)
-                {
-                    return;
-                }
-                Game.Value = null;
-            
-                if (events != null)
-                {
-                    await events.FlushAsync();
-                    await events.DisposeAsync();
-                }
-                
-                await EndAsync(game.Id);
-            }
-            finally
-            {
-                _endSemaphore.Release();
-            }
-        }
     }
 }

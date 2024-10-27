@@ -185,6 +185,8 @@ components:
     Uno.OtherUnoPlayer:
       type: object
       properties:
+        id:
+          type: object
         name:
           type: string
         numberOfCards:
@@ -567,6 +569,8 @@ components:
     CrazyEights.OtherCrazyEightsPlayer:
       type: object
       properties:
+        playerId:
+          type: object
         name:
           type: string
         numberOfCards:

@@ -4,19 +4,16 @@ using Deckster.Client.Sugar;
 
 namespace Deckster.Uno.SampleClient;
 
-public class UnoNoob
+public class UnoInteractive
 {
-    private PlayerViewOfUnoGame _playerViewOfGame;
-    
-    public UnoClient client { get; set; }
-    
-    public UnoNoob(UnoClient client)
-    {
-        this.client = client;
-    }
+    private PlayerViewOfUnoGame _playerViewOfGame = new();
+    private readonly TaskCompletionSource _tcs = new();
 
-    public void StartPlaying()
+    private readonly UnoClient _client;
+    
+    public UnoInteractive(UnoClient client)
     {
+        _client = client;
         client.GameStarted += OnGameStarted;
         client.RoundStarted += OnRoundStarted;
         client.ItsYourTurn += OnItsYourTurn;
@@ -26,13 +23,14 @@ public class UnoNoob
         client.PlayerPassed += OnPlayerPassed;
         client.RoundEnded += OnRoundEnded;
         client.GameEnded += OnGameEnded;
-
-        client.SignalReadiness();
     }
+
+    public Task PlayAsync() => _tcs.Task;
 
     private void OnGameEnded(GameEndedNotification obj)
     {
         Console.WriteLine("==> Game ended");
+        _tcs.SetResult();
     }
 
     private void OnRoundEnded(RoundEndedMessage obj)
@@ -42,22 +40,27 @@ public class UnoNoob
 
     private void OnPlayerPassed(PlayerPassedNotification obj)
     {
-        Console.WriteLine($"==> {obj.PlayerId} passed");
+        Console.WriteLine($"==> {GetPlayer(obj.PlayerId)} passed");
+    }
+
+    private OtherUnoPlayer? GetPlayer(Guid playerId)
+    {
+        return _playerViewOfGame.OtherPlayers.FirstOrDefault(p => p.Id == playerId);
     }
 
     private void OnPlayerDrewCard(PlayerDrewCardNotification obj)
     {
-        Console.WriteLine($"==> {obj.PlayerId} Drew");
+        Console.WriteLine($"==> {GetPlayer(obj.PlayerId)} Drew");
     }
 
     private void OnPlayerPutWild(PlayerPutWildNotification obj)
     {
-        Console.WriteLine($"==> {obj.PlayerId} Played {obj.Card} and changed color to {obj.NewColor}");
+        Console.WriteLine($"==> {GetPlayer(obj.PlayerId)} Played {obj.Card} and changed color to {obj.NewColor}");
     }
 
     private void OnPlayerPutCard(PlayerPutCardNotification obj)
     {
-        Console.WriteLine($"==> {obj.PlayerId} Played {obj.Card}");
+        Console.WriteLine($"==> {GetPlayer(obj.PlayerId)} Played {obj.Card}");
     }
 
     private async void OnItsYourTurn(ItsYourTurnNotification obj)
@@ -81,14 +84,14 @@ public class UnoNoob
         var action = Console.ReadLine();
         if (action == "d")
         {
-            var cardDrawn = await client.DrawCardAsync();
+            var cardDrawn = await _client.DrawCardAsync();
             obj.PlayerViewOfGame.Cards.Add(cardDrawn);
             await DoSomethingInteractive(obj);
             return;
         }
         else if (action == "p")
         {
-            var response = await client.PassAsync();
+            var response = await _client.PassAsync();
             if (response is FailureResponse)
             {
                 await DoSomethingInteractive(obj);
@@ -120,7 +123,7 @@ public class UnoNoob
                 "b" => UnoColor.Blue,
                 _ => throw new Exception("Invalid color")
             };
-            var wildResult = await client.PutWildAsync(cardToPlay, colorEnum);
+            var wildResult = await _client.PutWildAsync(cardToPlay, colorEnum);
             if (wildResult is FailureResponse)
             {
                 await DoSomethingInteractive(obj);
@@ -128,7 +131,7 @@ public class UnoNoob
         }
         else
         {
-            var putResult = await client.PutCardAsync(cardToPlay);
+            var putResult = await _client.PutCardAsync(cardToPlay);
             if (putResult is FailureResponse)
             {
                 await DoSomethingInteractive(obj);

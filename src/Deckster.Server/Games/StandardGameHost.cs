@@ -9,14 +9,14 @@ namespace Deckster.Server.Games;
 
 public abstract class StandardGameHost<TGame> : GameHost where TGame : GameObject
 {
-    protected GameProjection<TGame> _projection;
+    protected readonly GameProjection<TGame> Projection;
     protected readonly Locked<TGame> Game = new();
     private readonly IRepo _repo;
     protected IEventQueue<TGame>? Events;
 
     protected StandardGameHost(IRepo repo, GameProjection<TGame> projection, int? playerLimit) : base(playerLimit)
     {
-        _projection = projection;
+        Projection = projection;
         _repo = repo;
     }
 
@@ -28,7 +28,7 @@ public abstract class StandardGameHost<TGame> : GameHost where TGame : GameObjec
             return;
         }
         
-        (game, var startEvent) = _projection.Create(this);
+        (game, var startEvent) = Projection.Create(this);
         game.SetCommunication(this);
         var events = _repo.StartEventQueue<TGame>(game.Id, startEvent);
 
@@ -51,7 +51,7 @@ public abstract class StandardGameHost<TGame> : GameHost where TGame : GameObjec
                 return;
             }
             
-            if (!await _projection.HandleAsync(request, game))
+            if (!await Projection.HandleAsync(request, game))
             {
                 await channel.ReplyAsync(new FailureResponse($"Unsupported request: '{request.GetType().Name}'"), JsonOptions);
                 return;
