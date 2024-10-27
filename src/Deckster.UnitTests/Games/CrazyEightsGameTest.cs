@@ -1,5 +1,3 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Serialization;
 using Deckster.Server.Collections;
@@ -141,7 +139,7 @@ public class CrazyEightsGameTest
         game.StockPile.Clear();
         
         var result = await game.DrawCard(game.CurrentPlayer.Id);
-        Console.WriteLine(Pretty(result));
+        Console.WriteLine(result.Pretty());
         Asserts.Fail(result, "Stock pile is empty");
     }
 
@@ -248,10 +246,5 @@ public class CrazyEightsGameTest
                 }
             }
         }
-    }
-    
-    private static string Pretty(object thing)
-    {
-        return JsonSerializer.Serialize(thing, new JsonSerializerOptions {WriteIndented = true, Converters = {new JsonStringEnumConverter()}});
     }
 }

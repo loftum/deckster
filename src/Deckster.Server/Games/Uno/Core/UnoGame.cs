@@ -166,11 +166,8 @@ public class UnoGame : GameObject
         return response;
     }
     
-    public async Task<DecksterResponse> PutWild(PutWildRequest request)
+    public async Task<DecksterResponse> PutWild(Guid playerId, UnoCard card, UnoColor newColor)
     {
-        var playerId = request.PlayerId;
-        var card = request.Card;
-        var newColor = request.NewColor;
         IncrementSeed();
 
         DecksterResponse response;
@@ -190,7 +187,7 @@ public class UnoGame : GameObject
         
         if (card.Color != UnoColor.Wild)
         {
-            response = new FailureResponse("Card color must be 'Wild'");
+            response = new FailureResponse($"{card} is not a wildcard");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
