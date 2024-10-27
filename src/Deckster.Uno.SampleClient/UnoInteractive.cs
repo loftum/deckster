@@ -6,7 +6,7 @@ namespace Deckster.Uno.SampleClient;
 
 public class UnoInteractive
 {
-    private PlayerViewOfUnoGame _playerViewOfGame = new();
+    private PlayerViewOfGame _playerViewOfGame = new();
     private readonly TaskCompletionSource _tcs = new();
 
     private readonly UnoClient _client;
@@ -72,7 +72,7 @@ public class UnoInteractive
     private async Task DoSomethingInteractive(ItsYourTurnNotification obj)
     {
         Console.WriteLine($"Top card is {obj.PlayerViewOfGame.TopOfPile}");
-        Console.WriteLine("Current Color: " + obj.PlayerViewOfGame.CurrentSuit);
+        Console.WriteLine("Current Color: " + obj.PlayerViewOfGame.CurrentColor);
         Console.WriteLine("Write to play:");
         for(int i = 0; i<obj.PlayerViewOfGame.Cards.Count; i++)
         {

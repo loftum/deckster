@@ -309,13 +309,13 @@ public class UnoGame : GameObject
         return response;
     }
     
-    private PlayerViewOfUnoGame GetPlayerViewOfGame(UnoPlayer player)
+    private PlayerViewOfGame GetPlayerViewOfGame(UnoPlayer player)
     {
-        return new PlayerViewOfUnoGame
+        return new PlayerViewOfGame
         {
             Cards = player.Cards,
             TopOfPile = TopOfPile,
-            CurrentSuit = CurrentColor,
+            CurrentColor = CurrentColor,
             DiscardPileCount = DiscardPile.Count,
             StockPileCount = StockPile.Count,
             OtherPlayers = Players.Where(p => p.Id != player.Id).Select(ToOtherPlayer).ToList()

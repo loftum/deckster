@@ -153,7 +153,7 @@ components:
           type: string
         value:
           type: string
-    Uno.PlayerViewOfUnoGame:
+    Uno.PlayerViewOfGame:
       type: object
       allOf:
         - $ref: '#/components/schemas/Uno.UnoResponse'
@@ -170,7 +170,7 @@ components:
                   type: string
                 value:
                   type: string
-            currentSuit:
+            currentColor:
               type: string
             stockPileCount:
               type: integer
@@ -319,7 +319,7 @@ components:
                           type: string
                         value:
                           type: string
-                    currentSuit:
+                    currentColor:
                       type: string
                     stockPileCount:
                       type: integer
@@ -356,7 +356,7 @@ components:
                           type: string
                         value:
                           type: string
-                    currentSuit:
+                    currentColor:
                       type: string
                     stockPileCount:
                       type: integer
