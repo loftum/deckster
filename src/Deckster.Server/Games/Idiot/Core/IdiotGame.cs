@@ -33,7 +33,7 @@ public class IdiotGame : GameObject
     /// </summary>
     public List<Card> GarbagePile { get; init; } = [];
 
-    public Card? TopOfPile => DiscardPile.Peek();
+    public Card? TopOfPile => DiscardPile.PeekOrDefault();
     
     /// <summary>
     /// Done players
@@ -92,6 +92,14 @@ public class IdiotGame : GameObject
             await Communication.RespondAsync(playerId, response);
             return response;
         }
+
+        var currentRank = TopOfPile?.Rank;
+        if (rank < currentRank && rank != 2 && rank != 10)
+        {
+            response = new FailureResponse($"Rank ({rank}) must be equal to or higher than current rank ({currentRank})");
+            await Communication.RespondAsync(playerId, response);
+            return response;
+        }
         
         DiscardPile.PushRange(cards);
 
@@ -120,8 +128,8 @@ public class IdiotGame : GameObject
                 PlayerId = playerId
             }); 
         }
-        
-        
+
+        await MoveToNextPlayerOrFinishAsync();
         
         return response;
     }

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Deckster.Client.Games.Common;
 using Deckster.Server.Collections;
 using Deckster.Server.Games.Idiot;
@@ -68,6 +69,61 @@ public class IdiotGameTest
         var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(8, Suit.Spades), new Card(9, Suit.Spades)]);
         Asserts.Fail(response, "All cards must have same rank");
     }
+    
+    [Test]
+    public async ValueTask PutCards_Fails_WhenRankIsLowerThanTopOfPile()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Get(8, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Get(9, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            
+            g.DiscardPile.Push(deck.Get(10, Suit.Spades));
+        });
+
+        var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(8, Suit.Spades)]);
+        Asserts.Fail(response, "Rank (8) must be equal to or higher than current rank (10)");
+    }
+    
+    [Test]
+    [TestCase(10, Suit.Spades)]
+    [TestCase(2, Suit.Spades)]
+    public async ValueTask PutSpecialCard_AlwaysWorks(int rank, Suit suit)
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Get(10, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Get(2, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+            
+            g.DiscardPile.Push(deck.Get(12, Suit.Spades));
+        });
+
+        Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(rank, suit)]));
+    }
+    
+    [Test]
+    public async ValueTask PutTen_FlushesDiscardPile()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Get(10, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Get(9, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Get(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Get(8, Suit.Clubs));
+        });
+
+        Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(10, Suit.Spades)]));
+        Assert.That(game.DiscardPile, Is.Empty);
+    }
+    
+    
     
     private static IdiotGame SetUpGame(Action<IdiotGame> configure)
     {

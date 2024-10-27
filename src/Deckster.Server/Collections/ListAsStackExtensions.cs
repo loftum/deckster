@@ -23,4 +23,9 @@ public static class ListAsStackExtensions
     {
         return list.Last();
     }
+    
+    public static T? PeekOrDefault<T>(this List<T> list)
+    {
+        return list.LastOrDefault();
+    }
 }
