@@ -30,6 +30,11 @@ components:
       allOf:
         - $ref: '#/components/schemas/Protocol.DecksterMessage'
         - type: object
+          properties:
+            hasError:
+              type: boolean
+            error:
+              type: string
     Handshake.ConnectMessage:
       type: object
       allOf:

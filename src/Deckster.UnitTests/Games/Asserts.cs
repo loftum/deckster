@@ -16,15 +16,22 @@ public static class Asserts
         }
     }
 
-    public static void Fail(DecksterResponse result, string message)
+    public static void Fail(DecksterResponse response, string message)
     {
-        switch (result)
+        switch (response)
         {
+            case { HasError: true }:
+            {
+                Assert.That(response.Error, Is.EqualTo(message));
+                break;
+            }
             case FailureResponse r:
+            {
                 Assert.That(r.Message, Is.EqualTo(message));
                 break;
+            }
             default:
-                Assert.Fail($"Expected failure, but got {result.GetType().Name}");
+                Assert.Fail($"Expected failure, but got {response.GetType().Name}");
                 break;
         }
     }
