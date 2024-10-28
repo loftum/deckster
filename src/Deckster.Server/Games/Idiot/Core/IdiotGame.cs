@@ -35,6 +35,8 @@ public class IdiotGame : GameObject
 
     public Card? TopOfPile => DiscardPile.PeekOrDefault();
     
+    public Guid LastCardPutBy { get; set; }
+    
     /// <summary>
     /// Done players
     /// </summary>
@@ -102,6 +104,7 @@ public class IdiotGame : GameObject
         }
         
         DiscardPile.PushRange(cards);
+        LastCardPutBy = playerId;
 
         var discardpileFlushed = false;
         if (rank == 10 || cards.Length == 4)
@@ -133,6 +136,61 @@ public class IdiotGame : GameObject
             return response;
         }
         
+        await MoveToNextPlayerOrFinishAsync();
+        
+        return response;
+    }
+
+    public async Task<DecksterResponse> DrawCards(Guid playerId, int numberOfCards)
+    {
+        IncrementSeed();
+        DecksterResponse response;
+        if (!TryGetCurrentPlayer(playerId, out var player))
+        {
+            response = new FailureResponse("It is not your turn");
+            await Communication.RespondAsync(playerId, response);
+            return response;
+        }
+
+        if (numberOfCards <= 0)
+        {
+            response = new FailureResponse("You have to draw at least 1 card");
+            await Communication.RespondAsync(playerId, response);
+            return response;
+        }
+
+        var max = 3 - player.CardsOnHand.Count;
+        if (numberOfCards > 3 - player.CardsOnHand.Count)
+        {
+            response = new FailureResponse($"You can only have {max} more cards on hand");
+            await Communication.RespondAsync(playerId, response);
+            return response;
+        }
+
+        if (!StockPile.TryPop(numberOfCards, out var cards))
+        {
+            response = new FailureResponse("Not enough cards in stock pile");
+            await Communication.RespondAsync(playerId, response);
+            return response;
+        }
+        
+        player.CardsOnHand.PushRange(cards);
+        response = new DrawCardsResponse { Cards = cards };
+        await Communication.RespondAsync(playerId, response);
+
+        await Communication.NotifyAllAsync(new PlayerDrewCardsNotification
+        {
+            PlayerId = playerId,
+            NumberOfCards = numberOfCards
+        });
+
+        // Player just flushed discard pile
+        // so it is still this player's turn
+        if (DiscardPile.IsEmpty() && LastCardPutBy == playerId)
+        {
+            return response;
+        }
+
         await MoveToNextPlayerOrFinishAsync();
         
         return response;

@@ -166,6 +166,85 @@ public class IdiotGameTest
         Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(rank, suit)]));
         Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
     }
+
+    [Test]
+    public async ValueTask DrawCards()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.StockPile.PushRange(g.Deck);
+        });
+
+        Asserts.Success(await game.DrawCards(game.CurrentPlayer.Id, 2));
+        Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
+    }
+
+    [Test]
+    public async ValueTask DrawCards_AfterFlushingDiscardPile_MakesCurrentPlayersPlayAgain()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.StockPile.PushRange(g.Deck);
+            g.DiscardPile.Clear();
+            g.LastCardPutBy = g.Players[0].Id;
+        });
+
+        Asserts.Success(await game.DrawCards(game.CurrentPlayer.Id, 2));
+        Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[0]));
+    }
+    
+    [Test]
+    public async ValueTask DrawCards_Fails_WhenStockPileIsEmpty()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+        });
+
+        Asserts.Fail(await game.DrawCards(game.CurrentPlayer.Id, 2), "Not enough cards in stock pile");
+    }
+    
+    [Test]
+    [TestCase(-1, "You have to draw at least 1 card")]
+    [TestCase(0, "You have to draw at least 1 card")]
+    [TestCase(4, "You can only have 2 more cards on hand")]
+    public async ValueTask DrawCards_Fails_WhenNumberOfCardsIsInvalid(int count, string expectedError)
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+        });
+
+        Asserts.Fail(await game.DrawCards(game.CurrentPlayer.Id, count), expectedError);
+    }
+
+    [Test]
+    public async ValueTask DrawCards_Fails_WhenNotYourTurn()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+        });
+
+        Asserts.Fail(await game.DrawCards(game.Players[1].Id, 1), "It is not your turn");
+    }
     
     private static IdiotGame SetUpGame(Action<IdiotGame> configure)
     {

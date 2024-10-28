@@ -24,4 +24,9 @@ public class IdiotPlayer
     {
         return cards.Any() && CardsOnHand.ContainsAll(cards);
     }
+
+    public override string ToString()
+    {
+        return $"{Name} ({Id})";
+    }
 }
