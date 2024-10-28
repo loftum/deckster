@@ -7,6 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Deckster.Server.Controllers;
 
-// [Route("idiot")]
-// public class IdiotController(GameHostRegistry hostRegistry, IRepo repo)
-//     : GameController<IdiotClient, IdiotGameHost, IdiotGame>(hostRegistry, repo);
+[Route("idiot")]
+public class IdiotController(GameHostRegistry hostRegistry, IRepo repo)
+    : GameController<IdiotClient, IdiotGameHost, IdiotGame>(hostRegistry, repo);
