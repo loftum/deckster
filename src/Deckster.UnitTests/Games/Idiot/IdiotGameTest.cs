@@ -1,4 +1,4 @@
-using System.Runtime.CompilerServices;
+using System.Net.Security;
 using Deckster.Client.Games.Common;
 using Deckster.Server.Collections;
 using Deckster.Server.Games.Idiot;
@@ -121,6 +121,7 @@ public class IdiotGameTest
 
         Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(10, Suit.Spades)]));
         Assert.That(game.DiscardPile, Is.Empty);
+        Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[0]));
     }
     
     [Test]
@@ -140,10 +141,30 @@ public class IdiotGameTest
             g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
             g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
-
         
         Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, cards));
         Assert.That(game.DiscardPile, Is.Empty);
+        
+        
+        Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[0]));
+    }
+
+    [Test]
+    [TestCase(8, Suit.Spades)]
+    [TestCase(2, Suit.Spades)]
+    [TestCase(10, Suit.Spades)]
+    public async ValueTask PutLastCard_MovesToNextPlayer_RegardlessOfCard(int rank, Suit suit)
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(rank, suit));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+        });
+
+        Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(rank, suit)]));
+        Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
     }
     
     private static IdiotGame SetUpGame(Action<IdiotGame> configure)

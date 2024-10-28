@@ -111,7 +111,6 @@ public class IdiotGame : GameObject
             discardpileFlushed = true;
         }
         
-
         response = new SuccessResponse();
         await Communication.RespondAsync(playerId, response);
 
@@ -123,12 +122,17 @@ public class IdiotGame : GameObject
         
         if (discardpileFlushed)
         {
-            await Communication.NotifyAllAsync(new DiscardPileFlushedNotification
-            {
-                PlayerId = playerId
-            }); 
+            await Communication.NotifyAllAsync(new DiscardPileFlushedNotification { PlayerId = playerId }); 
         }
-
+        
+        // If player is still playing, player must:
+        // - draw card
+        // - If discard pile was flushed: put a new card, then draw card
+        if (player.IsStillPlaying() && (discardpileFlushed || StockPile.Any()))
+        {
+            return response;
+        }
+        
         await MoveToNextPlayerOrFinishAsync();
         
         return response;

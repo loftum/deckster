@@ -12,6 +12,7 @@ public class IdiotPlayer
     public List<Card> HiddenTableCards { get; init; } = [];
 
     public bool IsStillPlaying() => CardsOnHand.Any() || VisibleTableCards.Any() || HiddenTableCards.Any();
+    public bool IsDone() => !IsStillPlaying();
     
     public static readonly IdiotPlayer Null = new()
     {
