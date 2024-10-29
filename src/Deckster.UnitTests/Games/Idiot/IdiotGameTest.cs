@@ -1,8 +1,8 @@
 using Deckster.Client.Games.Common;
 using Deckster.Server.Collections;
-using Deckster.Server.Games.CrazyEights.Core;
+using Deckster.Server.Games;
+using Deckster.Server.Games.CrazyEights;
 using Deckster.Server.Games.Idiot;
-using Deckster.Server.Games.Idiot.Core;
 using NUnit.Framework;
 
 namespace Deckster.UnitTests.Games.Idiot;

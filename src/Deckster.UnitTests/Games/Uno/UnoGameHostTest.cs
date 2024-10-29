@@ -1,7 +1,6 @@
 using Deckster.Client.Serialization;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Uno;
-using Deckster.Server.Games.Uno.Core;
 using NUnit.Framework;
 
 namespace Deckster.UnitTests.Games.Uno;

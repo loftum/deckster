@@ -1,7 +1,6 @@
 using System.Net.WebSockets;
 using Deckster.Client;
 using Deckster.Server.Authentication;
-using Deckster.Server.CodeGeneration.Meta;
 using Deckster.Server.Data;
 using Deckster.Server.Games;
 using Deckster.Server.Middleware;
@@ -24,19 +23,6 @@ public abstract class GameController<TGameClient, TGameHost, TGame> : Controller
         HostRegistry = hostRegistry;
         Repo = repo;
     }
-
-    [HttpGet("metadata")]
-    public object GetMetadata()
-    {
-        return GameMeta.For(typeof(TGameHost));
-    }
-    
-    [HttpGet("service")]
-    public object GetServiceMeta()
-    {
-        return ServiceMeta.For(typeof(TGameClient));
-    }
-    
     
     [HttpGet("")]
     public ViewResult Overview()

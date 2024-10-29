@@ -1,8 +1,8 @@
 package no.forse.decksterlib.crazyeights
 
 interface CrazyEightsClient {
-  suspend fun putCard(card: Card, cancellationToken: CancellationToken): PlayerViewOfGame
-  suspend fun putEight(card: Card, newSuit: Suit, cancellationToken: CancellationToken): PlayerViewOfGame
-  suspend fun drawCard(cancellationToken: CancellationToken): Card
-  suspend fun pass(cancellationToken: CancellationToken): EmptyResponse
+    suspend fun putCard(request: PutCardRequest): PlayerViewOfGame
+    suspend fun putEight(request: PutEightRequest): PlayerViewOfGame
+    suspend fun drawCard(request: DrawCardRequest): CardResponse
+    suspend fun pass(request: PassRequest): EmptyResponse
 }

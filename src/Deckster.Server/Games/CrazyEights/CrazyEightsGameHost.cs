@@ -5,7 +5,6 @@ using Deckster.CrazyEights.SampleClient;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common.Fakes;
-using Deckster.Server.Games.CrazyEights.Core;
 
 namespace Deckster.Server.Games.CrazyEights;
 

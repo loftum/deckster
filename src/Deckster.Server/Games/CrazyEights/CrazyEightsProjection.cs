@@ -1,5 +1,4 @@
 using Deckster.Client.Games.CrazyEights;
-using Deckster.Server.Games.CrazyEights.Core;
 
 namespace Deckster.Server.Games.CrazyEights;
 

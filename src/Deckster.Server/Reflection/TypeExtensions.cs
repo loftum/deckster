@@ -39,7 +39,8 @@ public static class TypeExtensions
                type == typeof(DateTime) ||
                type == typeof(DateTime?) ||
                type == typeof(DateTimeOffset) ||
-               type == typeof(DateTimeOffset);
+               type == typeof(DateTimeOffset) ||
+               type == typeof(Guid);
     }
 
     public static bool IsCollectionType(this Type type)

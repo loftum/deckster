@@ -3,9 +3,8 @@ using Deckster.Client.Games.Common;
 using Deckster.Client.Games.Uno;
 using Deckster.Server.Collections;
 using Deckster.Server.Games.Common;
-using Deckster.Server.Games.CrazyEights.Core;
 
-namespace Deckster.Server.Games.Uno.Core;
+namespace Deckster.Server.Games.Uno;
 
 public class UnoGame : GameObject
 {

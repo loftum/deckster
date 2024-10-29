@@ -4,7 +4,7 @@ using Deckster.Client.Games.CrazyEights;
 using Deckster.Server.Collections;
 using Deckster.Server.Games.Common;
 
-namespace Deckster.Server.Games.CrazyEights.Core;
+namespace Deckster.Server.Games.CrazyEights;
 
 public class CrazyEightsGame : GameObject
 {

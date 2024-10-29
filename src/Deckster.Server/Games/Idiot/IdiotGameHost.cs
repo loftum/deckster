@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
-using Deckster.Server.Games.Idiot.Core;
 
 namespace Deckster.Server.Games.Idiot;
 

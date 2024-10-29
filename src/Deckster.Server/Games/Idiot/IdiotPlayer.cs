@@ -1,7 +1,7 @@
 using Deckster.Client.Games.Common;
 using Deckster.Server.Collections;
 
-namespace Deckster.Server.Games.Idiot.Core;
+namespace Deckster.Server.Games.Idiot;
 
 public class IdiotPlayer
 {
