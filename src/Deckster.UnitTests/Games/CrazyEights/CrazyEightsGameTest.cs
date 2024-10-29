@@ -1,4 +1,5 @@
 using Deckster.Client.Games.Common;
+using Deckster.Client.Games.CrazyEights;
 using Deckster.Client.Serialization;
 using Deckster.Server.Collections;
 using Deckster.Server.Games.CrazyEights.Core;
@@ -29,7 +30,7 @@ public class CrazyEightsGameTest
         });
         
         var card = new Card(10, Suit.Hearts);
-        var result = await game.PutCard(game.CurrentPlayer.Id, card);
+        var result = await game.PutCard(new PutCardRequest{ PlayerId = game.CurrentPlayer.Id, Card = card });
         Asserts.Success(result);
     }
     
@@ -38,7 +39,7 @@ public class CrazyEightsGameTest
     {
         var game = CreateGame();
         var player = game.Players[1];
-        var result = await game.PutCard(player.Id, player.Cards[0]);
+        var result = await game.PutCard(new PutCardRequest{ PlayerId = player.Id, Card = player.Cards[0] });
 
         Asserts.Fail(result, "It is not your turn");
     }
@@ -61,7 +62,7 @@ public class CrazyEightsGameTest
         var player = game.Players[0];
         var card = new Card(rank, suit);
         
-        var result = await game.PutCard(player.Id, card);
+        var result = await game.PutCard(new PutCardRequest{ PlayerId = player.Id, Card = card });
         Asserts.Fail(result, errorMessage);
     }
 
@@ -73,10 +74,10 @@ public class CrazyEightsGameTest
 
         for (var ii = 0; ii < 3; ii++)
         {
-            await game.DrawCard(player.Id);
+            await game.DrawCard(new DrawCardRequest{ PlayerId = player.Id });
         }
         
-        var result = await game.DrawCard(player.Id);
+        var result = await game.DrawCard(new DrawCardRequest{ PlayerId = player.Id });
         Asserts.Fail(result, "You can only draw 3 cards");
     }
 
@@ -85,7 +86,7 @@ public class CrazyEightsGameTest
     {
         var game = CreateGame();
         var player = game.Players[0];
-        var result = await game.Pass(player.Id);
+        var result = await game.Pass(new PassRequest{ PlayerId = player.Id });
         Asserts.Success(result);
     }
 
@@ -113,13 +114,13 @@ public class CrazyEightsGameTest
         });
         var player = game.CurrentPlayer;
         var eight = new Card(8, Suit.Spades);
-        Asserts.Success(await game.PutEight(player.Id, eight, newSuit));
+        Asserts.Success(await game.PutEight(new PutEightRequest{ PlayerId = player.Id, Card = eight, NewSuit = newSuit }));
         Assert.That(game.CurrentSuit, Is.EqualTo(newSuit));
 
         var nextPlayer = game.CurrentPlayer;
         var cardWithNewSuit = nextPlayer.Cards.First(c => c.Suit == newSuit && c.Rank != 8);
 
-        Asserts.Success(await game.PutCard(nextPlayer.Id, cardWithNewSuit));
+        Asserts.Success(await game.PutCard(new PutCardRequest{ PlayerId = nextPlayer.Id, Card = cardWithNewSuit }));
     }
 
     [Test]
@@ -128,7 +129,7 @@ public class CrazyEightsGameTest
         var game = CreateGame();
         var player = game.Players[0];
         var notEight = player.Cards[0];
-        var result = await game.PutEight(player.Id, notEight, Suit.Clubs);
+        var result = await game.PutEight(new PutEightRequest{ PlayerId = player.Id, Card = notEight, NewSuit = Suit.Clubs });
         Asserts.Fail(result, "Card rank must be '8'");
     }
 
@@ -138,7 +139,7 @@ public class CrazyEightsGameTest
         var game = CreateGame();
         game.StockPile.Clear();
         
-        var result = await game.DrawCard(game.CurrentPlayer.Id);
+        var result = await game.DrawCard(new DrawCardRequest{ PlayerId = game.CurrentPlayer.Id });
         Console.WriteLine(result.Pretty());
         Asserts.Fail(result, "Stock pile is empty");
     }

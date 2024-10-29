@@ -90,9 +90,12 @@ public class CrazyEightsGame : GameObject
         DonePlayers.Clear();
     }
 
-    public async Task<PlayerViewOfGame> PutCard(Guid playerId, Card card)
+    public async Task<PlayerViewOfGame> PutCard(PutCardRequest request)
     {
         IncrementSeed();
+        var playerId = request.PlayerId;
+        var card = request.Card;
+        
         PlayerViewOfGame response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -131,9 +134,13 @@ public class CrazyEightsGame : GameObject
         return response;
     }
 
-    public async Task<PlayerViewOfGame> PutEight(Guid playerId, Card card, Suit newSuit)
+    public async Task<PlayerViewOfGame> PutEight(PutEightRequest request)
     {
         IncrementSeed();
+        var playerId = request.PlayerId;
+        var card = request.Card;
+        var newSuit = request.NewSuit;
+        
         PlayerViewOfGame response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -185,9 +192,10 @@ public class CrazyEightsGame : GameObject
         return response;
     }
 
-    public async Task<CardResponse> DrawCard(Guid playerId)
+    public async Task<CardResponse> DrawCard(DrawCardRequest request)
     {
         IncrementSeed();
+        var playerId = request.PlayerId;
         CardResponse response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -224,9 +232,10 @@ public class CrazyEightsGame : GameObject
         return response;
     }
 
-    public async Task<EmptyResponse> Pass(Guid playerId)
+    public async Task<EmptyResponse> Pass(PassRequest request)
     {
         IncrementSeed();
+        var playerId = request.PlayerId;
         EmptyResponse response;
         if (!TryGetCurrentPlayer(playerId, out _))
         {

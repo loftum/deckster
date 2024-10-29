@@ -10,10 +10,10 @@ public class CrazyEightsProjection : GameProjection<CrazyEightsGame>
         return CrazyEightsGame.Create(created);
     }
     
-    public Task Apply(PutCardRequest @event, CrazyEightsGame game) => game.PutCard(@event.PlayerId, @event.Card);
-    public Task Apply(PutEightRequest @event, CrazyEightsGame game) => game.PutEight(@event.PlayerId, @event.Card, @event.NewSuit);
-    public Task Apply(DrawCardRequest @event, CrazyEightsGame game) => game.DrawCard(@event.PlayerId);
-    public Task Apply(PassRequest @event, CrazyEightsGame game) => game.Pass(@event.PlayerId);
+    public Task Apply(PutCardRequest @event, CrazyEightsGame game) => game.PutCard(@event);
+    public Task Apply(PutEightRequest @event, CrazyEightsGame game) => game.PutEight(@event);
+    public Task Apply(DrawCardRequest @event, CrazyEightsGame game) => game.DrawCard(@event);
+    public Task Apply(PassRequest @event, CrazyEightsGame game) => game.Pass(@event);
     
     public override (CrazyEightsGame game, object startEvent) Create(IGameHost host)
     {
