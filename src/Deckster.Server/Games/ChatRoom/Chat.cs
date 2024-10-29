@@ -18,15 +18,18 @@ public class Chat : GameObject
         };
     }
     
-    public async Task ChatAsync(SendChatRequest @event)
+    public async Task<ChatResponse> ChatAsync(SendChatRequest @event)
     {
         Transcript.Add(@event);
-        await Communication.RespondAsync(@event.PlayerId, new ChatResponse());
+        var response = new ChatResponse();
+        await Communication.RespondAsync(@event.PlayerId, response);
         await Communication.NotifyAllAsync(new ChatNotification
         {
             Sender = @event.PlayerId.ToString(),
             Message = @event.Message
         });
+        
+        return response;
     }
 
     public override Task StartAsync()

@@ -1,4 +1,3 @@
-using Deckster.Client.Games.Common;
 using Deckster.Client.Protocol;
 using NUnit.Framework;
 
@@ -6,12 +5,12 @@ namespace Deckster.UnitTests.Games;
 
 public static class Asserts
 {
-    public static void Success(DecksterResponse result)
+    public static void Success(DecksterResponse response)
     {
-        switch (result)
+        switch (response)
         {
-            case FailureResponse r:
-                Assert.Fail($"Expeced success, but got '{r.Message}'");
+            case { HasError: true }:
+                Assert.Fail($"Expeced success, but got '{response.Error}'");
                 break;
         }
     }
@@ -25,13 +24,8 @@ public static class Asserts
                 Assert.That(response.Error, Is.EqualTo(message));
                 break;
             }
-            case FailureResponse r:
-            {
-                Assert.That(r.Message, Is.EqualTo(message));
-                break;
-            }
             default:
-                Assert.Fail($"Expected failure, but got {response.GetType().Name}");
+                Assert.Fail($"Expected error, but got {response.GetType().Name}");
                 break;
         }
     }

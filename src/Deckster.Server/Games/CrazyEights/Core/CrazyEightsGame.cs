@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.CrazyEights;
-using Deckster.Client.Protocol;
 using Deckster.Server.Collections;
 using Deckster.Server.Games.Common;
 
@@ -91,27 +90,27 @@ public class CrazyEightsGame : GameObject
         DonePlayers.Clear();
     }
 
-    public async Task<DecksterResponse> PutCard(Guid playerId, Card card)
+    public async Task<PlayerViewOfGame> PutCard(Guid playerId, Card card)
     {
         IncrementSeed();
-        DecksterResponse response;
+        PlayerViewOfGame response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new PlayerViewOfGame { Error = "It is not your turn" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (!player.HasCard(card))
         {
-            response = new FailureResponse($"You don't have '{card}'");
+            response = new PlayerViewOfGame { Error = $"You don't have '{card}'" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (!CanPut(card))
         {
-            response = new FailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
+            response = new PlayerViewOfGame{ Error = $"Cannot put '{card}' on '{TopOfPile}'" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -132,27 +131,27 @@ public class CrazyEightsGame : GameObject
         return response;
     }
 
-    public async Task<DecksterResponse> PutEight(Guid playerId, Card card, Suit newSuit)
+    public async Task<PlayerViewOfGame> PutEight(Guid playerId, Card card, Suit newSuit)
     {
         IncrementSeed();
-        DecksterResponse response;
+        PlayerViewOfGame response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new PlayerViewOfGame("It is not your turn");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (!player.HasCard(card))
         {
-            response = new FailureResponse($"You don't have '{card}'");
+            response = new PlayerViewOfGame($"You don't have '{card}'");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
         
         if (card.Rank != 8)
         {
-            response = new FailureResponse("Card rank must be '8'");
+            response = new PlayerViewOfGame("Card rank must be '8'");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -160,8 +159,8 @@ public class CrazyEightsGame : GameObject
         if (!CanPut(card))
         {
             response = NewSuit.HasValue
-                ? new FailureResponse($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{NewSuit.Value}')")
-                : new FailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
+                ? new PlayerViewOfGame($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{NewSuit.Value}')")
+                : new PlayerViewOfGame($"Cannot put '{card}' on '{TopOfPile}'");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -186,20 +185,20 @@ public class CrazyEightsGame : GameObject
         return response;
     }
 
-    public async Task<DecksterResponse> DrawCard(Guid playerId)
+    public async Task<CardResponse> DrawCard(Guid playerId)
     {
         IncrementSeed();
-        DecksterResponse response;
+        CardResponse response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new FailureResponse("It is not your turn"); 
+            response = new CardResponse{ Error = "It is not your turn" }; 
             await Communication.RespondAsync(playerId, response);
             return response;
         }
         
         if (CardsDrawn > 2)
         {
-            response = new FailureResponse("You can only draw 3 cards");
+            response = new CardResponse{ Error = "You can only draw 3 cards" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -207,7 +206,7 @@ public class CrazyEightsGame : GameObject
         ShufflePileIfNecessary();
         if (!StockPile.Any())
         {
-            response = new FailureResponse("Stock pile is empty");
+            response = new CardResponse{ Error = "Stock pile is empty" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -225,18 +224,18 @@ public class CrazyEightsGame : GameObject
         return response;
     }
 
-    public async Task<DecksterResponse> Pass(Guid playerId)
+    public async Task<EmptyResponse> Pass(Guid playerId)
     {
         IncrementSeed();
-        DecksterResponse response;
+        EmptyResponse response;
         if (!TryGetCurrentPlayer(playerId, out _))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new EmptyResponse("It is not your turn");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
         
-        response = new PassOkResponse();
+        response = EmptyResponse.Ok;
         await Communication.RespondAsync(playerId, response);
         
         await Communication.NotifyAllAsync(new PlayerPassedNotification

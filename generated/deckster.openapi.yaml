@@ -80,19 +80,11 @@ components:
       allOf:
         - $ref: '#/components/schemas/Protocol.DecksterNotification'
         - type: object
-    Common.SuccessResponse:
+    Common.EmptyResponse:
       type: object
       allOf:
         - $ref: '#/components/schemas/Protocol.DecksterResponse'
         - type: object
-    Common.FailureResponse:
-      type: object
-      allOf:
-        - $ref: '#/components/schemas/Protocol.DecksterResponse'
-        - type: object
-          properties:
-            message:
-              type: string
     ChatRoom.ChatRequest:
       type: object
       allOf:

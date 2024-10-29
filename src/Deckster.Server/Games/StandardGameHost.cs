@@ -49,13 +49,13 @@ public abstract class StandardGameHost<TGame> : GameHost where TGame : GameObjec
         {
             if (game == null || game.State == GameState.Finished)
             {
-                await channel.ReplyAsync(new FailureResponse("Game is not running"), JsonOptions);
+                await channel.ReplyAsync(new EmptyResponse("Game is not running"), JsonOptions);
                 return;
             }
             
             if (!await Projection.HandleAsync(request, game))
             {
-                await channel.ReplyAsync(new FailureResponse($"Unsupported request: '{request.GetType().Name}'"), JsonOptions);
+                await channel.ReplyAsync(new EmptyResponse($"Unsupported request: '{request.GetType().Name}'"), JsonOptions);
                 return;
             }
             events?.Append(request);

@@ -24,7 +24,7 @@ public class GameMeta
         
         var messages = new List<MessageMeta>
         {
-            MessageMeta.For(typeof(FailureResponse))
+            MessageMeta.For(typeof(EmptyResponse))
         };
         foreach (var baseType in parent.GenericTypeArguments)
         {

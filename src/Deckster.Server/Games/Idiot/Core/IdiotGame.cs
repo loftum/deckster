@@ -63,34 +63,34 @@ public class IdiotGame : GameObject
         };
     }
 
-    public async Task<DecksterResponse> PutCardsFromHand(Guid playerId, Card[] cards)
+    public async Task<EmptyResponse> PutCardsFromHand(Guid playerId, Card[] cards)
     {
         IncrementSeed();
-        DecksterResponse response;
+        EmptyResponse response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new EmptyResponse("It is not your turn");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (cards.Length < 1)
         {
-            response = new FailureResponse("You must put at least 1 card");
+            response = new EmptyResponse("You must put at least 1 card");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
         
         if (!player.CardsOnHand.RemoveAll(cards))
         {
-            response = new FailureResponse("You don't have all of those cards");
+            response = new EmptyResponse("You don't have all of those cards");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
         
         if (!CardsHaveSameRank(cards, out var rank))
         {
-            response = new FailureResponse("All cards must have same rank");
+            response = new EmptyResponse("All cards must have same rank");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -98,7 +98,7 @@ public class IdiotGame : GameObject
         var currentRank = TopOfPile?.Rank;
         if (rank < currentRank && rank != 2 && rank != 10)
         {
-            response = new FailureResponse($"Rank ({rank}) must be equal to or higher than current rank ({currentRank})");
+            response = new EmptyResponse($"Rank ({rank}) must be equal to or higher than current rank ({currentRank})");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -114,7 +114,7 @@ public class IdiotGame : GameObject
             discardpileFlushed = true;
         }
         
-        response = new SuccessResponse();
+        response = EmptyResponse.Ok;
         await Communication.RespondAsync(playerId, response);
 
         await Communication.NotifyAllAsync(new PlayerPutCardsNotification
@@ -141,20 +141,20 @@ public class IdiotGame : GameObject
         return response;
     }
 
-    public async Task<DecksterResponse> DrawCards(Guid playerId, int numberOfCards)
+    public async Task<DrawCardsResponse> DrawCards(Guid playerId, int numberOfCards)
     {
         IncrementSeed();
-        DecksterResponse response;
+        DrawCardsResponse response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new DrawCardsResponse{ Error = "It is not your turn" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (numberOfCards <= 0)
         {
-            response = new FailureResponse("You have to draw at least 1 card");
+            response = new DrawCardsResponse{ Error = "You have to draw at least 1 card" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -162,14 +162,14 @@ public class IdiotGame : GameObject
         var max = 3 - player.CardsOnHand.Count;
         if (numberOfCards > 3 - player.CardsOnHand.Count)
         {
-            response = new FailureResponse($"You can only have {max} more cards on hand");
+            response = new DrawCardsResponse{ Error = $"You can only have {max} more cards on hand" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (!StockPile.TryPop(numberOfCards, out var cards))
         {
-            response = new FailureResponse("Not enough cards in stock pile");
+            response = new DrawCardsResponse{ Error = "Not enough cards in stock pile" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }

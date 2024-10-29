@@ -163,7 +163,7 @@
           }
         ]
       },
-      "Common.SuccessResponse": {
+      "Common.EmptyResponse": {
         "type": "object",
         "allOf": [
           {
@@ -171,22 +171,6 @@
           },
           {
             "type": "object"
-          }
-        ]
-      },
-      "Common.FailureResponse": {
-        "type": "object",
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Protocol.DecksterResponse"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "message": {
-                "type": "string"
-              }
-            }
           }
         ]
       },

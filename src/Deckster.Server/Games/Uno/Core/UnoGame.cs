@@ -91,34 +91,34 @@ public class UnoGame : GameObject
         DiscardPile.Push(StockPile.Pop());
     }
     
-    public async Task<DecksterResponse> PutCard(Guid playerId, UnoCard card)
+    public async Task<PlayerViewOfGame> PutCard(Guid playerId, UnoCard card)
     {
         IncrementSeed();
-        DecksterResponse response;
+        PlayerViewOfGame response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new PlayerViewOfGame("It is not your turn");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (!player.HasCard(card))
         {
-            response = new FailureResponse($"You don't have '{card}'");
+            response = new PlayerViewOfGame($"You don't have '{card}'");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (!CanPut(card))
         {
-            response = new FailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
+            response = new PlayerViewOfGame($"Cannot put '{card}' on '{TopOfPile}'");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
         
         if (CardsDrawn < 0)
         {
-            response = new FailureResponse($"You have to draw {CardsDrawn*-1} cards");
+            response = new PlayerViewOfGame($"You have to draw {CardsDrawn*-1} cards");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -130,7 +130,7 @@ public class UnoGame : GameObject
         {
             ScoreRound(player);
             NewRound();
-            response = new SuccessResponse();
+            response = GetPlayerViewOfGame(player);
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -166,35 +166,35 @@ public class UnoGame : GameObject
         return response;
     }
     
-    public async Task<DecksterResponse> PutWild(Guid playerId, UnoCard card, UnoColor newColor)
+    public async Task<PlayerViewOfGame> PutWild(Guid playerId, UnoCard card, UnoColor newColor)
     {
         IncrementSeed();
 
-        DecksterResponse response;
+        PlayerViewOfGame response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new PlayerViewOfGame("It is not your turn");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (!player.HasCard(card))
         {
-            response = new FailureResponse($"You don't have '{card}'");
+            response = new PlayerViewOfGame($"You don't have '{card}'");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
         
         if (card.Color != UnoColor.Wild)
         {
-            response = new FailureResponse($"{card} is not a wildcard");
+            response = new PlayerViewOfGame($"{card} is not a wildcard");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (newColor == UnoColor.Wild)
         {
-            response = new FailureResponse("New color cannot be 'Wild'");
+            response = new PlayerViewOfGame("New color cannot be 'Wild'");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -202,8 +202,8 @@ public class UnoGame : GameObject
         if (!CanPut(card))
         {
             response = NewColor.HasValue
-                ? new FailureResponse($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{NewColor.Value}')")
-                : new FailureResponse($"Cannot put '{card}' on '{TopOfPile}'");
+                ? new PlayerViewOfGame($"Cannot put '{card}' on '{TopOfPile}' (new suit: '{NewColor.Value}')")
+                : new PlayerViewOfGame($"Cannot put '{card}' on '{TopOfPile}'");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -215,7 +215,7 @@ public class UnoGame : GameObject
         {
             ScoreRound(player);
             NewRound();
-            response = new SuccessResponse();
+            response = GetPlayerViewOfGame(player);
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -234,21 +234,20 @@ public class UnoGame : GameObject
         return response;
     }
     
-    
-    public async Task<DecksterResponse> DrawCard(Guid playerId)
+    public async Task<UnoCardResponse> DrawCard(Guid playerId)
     {
         IncrementSeed();
-        DecksterResponse response;
+        UnoCardResponse response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new UnoCardResponse{ Error = "It is not your turn" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
   
         if (CardsDrawn == 1)
         {
-            response = new FailureResponse("You can only draw 1 card, then pass if you can't play");
+            response = new UnoCardResponse{ Error = "You can only draw 1 card, then pass if you can't play" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -256,7 +255,7 @@ public class UnoGame : GameObject
         ShufflePileIfNecessary();
         if (!StockPile.Any())
         {
-            response = new FailureResponse("No more cards");
+            response = new UnoCardResponse{ Error = "No more cards" };
             await Communication.RespondAsync(playerId, response);
             return response;
         }
@@ -283,25 +282,25 @@ public class UnoGame : GameObject
         return response;
     }
     
-    public async Task<DecksterResponse> Pass(Guid playerId)
+    public async Task<EmptyResponse> Pass(Guid playerId)
     {
         IncrementSeed();
-        DecksterResponse response;
+        EmptyResponse response;
         if (!TryGetCurrentPlayer(playerId, out _))
         {
-            response = new FailureResponse("It is not your turn");
+            response = new EmptyResponse("It is not your turn");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
 
         if (CardsDrawn != 1)
         {
-            response = new FailureResponse("You have to draw a card first");
+            response = new EmptyResponse("You have to draw a card first");
             await Communication.RespondAsync(playerId, response);
             return response;
         }
         
-        response = new SuccessResponse();
+        response = EmptyResponse.Ok;
         await Communication.NotifyAllAsync(new PlayerPassedNotification
         {
             PlayerId = playerId

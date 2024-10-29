@@ -1,5 +1,4 @@
 using Deckster.Client.Communication;
-using Deckster.Client.Games.Common;
 using Deckster.Client.Protocol;
 using Deckster.Client.Serialization;
 
@@ -7,9 +6,7 @@ namespace Deckster.Client.Games;
 
 public interface IGameClient : IDisposable, IAsyncDisposable;
 
-public abstract class GameClient<TRequest, TResponse> : IGameClient 
-    where TRequest : DecksterRequest
-    where TResponse : DecksterResponse
+public abstract class GameClient : IGameClient
 {
     protected readonly IClientChannel Channel;
     public event Action<string>? Disconnected;
@@ -23,14 +20,14 @@ public abstract class GameClient<TRequest, TResponse> : IGameClient
 
     protected abstract void OnNotification(DecksterNotification notification);
 
-    protected async Task<TResponse> SendAsync(TRequest request, CancellationToken cancellationToken = default)
+    protected async Task<TResponse> SendAsync<TResponse>(DecksterRequest request, CancellationToken cancellationToken = default)
     {
         var response = await Channel.SendAsync<DecksterResponse>(request, DecksterJson.Options, cancellationToken);
         return response switch
         {
-            TResponse expected => expected,
-            FailureResponse f => throw new Exception(f.Message),
             null => throw new Exception("OMG RESPAWNS IZ NULLZ"),
+            { HasError: true } => throw new Exception(response.Error), 
+            TResponse expected => expected,
             _ => throw new Exception($"Unknown result '{response.GetType().Name}'")
         };
     }
@@ -40,9 +37,9 @@ public abstract class GameClient<TRequest, TResponse> : IGameClient
         await Channel.DisconnectAsync();
     }
     
-    protected async Task<TWanted> GetAsync<TWanted>(TRequest request, CancellationToken cancellationToken = default) where TWanted : TResponse
+    protected async Task<TWanted> GetAsync<TWanted>(DecksterRequest request, CancellationToken cancellationToken = default) where TWanted : DecksterResponse
     {
-        var response = await SendAsync(request, cancellationToken);
+        var response = await SendAsync<TWanted>(request, cancellationToken);
         return response switch
         {
             TWanted r => r,

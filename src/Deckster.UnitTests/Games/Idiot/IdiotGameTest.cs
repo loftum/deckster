@@ -1,4 +1,3 @@
-using System.Net.Security;
 using Deckster.Client.Games.Common;
 using Deckster.Server.Collections;
 using Deckster.Server.Games.Idiot;
