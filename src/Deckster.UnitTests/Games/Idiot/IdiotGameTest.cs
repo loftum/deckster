@@ -1,5 +1,6 @@
 using Deckster.Client.Games.Common;
 using Deckster.Server.Collections;
+using Deckster.Server.Games.CrazyEights.Core;
 using Deckster.Server.Games.Idiot;
 using Deckster.Server.Games.Idiot.Core;
 using NUnit.Framework;
@@ -19,7 +20,7 @@ public class IdiotGameTest
             g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
-        var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(8, Suit.Spades)]);
+        var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(8, Suit.Spades)]});
         Asserts.Success(response);
     }
 
@@ -34,7 +35,7 @@ public class IdiotGameTest
             g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
-        var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(9, Suit.Spades)]);
+        var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(9, Suit.Spades)]});
         Asserts.Fail(response, "You don't have all of those cards");
     }
 
@@ -49,7 +50,7 @@ public class IdiotGameTest
             g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
-        var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, []);
+        var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [] });
         Asserts.Fail(response, "You must put at least 1 card");
     }
 
@@ -65,7 +66,7 @@ public class IdiotGameTest
             g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
-        var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(8, Suit.Spades), new Card(9, Suit.Spades)]);
+        var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(8, Suit.Spades), new Card(9, Suit.Spades)]});
         Asserts.Fail(response, "All cards must have same rank");
     }
     
@@ -83,7 +84,7 @@ public class IdiotGameTest
             g.DiscardPile.Push(deck.Steal(10, Suit.Spades));
         });
 
-        var response = await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(8, Suit.Spades)]);
+        var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(8, Suit.Spades)] });
         Asserts.Fail(response, "Rank (8) must be equal to or higher than current rank (10)");
     }
     
@@ -103,7 +104,7 @@ public class IdiotGameTest
             g.DiscardPile.Push(deck.Steal(12, Suit.Spades));
         });
 
-        Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(rank, suit)]));
+        Asserts.Success(await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(rank, suit)]}));
     }
     
     [Test]
@@ -118,7 +119,7 @@ public class IdiotGameTest
             g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
-        Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(10, Suit.Spades)]));
+        Asserts.Success(await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(10, Suit.Spades)]}));
         Assert.That(game.DiscardPile, Is.Empty);
         Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[0]));
     }
@@ -141,7 +142,7 @@ public class IdiotGameTest
             g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
         
-        Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, cards));
+        Asserts.Success(await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = cards }));
         Assert.That(game.DiscardPile, Is.Empty);
         
         
@@ -162,7 +163,7 @@ public class IdiotGameTest
             g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
         });
 
-        Asserts.Success(await game.PutCardsFromHand(game.CurrentPlayer.Id, [new Card(rank, suit)]));
+        Asserts.Success(await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(rank, suit)] }));
         Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
     }
 
@@ -178,8 +179,53 @@ public class IdiotGameTest
             g.StockPile.PushRange(g.Deck);
         });
 
-        Asserts.Success(await game.DrawCards(game.CurrentPlayer.Id, 2));
+        Asserts.Success(await game.DrawCards(new DrawCardsRequest { PlayerId = game.CurrentPlayer.Id, NumberOfCards = 2 } ));
         Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
+    }
+    
+    [Test]
+    public async ValueTask DrawCards_Fails_WhenNotYourTurn()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+        });
+
+        Asserts.Fail(await game.DrawCards(new DrawCardsRequest{PlayerId = game.Players[1].Id, NumberOfCards = 1 }), "It is not your turn");
+    }
+    
+    [Test]
+    [TestCase(-1, "You have to draw at least 1 card")]
+    [TestCase(0, "You have to draw at least 1 card")]
+    [TestCase(4, "You can only have 2 more cards on hand")]
+    public async ValueTask DrawCards_Fails_WhenNumberOfCardsIsInvalid(int numberOfCards, string expectedError)
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+        });
+
+        Asserts.Fail(await game.DrawCards(new DrawCardsRequest{ PlayerId = game.CurrentPlayer.Id, NumberOfCards = numberOfCards }), expectedError);
+    }
+    
+    [Test]
+    public async ValueTask DrawCards_Fails_WhenStockPileIsEmpty()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
+            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+        });
+
+        Asserts.Fail(await game.DrawCards(new DrawCardsRequest{ PlayerId = game.CurrentPlayer.Id, NumberOfCards = 2 }), "Not enough cards in stock pile");
     }
 
     [Test]
@@ -196,54 +242,10 @@ public class IdiotGameTest
             g.LastCardPutBy = g.Players[0].Id;
         });
 
-        Asserts.Success(await game.DrawCards(game.CurrentPlayer.Id, 2));
+        Asserts.Success(await game.DrawCards(new DrawCardsRequest{ PlayerId = game.CurrentPlayer.Id, NumberOfCards = 2 }));
         Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[0]));
     }
-    
-    [Test]
-    public async ValueTask DrawCards_Fails_WhenStockPileIsEmpty()
-    {
-        var game = SetUpGame(g =>
-        {
-            var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
-        });
-
-        Asserts.Fail(await game.DrawCards(game.CurrentPlayer.Id, 2), "Not enough cards in stock pile");
-    }
-    
-    [Test]
-    [TestCase(-1, "You have to draw at least 1 card")]
-    [TestCase(0, "You have to draw at least 1 card")]
-    [TestCase(4, "You can only have 2 more cards on hand")]
-    public async ValueTask DrawCards_Fails_WhenNumberOfCardsIsInvalid(int count, string expectedError)
-    {
-        var game = SetUpGame(g =>
-        {
-            var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
-        });
-
-        Asserts.Fail(await game.DrawCards(game.CurrentPlayer.Id, count), expectedError);
-    }
-
-    [Test]
-    public async ValueTask DrawCards_Fails_WhenNotYourTurn()
-    {
-        var game = SetUpGame(g =>
-        {
-            var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
-        });
-
-        Asserts.Fail(await game.DrawCards(game.Players[1].Id, 1), "It is not your turn");
-    }
+   
     
     private static IdiotGame SetUpGame(Action<IdiotGame> configure)
     {
@@ -251,7 +253,7 @@ public class IdiotGameTest
         {
             Id = Some.Id,
             Players = Some.FourPlayers(),
-            Deck = TestDeck
+            Deck = Decks.Standard
         });
 
         configure(game);
@@ -259,45 +261,35 @@ public class IdiotGameTest
         return game;
     }
 
-    private static IdiotGame CreateGame()
-    {
-        return IdiotGame.Create(new IdiotGameCreatedEvent
-        {
-            Players = Some.FourPlayers(),
-            Deck = TestDeck,
-            InitialSeed = Some.Seed 
-        });
-    }
-
-    private static List<Card> TestDeck => GetCards().ToList();
-
-    // Make sure all players have all suits
-    private static IEnumerable<Card> GetCards()
-    {
-        var ranks = new Dictionary<Suit, int>
-        {
-            [Suit.Clubs] = 0,
-            [Suit.Diamonds] = 0,
-            [Suit.Spades] = 0,
-            [Suit.Hearts] = 0
-        };
-        
-        while (ranks.Values.Any(v => v < 13))
-        {
-            foreach (var suit in Enum.GetValues<Suit>())
-            {
-                for (var ii = 0; ii < 4; ii++)
-                {
-                    var rank = ranks[suit] + 1;
-                    if (rank > 13)
-                    {
-                        continue;
-                    }
-                    ranks[suit] = rank;
-
-                    yield return new Card(rank, suit);    
-                }
-            }
-        }
-    }
+    // private static List<Card> TestDeck => GetCards().ToList();
+    //
+    // // Make sure all players have all suits
+    // private static IEnumerable<Card> GetCards()
+    // {
+    //     var ranks = new Dictionary<Suit, int>
+    //     {
+    //         [Suit.Clubs] = 0,
+    //         [Suit.Diamonds] = 0,
+    //         [Suit.Spades] = 0,
+    //         [Suit.Hearts] = 0
+    //     };
+    //     
+    //     while (ranks.Values.Any(v => v < 13))
+    //     {
+    //         foreach (var suit in Enum.GetValues<Suit>())
+    //         {
+    //             for (var ii = 0; ii < 4; ii++)
+    //             {
+    //                 var rank = ranks[suit] + 1;
+    //                 if (rank > 13)
+    //                 {
+    //                     continue;
+    //                 }
+    //                 ranks[suit] = rank;
+    //
+    //                 yield return new Card(rank, suit);    
+    //             }
+    //         }
+    //     }
+    // }
 }

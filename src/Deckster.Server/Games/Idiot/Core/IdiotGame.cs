@@ -63,10 +63,13 @@ public class IdiotGame : GameObject
         };
     }
 
-    public async Task<EmptyResponse> PutCardsFromHand(Guid playerId, Card[] cards)
+    public async Task<EmptyResponse> PutCardsFromHand(PutCardsFromHandRequest request)
     {
         IncrementSeed();
         EmptyResponse response;
+        var playerId = request.PlayerId;
+        var cards = request.Cards;
+        
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
             response = new EmptyResponse("It is not your turn");
@@ -141,9 +144,32 @@ public class IdiotGame : GameObject
         return response;
     }
 
-    public async Task<DrawCardsResponse> DrawCards(Guid playerId, int numberOfCards)
+    public async Task<EmptyResponse> PutFaceUpTableCard(PutFaceUpTableCardsRequest request)
     {
         IncrementSeed();
+        
+        EmptyResponse response;
+        if (!TryGetCurrentPlayer(request.PlayerId, out var player))
+        {
+            response = new EmptyResponse("It is not your turn");
+            await Communication.RespondAsync(request.PlayerId, response);
+            return response;
+        }
+
+        throw new NotImplementedException();
+    }
+    
+    public async Task<EmptyResponse> PutFaceDownTableCard(PutFaceDownTableCardRequest request)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<DrawCardsResponse> DrawCards(DrawCardsRequest request)
+    {
+        IncrementSeed();
+        var playerId = request.PlayerId;
+        var numberOfCards = request.NumberOfCards;
+        
         DrawCardsResponse response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -230,8 +256,8 @@ public class IdiotGame : GameObject
             PlayerId = player.Id,
             Name = player.Name,
             CardsOnHandCount = player.CardsOnHand.Count,
-            VisibleTableCards = player.VisibleTableCards,
-            HiddenTableCardsCount = player.HiddenTableCards.Count
+            VisibleTableCards = player.FaceUpTableCards,
+            HiddenTableCardsCount = player.FaceDownTableCards.Count
         };
     }
     

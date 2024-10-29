@@ -11,6 +11,16 @@ public class PutCardsFromHandRequest : DecksterRequest
     public Card[] Cards { get; init; }
 }
 
+public class PutFaceUpTableCardsRequest : DecksterRequest
+{
+    public Card[] Cards { get; init; }
+}
+
+public class PutFaceDownTableCardRequest : DecksterRequest
+{
+    public int Index { get; init; }
+}
+
 public class DrawCardsRequest : IdiotRequest
 {
     public int NumberOfCards { get; init; }
