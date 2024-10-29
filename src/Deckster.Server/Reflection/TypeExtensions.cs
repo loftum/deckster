@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Reflection;
 using JasperFx.Core.Reflection;
 
 namespace Deckster.Server.Reflection;
@@ -29,6 +28,11 @@ public static class TypeExtensions
     public static bool IsInt(this Type type)
     {
         return IntTypes.Contains(type);
+    }
+
+    public static bool IsNullable(this Type type)
+    {
+        return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
     }
 
     public static bool IsSimpleType(this Type type)
