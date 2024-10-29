@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.Uno;
-using Deckster.Client.Protocol;
 using Deckster.Server.Collections;
 using Deckster.Server.Games.Common;
 using Deckster.Server.Games.CrazyEights.Core;
@@ -91,9 +90,12 @@ public class UnoGame : GameObject
         DiscardPile.Push(StockPile.Pop());
     }
     
-    public async Task<PlayerViewOfGame> PutCard(Guid playerId, UnoCard card)
+    public async Task<PlayerViewOfGame> PutCard(PutCardRequest request)
     {
         IncrementSeed();
+        var playerId = request.PlayerId;
+        var card = request.Card;
+        
         PlayerViewOfGame response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -166,10 +168,13 @@ public class UnoGame : GameObject
         return response;
     }
     
-    public async Task<PlayerViewOfGame> PutWild(Guid playerId, UnoCard card, UnoColor newColor)
+    public async Task<PlayerViewOfGame> PutWild(PutWildRequest request)
     {
         IncrementSeed();
-
+        var playerId = request.PlayerId;
+        var card = request.Card;
+        var newColor = request.NewColor;
+        
         PlayerViewOfGame response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -234,9 +239,10 @@ public class UnoGame : GameObject
         return response;
     }
     
-    public async Task<UnoCardResponse> DrawCard(Guid playerId)
+    public async Task<UnoCardResponse> DrawCard(DrawCardRequest request)
     {
         IncrementSeed();
+        var playerId = request.PlayerId;
         UnoCardResponse response;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
@@ -282,9 +288,10 @@ public class UnoGame : GameObject
         return response;
     }
     
-    public async Task<EmptyResponse> Pass(Guid playerId)
+    public async Task<EmptyResponse> Pass(PassRequest request)
     {
         IncrementSeed();
+        var playerId = request.PlayerId;
         EmptyResponse response;
         if (!TryGetCurrentPlayer(playerId, out _))
         {
