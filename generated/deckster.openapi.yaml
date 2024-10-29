@@ -17,9 +17,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
-    System.Guid:
-      type: object
+              type: string
+              format: uuid
     Protocol.DecksterNotification:
       type: object
       allOf:
@@ -117,16 +116,19 @@ components:
                 name:
                   type: string
                 id:
-                  type: object
+                  type: string
+                  format: uuid
             connectionId:
-              type: object
+              type: string
+              format: uuid
     Common.PlayerData:
       type: object
       properties:
         name:
           type: string
         id:
-          type: object
+          type: string
+          format: uuid
     Handshake.ConnectSuccessMessage:
       type: object
       allOf:
@@ -193,7 +195,8 @@ components:
       type: object
       properties:
         id:
-          type: object
+          type: string
+          format: uuid
         name:
           type: string
         numberOfCards:
@@ -249,7 +252,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
             card:
               type: object
               properties:
@@ -264,7 +268,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
             card:
               type: object
               properties:
@@ -281,7 +286,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
     Uno.PlayerPassedNotification:
       type: object
       allOf:
@@ -289,7 +295,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
     Uno.ItsYourTurnNotification:
       type: object
       allOf:
@@ -332,7 +339,8 @@ components:
         - type: object
           properties:
             gameId:
-              type: object
+              type: string
+              format: uuid
             playerViewOfGame:
               type: object
               allOf:
@@ -430,7 +438,8 @@ components:
       type: object
       properties:
         playerId:
-          type: object
+          type: string
+          format: uuid
         name:
           type: string
         cardsOnHandCount:
@@ -514,7 +523,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
             card:
               type: object
               properties:
@@ -530,7 +540,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
             card:
               type: object
               properties:
@@ -548,7 +559,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
     CrazyEights.PlayerPassedNotification:
       type: object
       allOf:
@@ -556,7 +568,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
     CrazyEights.ItsYourTurnNotification:
       type: object
       allOf:
@@ -627,7 +640,8 @@ components:
       type: object
       properties:
         playerId:
-          type: object
+          type: string
+          format: uuid
         name:
           type: string
         numberOfCards:
@@ -640,7 +654,8 @@ components:
         - type: object
           properties:
             gameId:
-              type: object
+              type: string
+              format: uuid
             playerViewOfGame:
               type: object
               allOf:
@@ -693,7 +708,8 @@ components:
         - type: object
           properties:
             playerId:
-              type: object
+              type: string
+              format: uuid
     ChatRoom.SendChatRequest:
       type: object
       allOf:

@@ -25,14 +25,12 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               }
             }
           }
         ]
-      },
-      "System.Guid": {
-        "type": "object"
       },
       "Protocol.DecksterNotification": {
         "type": "object",
@@ -231,12 +229,14 @@
                     "type": "string"
                   },
                   "id": {
-                    "type": "object"
+                    "type": "string",
+                    "format": "uuid"
                   }
                 }
               },
               "connectionId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               }
             }
           }
@@ -249,7 +249,8 @@
             "type": "string"
           },
           "id": {
-            "type": "object"
+            "type": "string",
+            "format": "uuid"
           }
         }
       },
@@ -366,7 +367,8 @@
         "type": "object",
         "properties": {
           "id": {
-            "type": "object"
+            "type": "string",
+            "format": "uuid"
           },
           "name": {
             "type": "string"
@@ -471,7 +473,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               },
               "card": {
                 "type": "object",
@@ -498,7 +501,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               },
               "card": {
                 "type": "object",
@@ -528,7 +532,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               }
             }
           }
@@ -544,7 +549,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               }
             }
           }
@@ -620,7 +626,8 @@
             "type": "object",
             "properties": {
               "gameId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               },
               "playerViewOfGame": {
                 "type": "object",
@@ -781,7 +788,8 @@
         "type": "object",
         "properties": {
           "playerId": {
-            "type": "object"
+            "type": "string",
+            "format": "uuid"
           },
           "name": {
             "type": "string"
@@ -934,7 +942,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               },
               "card": {
                 "type": "object",
@@ -962,7 +971,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               },
               "card": {
                 "type": "object",
@@ -993,7 +1003,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               }
             }
           }
@@ -1009,7 +1020,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               }
             }
           }
@@ -1128,7 +1140,8 @@
         "type": "object",
         "properties": {
           "playerId": {
-            "type": "object"
+            "type": "string",
+            "format": "uuid"
           },
           "name": {
             "type": "string"
@@ -1149,7 +1162,8 @@
             "type": "object",
             "properties": {
               "gameId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               },
               "playerViewOfGame": {
                 "type": "object",
@@ -1243,7 +1257,8 @@
             "type": "object",
             "properties": {
               "playerId": {
-                "type": "object"
+                "type": "string",
+                "format": "uuid"
               }
             }
           }

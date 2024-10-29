@@ -33,6 +33,10 @@ public static class TypeExtensions
 
     public static bool IsSimpleType(this Type type)
     {
+        while (type.IsNullable())
+        {
+            type = type.GetGenericArguments()[0];
+        }
         return type == typeof(string) ||
                type.IsPrimitive ||
                type.IsEnum ||

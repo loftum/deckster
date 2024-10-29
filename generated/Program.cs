@@ -70,7 +70,6 @@ public class Program
                 var kotlin = new KotlinGenerator(client, $"no.forse.decksterlib.{ns}");
                 await kotlin.WriteToAsync(path);    
             }
-            
         }
     }
 }
