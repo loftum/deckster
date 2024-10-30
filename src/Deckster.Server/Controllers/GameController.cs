@@ -1,6 +1,7 @@
 using System.Net.WebSockets;
 using Deckster.Client;
 using Deckster.Server.Authentication;
+using Deckster.Server.CodeGeneration.Meta;
 using Deckster.Server.Data;
 using Deckster.Server.Games;
 using Deckster.Server.Middleware;
@@ -11,7 +12,7 @@ namespace Deckster.Server.Controllers;
 // Marker interface for discoverability
 public interface IGameController;
 
-public abstract class GameController<TGameClient, TGameHost, TGame> : Controller, IGameController
+public abstract class GameController<TGameHost, TGame> : Controller, IGameController
     where TGameHost : IGameHost
     where TGame : GameObject
 {
@@ -22,6 +23,13 @@ public abstract class GameController<TGameClient, TGameHost, TGame> : Controller
     {
         HostRegistry = hostRegistry;
         Repo = repo;
+    }
+
+    [HttpGet("metadata")]
+    public object Meta()
+    {
+        var meta = GameClientMeta.TryGetFor(typeof(TGame), out var m) ? m : null;
+        return meta;
     }
     
     [HttpGet("")]

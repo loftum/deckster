@@ -6,6 +6,7 @@ namespace Deckster.Server.CodeGeneration.Meta;
 public class GameClientMeta
 {
     public string Name { get; init; }
+    public List<NotificationMeta> Notifications { get; init; }
     public List<MethodMeta> Methods { get; init; }
     
     public static bool TryGetFor(Type type, out GameClientMeta meta)
@@ -24,13 +25,29 @@ public class GameClientMeta
                 methods.Add(gameMethod);
             }
         }
+
+        var notifications = new List<NotificationMeta>();
+        foreach (var e in type.GetEvents())
+        {
+            if (e.TryGetNotification(out var notification))
+            {
+                notifications.Add(notification);
+            }
+        }
         
         meta = new GameClientMeta
         {
             Name = $"{type.Name.Replace("Game", "")}Client",
-            Methods = methods
+            Methods = methods,
+            Notifications = notifications
         };
 
         return true;
     }
+}
+
+public class NotificationMeta
+{
+    public string Name { get; set; }
+    public TypeMeta NotificationType { get; set; }
 }

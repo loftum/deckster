@@ -1,6 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using Deckster.Client.Protocol;
+using Deckster.Server.Games;
 
 namespace Deckster.Server.CodeGeneration.Meta;
 
@@ -9,6 +10,55 @@ internal static class GameTypeExtensions
     public static bool InheritsFrom<T>(this Type type)
     {
         return typeof(T).IsAssignableFrom(type);
+    }
+
+    public static bool TryGetNotification(this EventInfo e, [MaybeNullWhen(false)] out NotificationMeta meta)
+    {
+        meta = default;
+        var handlerType = e.EventHandlerType;
+        if (handlerType == null)
+        {
+            return false;
+        }
+
+        if (handlerType.IsNotifyAll(out var notificationType) || handlerType.IsNotifyPlayer(out notificationType))
+        {
+            meta = new NotificationMeta
+            {
+                Name = e.Name,
+                NotificationType = new TypeMeta
+                {
+                    Name = notificationType.Name
+                }
+            };
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool IsNotifyAll(this Type type, [MaybeNullWhen(false)] out Type argument)
+    {
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NotifyAll<>))
+        {
+            argument = type.GenericTypeArguments[0];
+            return true;
+        }
+
+        argument = default;
+        return false;
+    }
+
+    private static bool IsNotifyPlayer(this Type type, [MaybeNullWhen(false)] out Type argument)
+    {
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NotifyPlayer<>))
+        {
+            argument = type.GenericTypeArguments[0];
+            return true;
+        }
+
+        argument = default;
+        return false;
     }
     
     public static bool TryGetGameMethod(this MethodInfo method, [MaybeNullWhen(false)] out MethodMeta meta)
