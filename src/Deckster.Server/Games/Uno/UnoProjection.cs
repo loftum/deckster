@@ -1,5 +1,4 @@
 using Deckster.Client.Games.Uno;
-using Deckster.Server.Games.CrazyEights;
 
 namespace Deckster.Server.Games.Uno;
 

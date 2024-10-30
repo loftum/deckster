@@ -352,7 +352,7 @@ public class UnoGame : GameObject
         }
         
         MoveToNextPlayer();
-        await Communication.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification
+        await Communication.NotifyPlayerAsync(CurrentPlayer.Id, new ItsYourTurnNotification
         {
             PlayerViewOfGame = GetPlayerViewOfGame(CurrentPlayer)
         });
@@ -434,14 +434,14 @@ public class UnoGame : GameObject
     {
         foreach (var player in Players)
         {
-            await Communication.NotifyAsync(player.Id, new GameStartedNotification
+            await Communication.NotifyPlayerAsync(player.Id, new GameStartedNotification
             {
                 GameId = Id,
                 PlayerViewOfGame = GetPlayerViewOfGame(player)
             });
         }
         
-        await Communication.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification
+        await Communication.NotifyPlayerAsync(CurrentPlayer.Id, new ItsYourTurnNotification
         {
             PlayerViewOfGame = GetPlayerViewOfGame(CurrentPlayer)
         });

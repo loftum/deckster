@@ -118,7 +118,7 @@ public class IdiotGame : GameObject
         
         response = EmptyResponse.Ok;
         await Communication.RespondAsync(playerId, response);
-
+        
         await Communication.NotifyAllAsync(new PlayerPutCardsNotification
         {
             PlayerId = playerId,
@@ -230,7 +230,7 @@ public class IdiotGame : GameObject
         }
         
         MoveToNextPlayer();
-        await Communication.NotifyAsync(CurrentPlayer.Id, new ItsYourTurnNotification
+        await Communication.NotifyPlayerAsync(CurrentPlayer.Id, new ItsYourTurnNotification
         {
             PlayerViewOfGame = GetPlayerViewOfGame(CurrentPlayer)
         });

@@ -3,7 +3,6 @@ using Deckster.Client.Protocol;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
-using Deckster.Server.Games.CrazyEights;
 
 namespace Deckster.Server.Games;
 
