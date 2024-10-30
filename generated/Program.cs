@@ -61,13 +61,13 @@ public class Program
         
         foreach (var type in types)
         {
-            if (GameClientMeta.TryGetFor(type, out var client))
+            if (GameMeta.TryGetFor(type, out var game))
             {
                 var ns = type.Namespace?.Split('.').LastOrDefault()?.ToLowerInvariant() ?? throw new Exception($"OMG CANT HAZ NAEMSPAZE OF ITZ TAYP '{type.Name}'");
-                var path = Path.Combine(basePath, "no.forse.decksterlib",  ns, $"{client.Name}.kt");
+                var path = Path.Combine(basePath, "no.forse.decksterlib",  ns, $"{game.Name}Client.kt");
                 
                 Console.WriteLine(path);
-                var kotlin = new KotlinGenerator(client, $"no.forse.decksterlib.{ns}");
+                var kotlin = new KotlinGenerator(game, $"no.forse.decksterlib.{ns}");
                 await kotlin.WriteToAsync(path);    
             }
         }

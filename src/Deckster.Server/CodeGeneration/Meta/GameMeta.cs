@@ -3,13 +3,13 @@ using Deckster.Server.Games;
 
 namespace Deckster.Server.CodeGeneration.Meta;
 
-public class GameClientMeta
+public class GameMeta
 {
     public string Name { get; init; }
     public List<NotificationMeta> Notifications { get; init; }
     public List<MethodMeta> Methods { get; init; }
     
-    public static bool TryGetFor(Type type, out GameClientMeta meta)
+    public static bool TryGetFor(Type type, out GameMeta meta)
     {
         meta = default;
         if (!type.InheritsFrom<GameObject>())
@@ -35,9 +35,9 @@ public class GameClientMeta
             }
         }
         
-        meta = new GameClientMeta
+        meta = new GameMeta
         {
-            Name = $"{type.Name.Replace("Game", "")}Client",
+            Name = type.Name.Replace("Game", ""),
             Methods = methods,
             Notifications = notifications
         };
@@ -49,5 +49,5 @@ public class GameClientMeta
 public class NotificationMeta
 {
     public string Name { get; set; }
-    public TypeMeta NotificationType { get; set; }
+    public MessageMeta Message { get; set; }
 }

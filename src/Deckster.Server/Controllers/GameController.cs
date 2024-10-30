@@ -28,7 +28,7 @@ public abstract class GameController<TGameHost, TGame> : Controller, IGameContro
     [HttpGet("metadata")]
     public object Meta()
     {
-        var meta = GameClientMeta.TryGetFor(typeof(TGame), out var m) ? m : null;
+        var meta = GameMeta.TryGetFor(typeof(TGame), out var m) ? m : null;
         return meta;
     }
     

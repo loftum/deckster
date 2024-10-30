@@ -26,10 +26,7 @@ internal static class GameTypeExtensions
             meta = new NotificationMeta
             {
                 Name = e.Name,
-                NotificationType = new TypeMeta
-                {
-                    Name = notificationType.Name
-                }
+                Message = MessageMeta.ForType(notificationType)
             };
             return true;
         }
@@ -89,10 +86,7 @@ internal static class GameTypeExtensions
             meta = new ParameterMeta
             {
                 Name = parameter.Name,
-                Type = new TypeMeta
-                {
-                    Name = parameter.ParameterType.Name
-                }
+                Type = MessageMeta.ForType(parameter.ParameterType)
             };
             return true;
         }
@@ -101,7 +95,7 @@ internal static class GameTypeExtensions
         return false;
     }
 
-    private static bool TryGetTaskOfDecksterResponse(this Type type, [MaybeNullWhen(false)] out TypeMeta meta)
+    private static bool TryGetTaskOfDecksterResponse(this Type type, [MaybeNullWhen(false)] out MessageMeta meta)
     {
         meta = default;
         if (!type.IsGenericType)
@@ -115,10 +109,7 @@ internal static class GameTypeExtensions
             genericTypeDefinition == typeof(Task<>) &&
             type.GenericTypeArguments[0].InheritsFrom<DecksterResponse>())
         {
-            meta = new TypeMeta
-            {
-                Name = type.GenericTypeArguments[0].Name 
-            };
+            meta = MessageMeta.ForType(type.GenericTypeArguments[0]);
             return true;
         }
 
