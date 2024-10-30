@@ -8,6 +8,12 @@ namespace Deckster.Server.Games.Idiot;
 
 public class IdiotGame : GameObject
 {
+    public event NotifyAll<GameEndedNotification>? GameEnded;
+    public event NotifyPlayer<ItsYourTurnNotification>? ItsYourTurn;
+    public event NotifyAll<PlayerDrewCardsNotification>? PlayerDrewCards;
+    public event NotifyAll<PlayerPutCardsNotification>? PlayerPutCards;
+    public event NotifyAll<DiscardPileFlushedNotification>? DiscardPileFlushed;
+    
     public int Seed { get; set; }
     public override GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
     public int CurrentPlayerIndex { get; set; }
@@ -72,28 +78,28 @@ public class IdiotGame : GameObject
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
             response = new EmptyResponse("It is not your turn");
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
 
         if (cards.Length < 1)
         {
             response = new EmptyResponse("You must put at least 1 card");
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
         
         if (!player.CardsOnHand.RemoveAll(cards))
         {
             response = new EmptyResponse("You don't have all of those cards");
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
         
         if (!CardsHaveSameRank(cards, out var rank))
         {
             response = new EmptyResponse("All cards must have same rank");
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
 
@@ -101,7 +107,7 @@ public class IdiotGame : GameObject
         if (rank < currentRank && rank != 2 && rank != 10)
         {
             response = new EmptyResponse($"Rank ({rank}) must be equal to or higher than current rank ({currentRank})");
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
         
@@ -117,9 +123,9 @@ public class IdiotGame : GameObject
         }
         
         response = EmptyResponse.Ok;
-        await Communication.RespondAsync(playerId, response);
+        await RespondAsync(playerId, response);
         
-        await Communication.NotifyAllAsync(new PlayerPutCardsNotification
+        await PlayerPutCards.InvokeOrDefault(new PlayerPutCardsNotification
         {
             PlayerId = playerId,
             Cards = cards
@@ -127,7 +133,7 @@ public class IdiotGame : GameObject
         
         if (discardpileFlushed)
         {
-            await Communication.NotifyAllAsync(new DiscardPileFlushedNotification { PlayerId = playerId }); 
+            await DiscardPileFlushed.InvokeOrDefault(() => new DiscardPileFlushedNotification { PlayerId = playerId }); 
         }
         
         // If player is still playing, player must:
@@ -143,6 +149,9 @@ public class IdiotGame : GameObject
         return response;
     }
 
+     
+     
+
     public async Task<EmptyResponse> PutFaceUpTableCard(PutFaceUpTableCardsRequest request)
     {
         IncrementSeed();
@@ -151,7 +160,7 @@ public class IdiotGame : GameObject
         if (!TryGetCurrentPlayer(request.PlayerId, out var player))
         {
             response = new EmptyResponse("It is not your turn");
-            await Communication.RespondAsync(request.PlayerId, response);
+            await RespondAsync(request.PlayerId, response);
             return response;
         }
 
@@ -173,14 +182,14 @@ public class IdiotGame : GameObject
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
             response = new DrawCardsResponse{ Error = "It is not your turn" };
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
 
         if (numberOfCards <= 0)
         {
             response = new DrawCardsResponse{ Error = "You have to draw at least 1 card" };
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
 
@@ -188,22 +197,22 @@ public class IdiotGame : GameObject
         if (numberOfCards > 3 - player.CardsOnHand.Count)
         {
             response = new DrawCardsResponse{ Error = $"You can only have {max} more cards on hand" };
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
 
         if (!StockPile.TryPop(numberOfCards, out var cards))
         {
             response = new DrawCardsResponse{ Error = "Not enough cards in stock pile" };
-            await Communication.RespondAsync(playerId, response);
+            await RespondAsync(playerId, response);
             return response;
         }
         
         player.CardsOnHand.PushRange(cards);
         response = new DrawCardsResponse { Cards = cards };
-        await Communication.RespondAsync(playerId, response);
+        await RespondAsync(playerId, response);
 
-        await Communication.NotifyAllAsync(new PlayerDrewCardsNotification
+        await PlayerDrewCards.InvokeOrDefault(() => new PlayerDrewCardsNotification
         {
             PlayerId = playerId,
             NumberOfCards = numberOfCards
@@ -220,17 +229,19 @@ public class IdiotGame : GameObject
         
         return response;
     }
+
+     
     
     private async Task MoveToNextPlayerOrFinishAsync()
     {
         if (State == GameState.Finished)
         {
-            await Communication.NotifyAllAsync(new GameEndedNotification());
+            await GameEnded.InvokeOrDefault(() => new GameEndedNotification());
             return;
         }
         
         MoveToNextPlayer();
-        await Communication.NotifyPlayerAsync(CurrentPlayer.Id, new ItsYourTurnNotification
+        await ItsYourTurn.InvokeOrDefault(CurrentPlayer.Id, () =>  new ItsYourTurnNotification
         {
             PlayerViewOfGame = GetPlayerViewOfGame(CurrentPlayer)
         });

@@ -19,15 +19,6 @@ public class UnoProjection : GameProjection<UnoGame>
         };
 
         var game = Create(startEvent);
-        game.RespondAsync = host.RespondAsync;
-        game.PlayerPutCard += host.NotifyAllAsync;
-        game.PlayerPutWild += host.NotifyAllAsync;
-        game.PlayerDrewCard += host.NotifyAllAsync;
-        game.PlayerPassed += host.NotifyAllAsync;
-        game.ItsYourTurn += host.NotifyPlayerAsync;
-        game.GameStarted += host.NotifyPlayerAsync;
-        game.GameEnded += host.NotifyAllAsync;
-        
         return (game, startEvent);
     }
 
@@ -35,5 +26,4 @@ public class UnoProjection : GameProjection<UnoGame>
     public Task Apply(PutWildRequest @event, UnoGame game) => game.PutWild(@event);
     public Task Apply(DrawCardRequest @event, UnoGame game) => game.DrawCard(@event);
     public Task Apply(PassRequest @event, UnoGame game) => game.Pass(@event);
-
 }

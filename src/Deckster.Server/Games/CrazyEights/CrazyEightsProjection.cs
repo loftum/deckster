@@ -18,15 +18,6 @@ public class CrazyEightsProjection : GameProjection<CrazyEightsGame>
             Deck = Decks.Standard.KnuthShuffle(new Random().Next(0, int.MaxValue))
         };
         var game = Create(startEvent);
-        game.RespondAsync = host.RespondAsync;
-        game.PlayerPutCard += host.NotifyAllAsync;
-        game.ItsYourTurn += host.NotifyPlayerAsync;
-        game.PlayerPassed += host.NotifyAllAsync;
-        game.GameEnded += host.NotifyAllAsync;
-        game.PlayerIsDone += host.NotifyAllAsync;
-        game.PlayerDrewCard += host.NotifyAllAsync;
-        game.GameStarted += host.NotifyPlayerAsync;
-        
         return (game, startEvent);
     }
     

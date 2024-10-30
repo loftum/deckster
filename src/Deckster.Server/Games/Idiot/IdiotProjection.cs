@@ -1,12 +1,9 @@
-using Deckster.Server.Games.CrazyEights;
-
 namespace Deckster.Server.Games.Idiot;
 
 public class IdiotProjection : GameProjection<IdiotGame>
 {
-    public Task Apply(PutCardsFromHandRequest @event, IdiotGame game) => game.PutCardsFromHand(@event);
-    public Task Apply(DrawCardsRequest @event, IdiotGame game) => game.DrawCards(@event);
-    
+    public static IdiotGame Create(IdiotGameCreatedEvent created) => IdiotGame.Create(created);
+
     public override (IdiotGame game, object startEvent) Create(IGameHost host)
     {
         var createdEvent = new IdiotGameCreatedEvent
@@ -15,7 +12,10 @@ public class IdiotProjection : GameProjection<IdiotGame>
             Deck = Decks.Standard.KnuthShuffle(new Random().Next(0, int.MaxValue))
         };
 
-        var game = IdiotGame.Create(createdEvent);
+        var game = Create(createdEvent);
         return (game, createdEvent);
     }
+    
+    public Task Apply(PutCardsFromHandRequest @event, IdiotGame game) => game.PutCardsFromHand(@event);
+    public Task Apply(DrawCardsRequest @event, IdiotGame game) => game.DrawCards(@event);
 }

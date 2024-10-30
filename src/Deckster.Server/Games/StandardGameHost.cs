@@ -30,7 +30,7 @@ public abstract class StandardGameHost<TGame> : GameHost where TGame : GameObjec
         }
         
         (game, var startEvent) = Projection.Create(this);
-        game.SetCommunication(this);
+        game.WireUp(this);
         var events = _repo.StartEventQueue<TGame>(game.Id, startEvent);
 
         Game.Value = game;

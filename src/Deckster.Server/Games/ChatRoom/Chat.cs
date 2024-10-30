@@ -5,6 +5,8 @@ namespace Deckster.Server.Games.ChatRoom;
 
 public class Chat : GameObject
 {
+    public event NotifyAll<ChatNotification>? PlayerSaid; 
+    
     public override GameState State => GameState.Running;
 
     public List<SendChatRequest> Transcript { get; init; } = [];
@@ -22,8 +24,8 @@ public class Chat : GameObject
     {
         Transcript.Add(@event);
         var response = new ChatResponse();
-        await Communication.RespondAsync(@event.PlayerId, response);
-        await Communication.NotifyAllAsync(new ChatNotification
+        await RespondAsync(@event.PlayerId, response);
+        await PlayerSaid.InvokeOrDefault(() => new ChatNotification
         {
             Sender = @event.PlayerId.ToString(),
             Message = @event.Message
