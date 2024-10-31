@@ -13,6 +13,7 @@ public class IdiotGame : GameObject
     public event NotifyAll<PlayerDrewCardsNotification>? PlayerDrewCards;
     public event NotifyAll<PlayerPutCardsNotification>? PlayerPutCards;
     public event NotifyAll<DiscardPileFlushedNotification>? DiscardPileFlushed;
+    public event NotifyAll<PlayerIsDoneNotification>? PlayerIsDone;
     
     public int Seed { get; set; }
     public override GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
@@ -71,91 +72,19 @@ public class IdiotGame : GameObject
     public async Task<EmptyResponse> PutCardsFromHand(PutCardsFromHandRequest request)
     {
         IncrementSeed();
-        EmptyResponse response;
-        var playerId = request.PlayerId;
-        var cards = request.Cards;
-        
-        if (!TryGetCurrentPlayer(playerId, out var player))
+        if (!TryGetCurrentPlayer(request.PlayerId, out var player))
         {
-            response = new EmptyResponse("It is not your turn");
-            await RespondAsync(playerId, response);
+            var response = new EmptyResponse("It is not your turn");
+            await RespondAsync(request.PlayerId, response);
             return response;
         }
 
-        if (cards.Length < 1)
-        {
-            response = new EmptyResponse("You must put at least 1 card");
-            await RespondAsync(playerId, response);
-            return response;
-        }
-        
-        if (!player.CardsOnHand.RemoveAll(cards))
-        {
-            response = new EmptyResponse("You don't have all of those cards");
-            await RespondAsync(playerId, response);
-            return response;
-        }
-        
-        if (!CardsHaveSameRank(cards, out var rank))
-        {
-            response = new EmptyResponse("All cards must have same rank");
-            await RespondAsync(playerId, response);
-            return response;
-        }
-
-        var currentRank = TopOfPile?.Rank;
-        if (rank < currentRank && rank != 2 && rank != 10)
-        {
-            response = new EmptyResponse($"Rank ({rank}) must be equal to or higher than current rank ({currentRank})");
-            await RespondAsync(playerId, response);
-            return response;
-        }
-        
-        DiscardPile.PushRange(cards);
-        LastCardPutBy = playerId;
-
-        var discardpileFlushed = false;
-        if (rank == 10 || cards.Length == 4)
-        {
-            GarbagePile.PushRange(DiscardPile);
-            DiscardPile.Clear();
-            discardpileFlushed = true;
-        }
-        
-        response = EmptyResponse.Ok;
-        await RespondAsync(playerId, response);
-        
-        await PlayerPutCards.InvokeOrDefault(new PlayerPutCardsNotification
-        {
-            PlayerId = playerId,
-            Cards = cards
-        });
-        
-        if (discardpileFlushed)
-        {
-            await DiscardPileFlushed.InvokeOrDefault(() => new DiscardPileFlushedNotification { PlayerId = playerId }); 
-        }
-        
-        // If player is still playing, player must:
-        // - draw card
-        // - If discard pile was flushed: put a new card, then draw card
-        if (player.IsStillPlaying() && (discardpileFlushed || StockPile.Any()))
-        {
-            return response;
-        }
-        
-        await MoveToNextPlayerOrFinishAsync();
-        
-        return response;
+        return await DoPutAsync(player, request.Cards, player.CardsOnHand);
     }
 
-     
-     
-
-    public async Task<EmptyResponse> PutFaceUpTableCard(PutFaceUpTableCardsRequest request)
+    public async Task<EmptyResponse> PutCardsFacingUp(PutCardsFaceUpRequest request)
     {
         IncrementSeed();
-        
         EmptyResponse response;
         if (!TryGetCurrentPlayer(request.PlayerId, out var player))
         {
@@ -164,12 +93,155 @@ public class IdiotGame : GameObject
             return response;
         }
 
-        throw new NotImplementedException();
+        if (player.CardsOnHand.Any())
+        {
+            response = new EmptyResponse("You still have cards on hand");
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+
+        if (StockPile.Any())
+        {
+            response = new EmptyResponse("There are still cards in stock pile");
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+
+        return await DoPutAsync(player, request.Cards, player.CardsFacingUp);
     }
     
-    public async Task<EmptyResponse> PutFaceDownTableCard(PutFaceDownTableCardRequest request)
+    public async Task<EmptyResponse> PutCardFacingDown(PutCardFaceDownRequest request)
     {
-        throw new NotImplementedException();
+        IncrementSeed();
+        var playerId = request.PlayerId;
+        var index = request.Index;
+        
+        EmptyResponse response;
+        
+        if (!TryGetCurrentPlayer(playerId, out var player))
+        {
+            response = new EmptyResponse{ Error = "It is not your turn" };
+            await RespondAsync(playerId, response);
+            return response;
+        }
+
+        if (player.CardsOnHand.Any())
+        {
+            response = new EmptyResponse{ Error = "You still have cards on hand" };
+            await RespondAsync(playerId, response);
+            return response;
+        }
+
+        if (StockPile.Any())
+        {
+            response = new EmptyResponse("There are still cards in stock pile");
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+
+        if (!player.CardsFacingDown.TryPeekAt(index, out var card))
+        {
+            response = new EmptyResponse{ Error = "Invalid face down card index" };
+            await RespondAsync(playerId, response);
+            return response;
+        }
+
+        return await DoPutAsync(player, [card], player.CardsFacingDown);
+    }
+    
+    private bool TryPut(Guid playerId, Card[] cards, List<Card> collection, out bool discardPileFlushed, [MaybeNullWhen(true)] out string error)
+    {
+        discardPileFlushed = false;
+        if (cards.Length < 1)
+        {
+            error = "You must put at least 1 card";
+            return false;
+        }
+        
+        if (!collection.ContainsAll(cards))
+        {
+            error = "You don't have all of those cards";
+            return false;
+        }
+        
+        if (!cards.HaveSameRank(out var rank))
+        {
+            error = "All cards must have same rank";
+            return false;
+        }
+        
+        var currentRank = TopOfPile?.Rank;
+        if (rank < currentRank && rank != 2 && rank != 10)
+        {
+            error = $"Rank ({rank}) must be equal to or higher than current rank ({currentRank})";
+            return false;
+        }
+        
+        if (!collection.RemoveAll(cards))
+        {
+            error = "You don't have all of those cards";
+            return false;
+        }
+        
+        DiscardPile.PushRange(cards);
+        LastCardPutBy = playerId;
+
+        
+        if (rank == 10 || cards.Length == 4)
+        {
+            GarbagePile.PushRange(DiscardPile);
+            DiscardPile.Clear();
+            discardPileFlushed = true;
+        }
+
+        error = default;
+        return true;
+    }
+    
+    private async Task<EmptyResponse> DoPutAsync(IdiotPlayer player, Card[] cards, List<Card> collection)
+    {
+        EmptyResponse response;
+        if (!TryPut(player.Id, cards, collection, out var discardPileFlushed, out var error))
+        {
+            response = new EmptyResponse(error);
+            await RespondAsync(player.Id, response);
+            return response;
+        }
+        
+        response = EmptyResponse.Ok;
+        await RespondAsync(player.Id, response);
+
+        await PlayerPutCards.InvokeOrDefault(() => new PlayerPutCardsNotification
+        {
+            PlayerId = player.Id,
+            Cards = cards
+        });
+        
+        // If player is still playing, player must:
+        // - draw card
+        // - If discard pile was flushed: put a new card, then draw card
+        if (player.IsStillPlaying() && (discardPileFlushed || StockPile.Any()))
+        {
+            return response;
+        }
+
+        if (discardPileFlushed)
+        {
+            await DiscardPileFlushed.InvokeOrDefault(() => new DiscardPileFlushedNotification
+            {
+                PlayerId = player.Id
+            });
+        }
+
+        if (!player.IsStillPlaying())
+        {
+            DonePlayers.Add(player);
+            await PlayerIsDone.InvokeOrDefault(() => new PlayerIsDoneNotification {PlayerId = player.Id});
+        }
+        
+        await MoveToNextPlayerOrFinishAsync();
+        
+        return response;
     }
 
     public async Task<DrawCardsResponse> DrawCards(DrawCardsRequest request)
@@ -177,11 +249,11 @@ public class IdiotGame : GameObject
         IncrementSeed();
         var playerId = request.PlayerId;
         var numberOfCards = request.NumberOfCards;
-        
-        DrawCardsResponse response;
+       
+        DrawCardsResponse? response = null;
         if (!TryGetCurrentPlayer(playerId, out var player))
         {
-            response = new DrawCardsResponse{ Error = "It is not your turn" };
+            response = new DrawCardsResponse { Error = "It is not your turn" };
             await RespondAsync(playerId, response);
             return response;
         }
@@ -204,6 +276,12 @@ public class IdiotGame : GameObject
         if (!StockPile.TryPop(numberOfCards, out var cards))
         {
             response = new DrawCardsResponse{ Error = "Not enough cards in stock pile" };
+            await RespondAsync(playerId, response);
+            return response;
+        }
+
+        if (response != null)
+        {
             await RespondAsync(playerId, response);
             return response;
         }
@@ -230,7 +308,10 @@ public class IdiotGame : GameObject
         return response;
     }
 
-     
+    public async Task<PullInResponse> PullIn(PullInRequest request)
+    {
+        throw new NotImplementedException();
+    }     
     
     private async Task MoveToNextPlayerOrFinishAsync()
     {
@@ -266,8 +347,8 @@ public class IdiotGame : GameObject
             PlayerId = player.Id,
             Name = player.Name,
             CardsOnHandCount = player.CardsOnHand.Count,
-            VisibleTableCards = player.FaceUpTableCards,
-            HiddenTableCardsCount = player.FaceDownTableCards.Count
+            VisibleTableCards = player.CardsFacingUp,
+            HiddenTableCardsCount = player.CardsFacingDown.Count
         };
     }
     
@@ -295,16 +376,16 @@ public class IdiotGame : GameObject
         CurrentPlayerIndex = index;
     }
 
-    private static bool CardsHaveSameRank(Card[] cards, out int rank)
-    {
-        rank = default;
-        if (cards.Length == 0)
-        {
-            return false;
-        }
-        rank = cards[0].Rank;
-        return cards.All(c => c.Rank == cards[0].Rank);
-    }
+    // private static bool CardsHaveSameRank(Card[] cards, out int rank)
+    // {
+    //     rank = default;
+    //     if (cards.Length == 0)
+    //     {
+    //         return false;
+    //     }
+    //     rank = cards[0].Rank;
+    //     return cards.All(c => c.Rank == cards[0].Rank);
+    // }
 
     private bool TryGetCurrentPlayer(Guid playerId, [MaybeNullWhen(false)] out IdiotPlayer player)
     {
