@@ -35,7 +35,7 @@ public class IdiotGameTest
         });
 
         var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(9, Suit.Spades)]});
-        Asserts.Fail(response, "You don't have all of those cards");
+        Asserts.Fail(response, "You don't have those cards");
     }
 
     [Test]
@@ -259,7 +259,7 @@ public class IdiotGameTest
             g.LastCardPutBy = g.Players[0].Id;
         });
 
-        Asserts.Success(await game.PutCardFacingDown(new PutCardFaceDownRequest{ PlayerId = game.CurrentPlayer.Id, Index = 0 }));
+        Asserts.Success(await game.PutCardFacingDown(new PutCardFacingDownRequest{ PlayerId = game.CurrentPlayer.Id, Index = 0 }));
         Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
     }
     
@@ -278,7 +278,7 @@ public class IdiotGameTest
             g.LastCardPutBy = g.Players[0].Id;
         });
 
-        Asserts.Fail(await game.PutCardFacingDown(new PutCardFaceDownRequest{ PlayerId = game.Players[1].Id, Index = 0 }),
+        Asserts.Fail(await game.PutCardFacingDown(new PutCardFacingDownRequest{ PlayerId = game.Players[1].Id, Index = 0 }),
             "It is not your turn");
     }
 
@@ -296,7 +296,7 @@ public class IdiotGameTest
             g.LastCardPutBy = g.Players[0].Id;
         });
 
-        Asserts.Success(await game.PutCardFacingDown(new PutCardFaceDownRequest{ PlayerId = game.CurrentPlayer.Id, Index = 0 }));
+        Asserts.Success(await game.PutCardFacingDown(new PutCardFacingDownRequest{ PlayerId = game.CurrentPlayer.Id, Index = 0 }));
         Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
     }
     
@@ -315,7 +315,7 @@ public class IdiotGameTest
             g.LastCardPutBy = g.Players[0].Id;
         });
 
-        Asserts.Fail(await game.PutCardFacingDown(new PutCardFaceDownRequest{ PlayerId = game.CurrentPlayer.Id, Index = 0 }),
+        Asserts.Fail(await game.PutCardFacingDown(new PutCardFacingDownRequest{ PlayerId = game.CurrentPlayer.Id, Index = 0 }),
             "There are still cards in stock pile");
     }
    

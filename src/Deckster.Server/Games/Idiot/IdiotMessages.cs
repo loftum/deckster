@@ -11,12 +11,12 @@ public class PutCardsFromHandRequest : DecksterRequest
     public Card[] Cards { get; init; }
 }
 
-public class PutCardsFaceUpRequest : DecksterRequest
+public class PutCardsFacingUpRequest : DecksterRequest
 {
     public Card[] Cards { get; init; }
 }
 
-public class PutCardFaceDownRequest : DecksterRequest
+public class PutCardFacingDownRequest : DecksterRequest
 {
     public int Index { get; init; }
 }
@@ -26,7 +26,9 @@ public class DrawCardsRequest : IdiotRequest
     public int NumberOfCards { get; init; }
 }
 
-public class PullInRequest : IdiotRequest;
+public class PullInDiscardPileRequest : IdiotRequest;
+
+public class PutChanceCardRequest : IdiotRequest;
 
 public class IdiotResponse : DecksterResponse;
 
@@ -40,9 +42,10 @@ public class DrawCardsResponse : IdiotResponse
     public Card[] Cards { get; init; }
 }
 
-public class PutCardFaceDownResponse : IdiotResponse
+public class PutBlindCardResponse : IdiotResponse
 {
-    public Card[] YouGotCards { get; init; }
+    public Card AttemptedCard { get; init; }
+    public Card[] PullInCards { get; init; }
 }
 
 
@@ -73,6 +76,17 @@ public class PlayerDrewCardsNotification : IdiotNotification
 {
     public Guid PlayerId { get; init; }
     public int NumberOfCards { get; init; }
+}
+
+public class PlayerAttemptedPuttingCardNotification : IdiotNotification
+{
+    public Guid PlayerId { get; init; }
+    public Card Card { get; init; }
+}
+
+public class PlayerPulledInDiscardPileNotification : IdiotNotification
+{
+    public Guid PlayerId { get; init; }
 }
 
 public class GameEndedNotification : IdiotNotification;

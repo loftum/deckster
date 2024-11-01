@@ -17,6 +17,9 @@ public class IdiotProjection : GameProjection<IdiotGame>
     }
     
     public Task Apply(PutCardsFromHandRequest @event, IdiotGame game) => game.PutCardsFromHand(@event);
-    public Task Apply(PutCardsFaceUpRequest @event, IdiotGame game) => game.PutCardsFacingUp(@event);
+    public Task Apply(PutCardsFacingUpRequest @event, IdiotGame game) => game.PutCardsFacingUp(@event);
+    public Task Apply(PutCardFacingDownRequest @event, IdiotGame game) => game.PutCardFacingDown(@event);
     public Task Apply(DrawCardsRequest @event, IdiotGame game) => game.DrawCards(@event);
+    public Task Apply(PullInDiscardPileRequest @event, IdiotGame game) => game.PullInDiscardPile(@event);
+    public Task Apply(PutChanceCardRequest @event, IdiotGame game) => game.PutChanceCard(@event);
 }

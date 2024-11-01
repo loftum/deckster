@@ -7,13 +7,18 @@
  * PlayerDrewCards: PlayerDrewCardsNotification
  * PlayerPutCards: PlayerPutCardsNotification
  * DiscardPileFlushed: DiscardPileFlushedNotification
+ * PlayerIsDone: PlayerIsDoneNotification
+ * PlayerAttemptedPuttingCard: PlayerAttemptedPuttingCardNotification
+ * PlayerPulledInDiscardPile: PlayerPulledInDiscardPileNotification
  *
 */
 package no.forse.decksterlib.idiot
 
 interface IdiotClient {
     suspend fun putCardsFromHand(request: PutCardsFromHandRequest): EmptyResponse
-    suspend fun putFaceUpTableCard(request: PutFaceUpTableCardsRequest): EmptyResponse
-    suspend fun putFaceDownTableCard(request: PutFaceDownTableCardRequest): EmptyResponse
+    suspend fun putCardsFacingUp(request: PutCardsFacingUpRequest): EmptyResponse
+    suspend fun putCardFacingDown(request: PutCardFacingDownRequest): PutBlindCardResponse
+    suspend fun putChanceCard(request: PutChanceCardRequest): PutBlindCardResponse
+    suspend fun pullInDiscardPile(request: PullInDiscardPileRequest): PullInResponse
     suspend fun drawCards(request: DrawCardsRequest): DrawCardsResponse
 }
