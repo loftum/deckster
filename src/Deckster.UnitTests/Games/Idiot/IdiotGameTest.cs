@@ -15,8 +15,8 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(8, Suit.Spades)]});
@@ -30,8 +30,8 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(9, Suit.Spades)]});
@@ -44,9 +44,9 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [] });
@@ -61,8 +61,8 @@ public class IdiotGameTest
             var deck = g.Deck;
             g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
             g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         var response = await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(8, Suit.Spades), new Card(9, Suit.Spades)]});
@@ -76,9 +76,9 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
             
             g.DiscardPile.Push(deck.Steal(10, Suit.Spades));
         });
@@ -97,8 +97,8 @@ public class IdiotGameTest
             var deck = g.Deck;
             g.Players[0].CardsOnHand.Push(deck.Steal(10, Suit.Spades));
             g.Players[0].CardsOnHand.Push(deck.Steal(2, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
             
             g.DiscardPile.Push(deck.Steal(12, Suit.Spades));
         });
@@ -113,9 +113,9 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsOnHand.Push(deck.Steal(10, Suit.Spades));
-            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         Asserts.Success(await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(10, Suit.Spades)]}));
@@ -136,9 +136,9 @@ public class IdiotGameTest
                 g.Players[0].CardsOnHand.Push(deck.Steal(card));    
             }
             
-            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
         
         Asserts.Success(await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = cards }));
@@ -158,8 +158,8 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsOnHand.Push(deck.Steal(rank, suit));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         Asserts.Success(await game.PutCardsFromHand(new PutCardsFromHandRequest{ PlayerId = game.CurrentPlayer.Id, Cards = [new Card(rank, suit)] }));
@@ -173,8 +173,8 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
             g.StockPile.PushRange(g.Deck);
         });
 
@@ -188,9 +188,9 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         Asserts.Fail(await game.DrawCards(new DrawCardsRequest{PlayerId = game.Players[1].Id, NumberOfCards = 1 }), "It is not your turn");
@@ -205,9 +205,9 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         Asserts.Fail(await game.DrawCards(new DrawCardsRequest{ PlayerId = game.CurrentPlayer.Id, NumberOfCards = numberOfCards }), expectedError);
@@ -219,9 +219,9 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
         });
 
         Asserts.Fail(await game.DrawCards(new DrawCardsRequest{ PlayerId = game.CurrentPlayer.Id, NumberOfCards = 2 }), "Not enough cards in stock pile");
@@ -233,9 +233,9 @@ public class IdiotGameTest
         var game = SetUpGame(g =>
         {
             var deck = g.Deck;
-            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
-            g.Players[1].CardsOnHand.Push(deck.Steal(8, Suit.Diamonds));
-            g.Players[2].CardsOnHand.Push(deck.Steal(8, Suit.Clubs));
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
             g.StockPile.PushRange(g.Deck);
             g.DiscardPile.Clear();
             g.LastCardPutBy = g.Players[0].Id;
@@ -252,7 +252,7 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsFacingDown.Push(deck.Steal(8, Suit.Spades));
-            g.Players[0].CardsFacingDown.Push(deck.Steal(9, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
             g.Players[1].CardsOnHand.Push(deck.StealRandom());
             g.Players[2].CardsOnHand.Push(deck.StealRandom());
             g.DiscardPile.Clear();
@@ -270,7 +270,7 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsFacingDown.Push(deck.Steal(8, Suit.Spades));
-            g.Players[0].CardsFacingDown.Push(deck.Steal(9, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
             g.Players[1].CardsOnHand.Push(deck.StealRandom());
             g.Players[2].CardsOnHand.Push(deck.StealRandom());
             g.StockPile.PushRange(deck);
@@ -289,7 +289,7 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsFacingDown.Push(deck.Steal(8, Suit.Spades));
-            g.Players[0].CardsFacingDown.Push(deck.Steal(9, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
             g.Players[1].CardsOnHand.Push(deck.StealRandom());
             g.Players[2].CardsOnHand.Push(deck.StealRandom());
             g.DiscardPile.Clear();
@@ -307,7 +307,7 @@ public class IdiotGameTest
         {
             var deck = g.Deck;
             g.Players[0].CardsFacingDown.Push(deck.Steal(8, Suit.Spades));
-            g.Players[0].CardsFacingDown.Push(deck.Steal(9, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
             g.Players[1].CardsOnHand.Push(deck.StealRandom());
             g.Players[2].CardsOnHand.Push(deck.StealRandom());
             g.StockPile.PushRange(deck);

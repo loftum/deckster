@@ -94,11 +94,13 @@ public class IdiotGame : GameObject
         response = EmptyResponse.Ok;
         await RespondAsync(player.Id, response);
         await NotifyPlayerPutCardAsync(player, request.Cards, discardPileFlushed);
-        if (!discardPileFlushed)
+        
+        if (player.IsStillPlaying() && discardPileFlushed)
         {
-            await MoveToNextPlayerOrFinishAsync();    
+            return response;
         }
-
+        await MoveToNextPlayerOrFinishAsync();
+        
         return response;
     }
 
@@ -316,8 +318,14 @@ public class IdiotGame : GameObject
             error = "You don't have those cards";
             return false;
         }
-        
-        return TryPut(player.Id, cards, out discardPileFlushed, out error);
+
+        if (TryPut(player.Id, cards, out discardPileFlushed, out error))
+        {
+            collection.RemoveAll(cards);
+            return true;
+        }
+
+        return false;
     }
     
     private async Task NotifyPlayerPutCardAsync(IdiotPlayer player, Card[] cards, bool discardPileFlushed)
