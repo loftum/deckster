@@ -8,14 +8,19 @@ public static class ListExtensions
 {
     public static Card Steal(this List<Card> cards, int rank, Suit suit) => cards.Steal(new Card(rank, suit));
 
-    public static bool HaveSameRank(this IList<Card> cards, out int rank)
+    public static bool Contains(this List<Card> cards, int rank, Suit suit)
     {
-        rank = default;
+        return cards.Contains(new Card(rank, suit));
+    }
+    
+    public static bool HaveSameValue(this IList<Card> cards, out int value)
+    {
+        value = default;
         if (cards.Count == 0)
         {
             return false;
         }
-        rank = cards[0].Rank;
+        value = cards[0].GetValue(ValueCaluclation.AceIsFourteen);
         return cards.All(c => c.Rank == cards[0].Rank);
     }
 

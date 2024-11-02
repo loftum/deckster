@@ -218,36 +218,38 @@ public class IdiotGame : GameObject
     private async Task<PutBlindCardResponse> PlayBlindCardAsync(IdiotPlayer player, Card card)
     {
         PutBlindCardResponse response;
-        if (!TryPut(player.Id, [card], out var discardPileFlushed, out _))
+        if (TryPut(player.Id, [card], out var discardPileFlushed, out _))
         {
-            var cards = DiscardPile.StealAll().Append(card).ToArray();
-            player.CardsOnHand.Add(card);
-            player.CardsOnHand.AddRange(cards);
-            
             response = new PutBlindCardResponse
             {
                 AttemptedCard = card,
-                PullInCards = cards.ToArray()
+                PullInCards = []
             };
+
             await RespondAsync(player.Id, response);
-            
-            await PlayerAttemptedPuttingCard.InvokeOrDefault(() => new PlayerAttemptedPuttingCardNotification{ PlayerId = player.Id, Card = card });
-            await PlayerPulledInDiscardPile.InvokeOrDefault(() => new PlayerPulledInDiscardPileNotification{ PlayerId = player.Id });
-            
+
+            await NotifyPlayerPutCardAsync(player, [card], discardPileFlushed);
+            await MoveToNextPlayerOrFinishAsync();
+
             return response;
         }
 
+        var cards = DiscardPile.StealAll().Append(card).ToArray();
+        player.CardsOnHand.Add(card);
+        player.CardsOnHand.AddRange(cards);
+            
         response = new PutBlindCardResponse
         {
             AttemptedCard = card,
-            PullInCards = []
+            PullInCards = cards.ToArray()
         };
-
         await RespondAsync(player.Id, response);
-
-        await NotifyPlayerPutCardAsync(player, [card], discardPileFlushed);
+            
+        await PlayerAttemptedPuttingCard.InvokeOrDefault(() => new PlayerAttemptedPuttingCardNotification{ PlayerId = player.Id, Card = card });
+        await PlayerPulledInDiscardPile.InvokeOrDefault(() => new PlayerPulledInDiscardPileNotification{ PlayerId = player.Id });
+            
         await MoveToNextPlayerOrFinishAsync();
-        
+            
         return response;
     }
 
@@ -381,25 +383,25 @@ public class IdiotGame : GameObject
 
     private bool CanPut(Card card) => CanPut([card], out _, out _);
     
-    private bool CanPut(Card[] cards, out int rank, [MaybeNullWhen(true)] out string error)
+    private bool CanPut(Card[] cards, out int value, [MaybeNullWhen(true)] out string error)
     {
-        rank = default;
+        value = default;
         if (cards.Length < 1)
         {
             error = "You must put at least 1 card";
             return false;
         }
         
-        if (!cards.HaveSameRank(out rank))
+        if (!cards.HaveSameValue(out value))
         {
             error = "All cards must have same rank";
             return false;
         }
         
-        var currentRank = TopOfPile?.Rank;
-        if (currentRank.HasValue && rank < currentRank && rank != 2 && rank != 10)
+        var currentValue = TopOfPile?.GetValue(ValueCaluclation.AceIsFourteen);
+        if (currentValue.HasValue && value < currentValue && value != 2 && value != 10)
         {
-            error = $"Rank ({rank}) must be equal to or higher than current rank ({currentRank})";
+            error = $"Rank ({value}) must be equal to or higher than current rank ({currentValue})";
             return false;
         }
 

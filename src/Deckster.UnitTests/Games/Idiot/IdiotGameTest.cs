@@ -259,8 +259,40 @@ public class IdiotGameTest
             g.LastCardPutBy = g.Players[0].Id;
         });
 
-        Asserts.Success(await game.PutCardFacingDown(new PutCardFacingDownRequest{ PlayerId = game.CurrentPlayer.Id, Index = 0 }));
+        var response = await game.PutCardFacingDown(new PutCardFacingDownRequest {PlayerId = game.CurrentPlayer.Id, Index = 0});
+        Asserts.Success(response);
+        
+        Assert.That(response.AttemptedCard, Is.EqualTo(new Card(8, Suit.Spades)));
+        Assert.That(response.PullInCards, Is.Empty);
         Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
+    }
+
+    [Test]
+    public async ValueTask PutCardFacingDown_ReturnsDiscardPileAndCard_WhenCardIsTooLow()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            var topofPile = deck.Steal(9, Suit.Spades);
+            g.Players[0].CardsFacingDown.Push(deck.Steal(8, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
+            
+            g.DiscardPile.PushRange(deck.StealAll());
+            g.DiscardPile.Push(topofPile);
+        });
+        var discardPile = game.DiscardPile.ToList();
+        var player = game.Players[0];
+
+        var response = await game.PutCardFacingDown(new PutCardFacingDownRequest {PlayerId = game.CurrentPlayer.Id, Index = 0});
+        Asserts.Success(response);
+        
+        Assert.That(response.AttemptedCard, Is.EqualTo(new Card(8, Suit.Spades)));
+        Assert.That(response.PullInCards.ContainsAll(discardPile));
+        
+        Assert.That(player.CardsOnHand.Contains(9, Suit.Spades));
+        Assert.That(player.CardsOnHand.ContainsAll(discardPile));
     }
     
     [Test]
@@ -318,7 +350,105 @@ public class IdiotGameTest
         Asserts.Fail(await game.PutCardFacingDown(new PutCardFacingDownRequest{ PlayerId = game.CurrentPlayer.Id, Index = 0 }),
             "There are still cards in stock pile");
     }
-   
+
+    [Test]
+    public async ValueTask PutChanceCard()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+
+            var chanceCard = deck.Steal(1, Suit.Hearts);
+            var topOfPile = deck.Steal(1, Suit.Diamonds);
+            
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
+            
+            g.DiscardPile.Push(topOfPile);
+            g.StockPile.Push(chanceCard);
+        });
+
+        var response = await game.PutChanceCard(new PutChanceCardRequest {PlayerId = game.CurrentPlayer.Id});
+        Asserts.Success(response);
+        
+        Assert.That(response.AttemptedCard, Is.EqualTo(new Card(1, Suit.Hearts)));
+        Assert.That(response.PullInCards, Is.Empty);
+        Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
+    }
+
+    [Test]
+    public async ValueTask PutChanceCard_PullsIn_WhenCardIsTooLow()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+
+            var chanceCard = deck.Steal(3, Suit.Hearts);
+            var topOfPile = deck.Steal(1, Suit.Diamonds);
+            
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
+            
+            g.DiscardPile.Push(topOfPile);
+            g.StockPile.Push(chanceCard);
+        });
+
+        var response = await game.PutChanceCard(new PutChanceCardRequest {PlayerId = game.CurrentPlayer.Id});
+        Asserts.Success(response);
+        
+        Assert.That(response.AttemptedCard, Is.EqualTo(new Card(3, Suit.Hearts)));
+        Assert.That(response.PullInCards, Is.EquivalentTo(new []{new Card(1, Suit.Diamonds), new Card(3, Suit.Hearts)}));
+        Assert.That(game.CurrentPlayer, Is.SameAs(game.Players[1]));
+    }
+
+    [Test]
+    public async ValueTask PutChanceCard_Fails_WhenPlayerCanPlay()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+
+            var topOfPile = deck.Steal(7, Suit.Diamonds);
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
+            
+            g.DiscardPile.Push(topOfPile);
+            g.StockPile.PushRange(deck.StealAll());
+        });
+
+        var response = await game.PutChanceCard(new PutChanceCardRequest {PlayerId = game.CurrentPlayer.Id});
+        Asserts.Fail(response, "You must play one of your cards");
+    }
+    
+    [Test]
+    public async ValueTask PutChanceCard_Fails_WhenStockPileIsEmpty()
+    {
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            
+            var topOfPile = deck.Steal(11, Suit.Diamonds);
+            g.Players[0].CardsOnHand.Push(deck.Steal(8, Suit.Spades));
+            g.Players[0].CardsOnHand.Push(deck.Steal(9, Suit.Spades));
+            g.Players[0].CardsFacingDown.Push(deck.StealRandom());
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
+            
+            g.DiscardPile.Push(topOfPile);
+        });
+
+        var response = await game.PutChanceCard(new PutChanceCardRequest {PlayerId = game.CurrentPlayer.Id});
+        Asserts.Fail(response, "Stock pile is empty");
+    }
     
     private static IdiotGame SetUpGame(Action<IdiotGame> configure)
     {
