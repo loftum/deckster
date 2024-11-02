@@ -6,6 +6,12 @@ namespace Deckster.Server.Games.Idiot;
 
 public class IdiotRequest : DecksterRequest;
 
+public class SwapCardsRequest : DecksterRequest
+{
+    public Card CardOnHand { get; init; }
+    public Card CardFacingUp { get; init; }
+}
+
 public class PutCardsFromHandRequest : DecksterRequest
 {
     public Card[] Cards { get; init; }
@@ -32,6 +38,12 @@ public class PutChanceCardRequest : IdiotRequest;
 
 public class IdiotResponse : DecksterResponse;
 
+public class SwapCardsResponse : DecksterResponse
+{
+    public Card CardNowOnHand { get; init; }
+    public Card CardNowFacingUp { get; init; }
+}
+
 public class PullInResponse : IdiotResponse
 {
     public Card[] Cards { get; init; }
@@ -50,6 +62,13 @@ public class PutBlindCardResponse : IdiotResponse
 
 
 public class IdiotNotification : DecksterNotification;
+
+public class PlayerSwappedCardsNotification : DecksterNotification
+{
+    public Guid PlayerId { get; init; }
+    public Card CardNowOnHand { get; init; }
+    public Card CardNowFacingUp { get; init; }
+}
 
 public class PlayerPutCardsNotification : IdiotNotification
 {

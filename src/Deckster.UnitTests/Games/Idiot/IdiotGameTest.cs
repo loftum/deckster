@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using Deckster.Client.Games.Common;
+using Deckster.Client.Protocol;
 using Deckster.Server.Collections;
 using Deckster.Server.Games;
 using Deckster.Server.Games.Idiot;
@@ -6,8 +8,135 @@ using NUnit.Framework;
 
 namespace Deckster.UnitTests.Games.Idiot;
 
+public class FakeCommunication : ICommunication
+{
+    public List<DecksterNotification> BroadcastNotifications { get; } = [];
+    public ConcurrentDictionary<Guid, List<DecksterNotification>> PlayerNotifications { get; } = new();
+    public ConcurrentDictionary<Guid, List<DecksterResponse>> Responses { get; } = new();
+
+    public bool HasBroadcasted<TNotification>(Func<TNotification, bool> predicate) => BroadcastNotifications.OfType<TNotification>().Any(predicate);
+    public bool HasBroadcasted<TNotification>() => BroadcastNotifications.OfType<TNotification>().Any();
+
+    public Task NotifyAllAsync(DecksterNotification notification)
+    {
+        BroadcastNotifications.Add(notification);
+        return Task.CompletedTask;
+    }
+
+    public Task RespondAsync(Guid playerId, DecksterResponse response)
+    {
+        Responses.GetOrAdd(playerId, _ => new List<DecksterResponse>())
+            .Add(response);
+        return Task.CompletedTask;
+    }
+
+    public Task NotifyPlayerAsync(Guid playerId, DecksterNotification notification)
+    {
+        PlayerNotifications.GetOrAdd(playerId, _ => new List<DecksterNotification>())
+            .Add(notification);
+        return Task.CompletedTask;
+    }
+}
+
 public class IdiotGameTest
 {
+    [Test]
+    public async ValueTask SwapCards()
+    {
+        var goodCard = new Card(1, Suit.Spades);
+        var badCard = new Card(3, Suit.Clubs);
+        
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            g.Players[0].CardsOnHand.Push(deck.Steal(goodCard));
+            g.Players[0].CardsFacingUp.Push(deck.Steal(badCard));
+            
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
+            g.HasStarted = false;
+        });
+        var communication = new FakeCommunication();
+        game.WireUp(communication);
+
+        var player = game.Players[0];
+        var response = await game.SwapCards(new SwapCardsRequest
+        {
+            PlayerId = player.Id,
+            CardOnHand = goodCard,
+            CardFacingUp = badCard
+        });
+        Asserts.Success(response);
+        
+        Assert.That(response.CardNowFacingUp, Is.EqualTo(goodCard));
+        Assert.That(response.CardNowOnHand, Is.EqualTo(badCard));
+        
+        Assert.That(player.CardsFacingUp.Contains(goodCard));
+        Assert.That(player.CardsOnHand.Contains(badCard));
+        
+        Assert.That(communication.HasBroadcasted<PlayerSwappedCardsNotification>());
+    }
+
+    [Test]
+    public async ValueTask SwapCards_Fails_WhenPlayerDoesNotHaveCardOnHand()
+    {
+        var dontHave = new Card(1, Suit.Spades);
+        var cardFacingUp = new Card(3, Suit.Clubs);
+        
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            deck.Steal(dontHave);
+            g.Players[0].CardsOnHand.Push(deck.StealRandom());
+            g.Players[0].CardsFacingUp.Push(deck.Steal(cardFacingUp));
+            
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
+            g.HasStarted = false;
+        });
+        var communication = new FakeCommunication();
+        game.WireUp(communication);
+
+        var player = game.Players[0];
+        var response = await game.SwapCards(new SwapCardsRequest
+        {
+            PlayerId = player.Id,
+            CardOnHand = dontHave,
+            CardFacingUp = cardFacingUp
+        });
+        Asserts.Fail(response, "You don't have that card on hand");
+    }
+    
+    [Test]
+    public async ValueTask SwapCards_Fails_WhenPlayerDoesNotHaveCardFacingUp()
+    {
+        var cardOnHand = new Card(1, Suit.Spades);
+        var dontHave = new Card(3, Suit.Clubs);
+        
+        var game = SetUpGame(g =>
+        {
+            var deck = g.Deck;
+            deck.Steal(dontHave);
+            g.Players[0].CardsOnHand.Push(deck.Steal(cardOnHand));
+            g.Players[0].CardsFacingUp.Push(deck.StealRandom());
+            
+            g.Players[1].CardsOnHand.Push(deck.StealRandom());
+            g.Players[2].CardsOnHand.Push(deck.StealRandom());
+            g.HasStarted = false;
+        });
+        var communication = new FakeCommunication();
+        game.WireUp(communication);
+
+        var player = game.Players[0];
+        var response = await game.SwapCards(new SwapCardsRequest
+        {
+            PlayerId = player.Id,
+            CardOnHand = cardOnHand,
+            CardFacingUp = dontHave
+        });
+        Asserts.Fail(response, "You don't have that card facing up");
+    }
+    
     [Test]
     public async ValueTask PutCards()
     {
@@ -458,7 +587,7 @@ public class IdiotGameTest
             Players = Some.FourPlayers(),
             Deck = Decks.Standard
         });
-
+        game.HasStarted = true;
         configure(game);
         
         return game;

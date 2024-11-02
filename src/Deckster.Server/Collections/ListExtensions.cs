@@ -52,6 +52,8 @@ public static class ListExtensions
         return item;
     }
     
+    
+    
     public static bool TryStealAt<T>(this List<T> items, int index, [MaybeNullWhen(false)] out T item)
     {
         return items.TryPeekAt(index, out item) && items.Remove(item);

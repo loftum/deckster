@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
 using Deckster.Client.Games.Common;
 using Deckster.Client.Games.Idiot;
 using Deckster.Server.Collections;
@@ -19,6 +18,7 @@ public class IdiotGame : GameObject
     public event NotifyAll<PlayerAttemptedPuttingCardNotification> PlayerAttemptedPuttingCard;
     public event NotifyAll<PlayerPulledInDiscardPileNotification> PlayerPulledInDiscardPile;
     
+    public bool HasStarted { get; set; }
     public int Seed { get; set; }
     public override GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
     public int CurrentPlayerIndex { get; set; }
@@ -73,18 +73,75 @@ public class IdiotGame : GameObject
         };
     }
 
-    public async Task<EmptyResponse> PutCardsFromHand(PutCardsFromHandRequest request)
+    public async Task<SwapCardsResponse> SwapCards(SwapCardsRequest request)
     {
         IncrementSeed();
-        EmptyResponse response;
-        if (!TryGetCurrentPlayer(request.PlayerId, out var player))
+
+        SwapCardsResponse response;
+
+        if (HasStarted)
         {
-            response = new EmptyResponse("It is not your turn");
+            response = new SwapCardsResponse { Error = "Game has started" };
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+        
+        var player = Players.FirstOrDefault(p => p.Id == request.PlayerId);
+        if (player == null)
+        {
+            // ¯\_(ツ)_/¯
+            response = new SwapCardsResponse {Error = "You are not playing this game" };
             await RespondAsync(request.PlayerId, response);
             return response;
         }
 
-        if (!TryPutFromCollection(player, request.Cards, player.CardsOnHand, out var discardPileFlushed, out var error))
+        if (!player.CardsOnHand.Remove(request.CardOnHand))
+        {
+            response = new SwapCardsResponse {Error = "You don't have that card on hand" };
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+
+        if (!player.CardsFacingUp.Remove(request.CardFacingUp))
+        {
+            response = new SwapCardsResponse {Error = "You don't have that card facing up" };
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+        player.CardsOnHand.Push(request.CardFacingUp);
+        player.CardsFacingUp.Push(request.CardOnHand);
+
+        response = new SwapCardsResponse
+        {
+            CardNowFacingUp = request.CardOnHand,
+            CardNowOnHand = request.CardFacingUp
+        };
+        await RespondAsync(request.PlayerId, response);
+
+        await PlayerSwappedCards.InvokeOrDefault(new PlayerSwappedCardsNotification
+        {
+            PlayerId = player.Id,
+            CardNowFacingUp = request.CardOnHand,
+            CardNowOnHand = request.CardFacingUp
+        });
+
+        return response;
+    }
+
+    public event NotifyAll<PlayerSwappedCardsNotification> PlayerSwappedCards; 
+
+    public async Task<EmptyResponse> PutCardsFromHand(PutCardsFromHandRequest request)
+    {
+        IncrementSeed();
+        EmptyResponse response;
+        if (!TryGetCurrentPlayer(request.PlayerId, out var player, out var error))
+        {
+            response = new EmptyResponse(error);
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+
+        if (!TryPutFromCollection(player, request.Cards, player.CardsOnHand, out var discardPileFlushed, out error))
         {
             response = new EmptyResponse(error);
             await RespondAsync(request.PlayerId, response);
@@ -108,9 +165,9 @@ public class IdiotGame : GameObject
     {
         IncrementSeed();
         EmptyResponse response;
-        if (!TryGetCurrentPlayer(request.PlayerId, out var player))
+        if (!TryGetCurrentPlayer(request.PlayerId, out var player, out var error))
         {
-            response = new EmptyResponse("It is not your turn");
+            response = new EmptyResponse(error);
             await RespondAsync(request.PlayerId, response);
             return response;
         }
@@ -129,7 +186,7 @@ public class IdiotGame : GameObject
             return response;
         }
 
-        if (!TryPutFromCollection(player, request.Cards, player.CardsFacingUp, out var discardPileFlushed, out var error))
+        if (!TryPutFromCollection(player, request.Cards, player.CardsFacingUp, out var discardPileFlushed, out error))
         {
             response = new EmptyResponse(error);
             await RespondAsync(request.PlayerId, response);
@@ -155,9 +212,9 @@ public class IdiotGame : GameObject
         
         PutBlindCardResponse response;
         
-        if (!TryGetCurrentPlayer(playerId, out var player))
+        if (!TryGetCurrentPlayer(playerId, out var player, out var error))
         {
-            response = new PutBlindCardResponse{ Error = "It is not your turn" };
+            response = new PutBlindCardResponse{ Error = error };
             await RespondAsync(playerId, response);
             return response;
         }
@@ -191,9 +248,9 @@ public class IdiotGame : GameObject
         var playerId = request.PlayerId;
 
         PutBlindCardResponse response;
-        if (!TryGetCurrentPlayer(playerId, out var player))
+        if (!TryGetCurrentPlayer(playerId, out var player, out var error))
         {
-            response = new PutBlindCardResponse{ Error = "It is not your turn" };
+            response = new PutBlindCardResponse{ Error = error };
             await RespondAsync(playerId, response);
             return response;
         }
@@ -259,9 +316,9 @@ public class IdiotGame : GameObject
         var playerId = request.PlayerId;
 
         PullInResponse response;
-        if (!TryGetCurrentPlayer(playerId, out var player))
+        if (!TryGetCurrentPlayer(playerId, out var player, out var error))
         {
-            response = new PullInResponse{ Error = "It is not your turn" };
+            response = new PullInResponse{ Error = error };
             await RespondAsync(playerId, response);
             return response;
         }
@@ -416,9 +473,9 @@ public class IdiotGame : GameObject
         var numberOfCards = request.NumberOfCards;
        
         DrawCardsResponse? response = null;
-        if (!TryGetCurrentPlayer(playerId, out var player))
+        if (!TryGetCurrentPlayer(playerId, out var player, out var error))
         {
-            response = new DrawCardsResponse { Error = "It is not your turn" };
+            response = new DrawCardsResponse { Error = error };
             await RespondAsync(playerId, response);
             return response;
         }
@@ -547,12 +604,21 @@ public class IdiotGame : GameObject
     //     return cards.All(c => c.Rank == cards[0].Rank);
     // }
 
-    private bool TryGetCurrentPlayer(Guid playerId, [MaybeNullWhen(false)] out IdiotPlayer player)
+    private bool TryGetCurrentPlayer(Guid playerId, [MaybeNullWhen(false)] out IdiotPlayer player, [MaybeNullWhen(true)] out string error)
     {
+        player = default;
+        error = default;
+        if (!HasStarted)
+        {
+            error = "Game has not yet started";
+            return false;
+        }
+        
         var p = CurrentPlayer;
         if (p.Id != playerId)
         {
             player = default;
+            error = "It is not your turn";
             return false;
         }
 
