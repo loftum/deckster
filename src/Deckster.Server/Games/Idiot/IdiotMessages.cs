@@ -6,6 +6,8 @@ namespace Deckster.Server.Games.Idiot;
 
 public class IdiotRequest : DecksterRequest;
 
+public class IamReadyRequest : DecksterRequest;
+
 public class SwapCardsRequest : DecksterRequest
 {
     public Card CardOnHand { get; init; }
@@ -76,6 +78,11 @@ public class PlayerPutCardsNotification : IdiotNotification
     public Card[] Cards { get; init; }
 }
 
+public class PlayerIsReadyNotification : IdiotNotification
+{
+    public Guid PlayerId { get; init; }
+}
+
 public class PlayerIsDoneNotification : IdiotNotification
 {
     public Guid PlayerId { get; init; }
@@ -108,5 +115,8 @@ public class PlayerPulledInDiscardPileNotification : IdiotNotification
     public Guid PlayerId { get; init; }
 }
 
+public class GameStartedNotification : IdiotNotification;
+
 public class GameEndedNotification : IdiotNotification;
 
+public class ItsTimeToSwapCards : IdiotNotification;

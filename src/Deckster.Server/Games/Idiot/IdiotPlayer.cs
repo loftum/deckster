@@ -9,6 +9,7 @@ public class IdiotPlayer
     public List<Card> CardsOnHand { get; init; } = [];
     public List<Card> CardsFacingUp { get; init; } = [];
     public List<Card> CardsFacingDown { get; init; } = [];
+    public bool IsReady { get; set; }
 
     public bool IsStillPlaying() => CardsOnHand.Any() || CardsFacingUp.Any() || CardsFacingDown.Any();
     public bool IsDone() => !IsStillPlaying();

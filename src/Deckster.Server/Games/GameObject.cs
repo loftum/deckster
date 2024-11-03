@@ -20,8 +20,17 @@ public abstract class GameObject : DatabaseObject
     // ReSharper disable once UnusedMember.Global
     // Used by Marten
     public int Version { get; set; }
+    public int Seed { get; set; }
 
     public abstract Task StartAsync();
+
+    protected void IncrementSeed()
+    {
+        unchecked
+        {
+            Seed++;
+        }
+    }
 }
 
 public static class GameObjectExtensions

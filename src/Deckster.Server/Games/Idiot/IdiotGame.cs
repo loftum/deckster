@@ -8,6 +8,9 @@ namespace Deckster.Server.Games.Idiot;
 
 public class IdiotGame : GameObject
 {
+    public event NotifyAll<ItsTimeToSwapCards> ItsTimeToSwapCards; 
+    public event NotifyAll<PlayerIsReadyNotification> PlayerIsReady;
+    public event NotifyAll<GameStartedNotification> GameHasStarted; 
     public event NotifyAll<GameEndedNotification>? GameEnded;
     public event NotifyPlayer<ItsYourTurnNotification>? ItsYourTurn;
     public event NotifyAll<PlayerDrewCardsNotification>? PlayerDrewCards;
@@ -19,7 +22,6 @@ public class IdiotGame : GameObject
     public event NotifyAll<PlayerPulledInDiscardPileNotification> PlayerPulledInDiscardPile;
     
     public bool HasStarted { get; set; }
-    public int Seed { get; set; }
     public override GameState State => Players.Count(p => p.IsStillPlaying()) > 1 ? GameState.Running : GameState.Finished;
     public int CurrentPlayerIndex { get; set; }
     public IdiotPlayer CurrentPlayer => State == GameState.Finished ? IdiotPlayer.Null : Players[CurrentPlayerIndex];
@@ -71,6 +73,53 @@ public class IdiotGame : GameObject
                 Name = p.Name
             }).ToList()
         };
+    }
+
+    public async Task<EmptyResponse> IamReady(IamReadyRequest request)
+    {
+        EmptyResponse response;
+
+        var player = Players.FirstOrDefault(p => p.Id == request.PlayerId);
+        if (player == null)
+        {
+            response = new EmptyResponse("You are not playing this game");
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+        
+        if (HasStarted)
+        {
+            response = new EmptyResponse("Game has already started");
+            await RespondAsync(request.PlayerId, response);
+            return response;
+        }
+        
+        player.IsReady = true;
+
+        response = new EmptyResponse();
+        await RespondAsync(request.PlayerId, response);
+        await PlayerIsReady.InvokeOrDefault(new PlayerIsReadyNotification {PlayerId = player.Id});
+
+        if (Players.All(p => p.IsReady))
+        {
+            HasStarted = true;
+            foreach (var p in Players)
+            {
+                p.CardsOnHand.Sort(IdiotCardComparer.Instance);
+            }
+
+            var startingPlayer = Players
+                .OrderBy(p => p.CardsOnHand[0], IdiotCardComparer.Instance)
+                .ThenBy(p => p.CardsOnHand[1], IdiotCardComparer.Instance)
+                .ThenBy(p => p.CardsOnHand[2], IdiotCardComparer.Instance)
+                .First();
+            
+            HasStarted = true;
+            await GameHasStarted.InvokeOrDefault(() => new GameStartedNotification());
+            await ItsYourTurn.InvokeOrDefault(startingPlayer.Id, () => new ItsYourTurnNotification());
+        }
+
+        return response;
     }
 
     public async Task<SwapCardsResponse> SwapCards(SwapCardsRequest request)
@@ -593,17 +642,6 @@ public class IdiotGame : GameObject
         CurrentPlayerIndex = index;
     }
 
-    // private static bool CardsHaveSameRank(Card[] cards, out int rank)
-    // {
-    //     rank = default;
-    //     if (cards.Length == 0)
-    //     {
-    //         return false;
-    //     }
-    //     rank = cards[0].Rank;
-    //     return cards.All(c => c.Rank == cards[0].Rank);
-    // }
-
     private bool TryGetCurrentPlayer(Guid playerId, [MaybeNullWhen(false)] out IdiotPlayer player, [MaybeNullWhen(true)] out string error)
     {
         player = default;
@@ -626,16 +664,10 @@ public class IdiotGame : GameObject
         return true;
     }
     
-    private void IncrementSeed()
-    {
-        unchecked
-        {
-            Seed++;
-        }
-    }
-    
     public override Task StartAsync()
     {
-        throw new NotImplementedException();
+        return HasStarted
+            ? Task.CompletedTask
+            : ItsTimeToSwapCards.InvokeOrDefault(new ItsTimeToSwapCards());
     }
 }
