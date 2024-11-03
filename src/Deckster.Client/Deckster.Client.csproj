@@ -11,4 +11,8 @@
       <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Games\Chat\" />
+    </ItemGroup>
+
 </Project>

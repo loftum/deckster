@@ -22,7 +22,15 @@ components:
           Uno.UnoResponse: '#/components/schemas/Uno.UnoResponse'
           Uno.UnoGameNotification: '#/components/schemas/Uno.UnoGameNotification'
           Idiot.IdiotRequest: '#/components/schemas/Idiot.IdiotRequest'
+          Idiot.IamReadyRequest: '#/components/schemas/Idiot.IamReadyRequest'
+          Idiot.SwapCardsRequest: '#/components/schemas/Idiot.SwapCardsRequest'
+          Idiot.PutCardsFromHandRequest: '#/components/schemas/Idiot.PutCardsFromHandRequest'
+          Idiot.PutCardsFacingUpRequest: '#/components/schemas/Idiot.PutCardsFacingUpRequest'
+          Idiot.PutCardFacingDownRequest: '#/components/schemas/Idiot.PutCardFacingDownRequest'
           Idiot.IdiotResponse: '#/components/schemas/Idiot.IdiotResponse'
+          Idiot.SwapCardsResponse: '#/components/schemas/Idiot.SwapCardsResponse'
+          Idiot.IdiotNotification: '#/components/schemas/Idiot.IdiotNotification'
+          Idiot.PlayerSwappedCardsNotification: '#/components/schemas/Idiot.PlayerSwappedCardsNotification'
           CrazyEights.CrazyEightsRequest: '#/components/schemas/CrazyEights.CrazyEightsRequest'
           CrazyEights.CrazyEightsResponse: '#/components/schemas/CrazyEights.CrazyEightsResponse'
           CrazyEights.CrazyEightsNotification: '#/components/schemas/CrazyEights.CrazyEightsNotification'
@@ -48,6 +56,23 @@ components:
           Uno.GameStartedNotification: '#/components/schemas/Uno.GameStartedNotification'
           Uno.GameEndedNotification: '#/components/schemas/Uno.GameEndedNotification'
           Idiot.PlayerViewOfGame: '#/components/schemas/Idiot.PlayerViewOfGame'
+          Idiot.DrawCardsRequest: '#/components/schemas/Idiot.DrawCardsRequest'
+          Idiot.PullInDiscardPileRequest: '#/components/schemas/Idiot.PullInDiscardPileRequest'
+          Idiot.PutChanceCardRequest: '#/components/schemas/Idiot.PutChanceCardRequest'
+          Idiot.PullInResponse: '#/components/schemas/Idiot.PullInResponse'
+          Idiot.DrawCardsResponse: '#/components/schemas/Idiot.DrawCardsResponse'
+          Idiot.PutBlindCardResponse: '#/components/schemas/Idiot.PutBlindCardResponse'
+          Idiot.PlayerPutCardsNotification: '#/components/schemas/Idiot.PlayerPutCardsNotification'
+          Idiot.PlayerIsReadyNotification: '#/components/schemas/Idiot.PlayerIsReadyNotification'
+          Idiot.PlayerIsDoneNotification: '#/components/schemas/Idiot.PlayerIsDoneNotification'
+          Idiot.DiscardPileFlushedNotification: '#/components/schemas/Idiot.DiscardPileFlushedNotification'
+          Idiot.ItsYourTurnNotification: '#/components/schemas/Idiot.ItsYourTurnNotification'
+          Idiot.PlayerDrewCardsNotification: '#/components/schemas/Idiot.PlayerDrewCardsNotification'
+          Idiot.PlayerAttemptedPuttingCardNotification: '#/components/schemas/Idiot.PlayerAttemptedPuttingCardNotification'
+          Idiot.PlayerPulledInDiscardPileNotification: '#/components/schemas/Idiot.PlayerPulledInDiscardPileNotification'
+          Idiot.GameStartedNotification: '#/components/schemas/Idiot.GameStartedNotification'
+          Idiot.GameEndedNotification: '#/components/schemas/Idiot.GameEndedNotification'
+          Idiot.ItsTimeToSwapCardsNotification: '#/components/schemas/Idiot.ItsTimeToSwapCardsNotification'
           CrazyEights.PutCardRequest: '#/components/schemas/CrazyEights.PutCardRequest'
           CrazyEights.PutEightRequest: '#/components/schemas/CrazyEights.PutEightRequest'
           CrazyEights.DrawCardRequest: '#/components/schemas/CrazyEights.DrawCardRequest'
@@ -115,11 +140,128 @@ components:
       allOf:
         - $ref: '#/components/schemas/Protocol.DecksterRequest'
         - type: object
+    Idiot.IamReadyRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterRequest'
+        - type: object
+    Idiot.SwapCardsRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterRequest'
+        - type: object
+          properties:
+            cardOnHand:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  format: int32
+                suit:
+                  type: string
+            cardFacingUp:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  format: int32
+                suit:
+                  type: string
+    Common.Card:
+      type: object
+      properties:
+        rank:
+          type: integer
+          format: int32
+        suit:
+          type: string
+      nullable: true
+    Idiot.PutCardsFromHandRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterRequest'
+        - type: object
+          properties:
+            cards:
+              type: array
+              items:
+                $ref: '#/components/schemas/Common.Card'
+    Idiot.PutCardsFacingUpRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterRequest'
+        - type: object
+          properties:
+            cards:
+              type: array
+              items:
+                $ref: '#/components/schemas/Common.Card'
+    Idiot.PutCardFacingDownRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterRequest'
+        - type: object
+          properties:
+            index:
+              type: integer
+              format: int32
     Idiot.IdiotResponse:
       type: object
       allOf:
         - $ref: '#/components/schemas/Protocol.DecksterResponse'
         - type: object
+    Idiot.SwapCardsResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterResponse'
+        - type: object
+          properties:
+            cardNowOnHand:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  format: int32
+                suit:
+                  type: string
+            cardNowFacingUp:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  format: int32
+                suit:
+                  type: string
+    Idiot.IdiotNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterNotification'
+        - type: object
+    Idiot.PlayerSwappedCardsNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterNotification'
+        - type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+            cardNowOnHand:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  format: int32
+                suit:
+                  type: string
+            cardNowFacingUp:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  format: int32
+                suit:
+                  type: string
     CrazyEights.CrazyEightsRequest:
       type: object
       allOf:
@@ -465,15 +607,6 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Idiot.OtherIdiotPlayer'
-    Common.Card:
-      type: object
-      properties:
-        rank:
-          type: integer
-          format: int32
-        suit:
-          type: string
-      nullable: true
     Idiot.OtherIdiotPlayer:
       type: object
       properties:
@@ -492,6 +625,193 @@ components:
         hiddenTableCardsCount:
           type: integer
           format: int32
+    Idiot.DrawCardsRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotRequest'
+        - type: object
+          properties:
+            numberOfCards:
+              type: integer
+              format: int32
+    Idiot.PullInDiscardPileRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotRequest'
+        - type: object
+    Idiot.PutChanceCardRequest:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotRequest'
+        - type: object
+    Idiot.PullInResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotResponse'
+        - type: object
+          properties:
+            cards:
+              type: array
+              items:
+                $ref: '#/components/schemas/Common.Card'
+    Idiot.DrawCardsResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotResponse'
+        - type: object
+          properties:
+            cards:
+              type: array
+              items:
+                $ref: '#/components/schemas/Common.Card'
+    Idiot.PutBlindCardResponse:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotResponse'
+        - type: object
+          properties:
+            attemptedCard:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  format: int32
+                suit:
+                  type: string
+              nullable: true
+            pullInCards:
+              type: array
+              items:
+                $ref: '#/components/schemas/Common.Card'
+    Idiot.PlayerPutCardsNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+            cards:
+              type: array
+              items:
+                $ref: '#/components/schemas/Common.Card'
+    Idiot.PlayerIsReadyNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+    Idiot.PlayerIsDoneNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+    Idiot.DiscardPileFlushedNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+    Idiot.ItsYourTurnNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+          properties:
+            playerViewOfGame:
+              type: object
+              allOf:
+                - $ref: '#/components/schemas/Idiot.IdiotResponse'
+                - type: object
+                  properties:
+                    cardsOnHand:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Common.Card'
+                    topOfPile:
+                      type: object
+                      properties:
+                        rank:
+                          type: integer
+                          format: int32
+                        suit:
+                          type: string
+                      nullable: true
+                    stockPileCount:
+                      type: integer
+                      format: int32
+                    discardPileCount:
+                      type: integer
+                      format: int32
+                    otherPlayers:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Idiot.OtherIdiotPlayer'
+    Idiot.PlayerDrewCardsNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+            numberOfCards:
+              type: integer
+              format: int32
+    Idiot.PlayerAttemptedPuttingCardNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+            card:
+              type: object
+              properties:
+                rank:
+                  type: integer
+                  format: int32
+                suit:
+                  type: string
+              nullable: true
+    Idiot.PlayerPulledInDiscardPileNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+          properties:
+            playerId:
+              type: string
+              format: uuid
+    Idiot.GameStartedNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+    Idiot.GameEndedNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
+    Idiot.ItsTimeToSwapCardsNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Idiot.IdiotNotification'
+        - type: object
     CrazyEights.PutCardRequest:
       type: object
       allOf:

@@ -15,8 +15,4 @@
       <ProjectReference Include="..\src\Deckster.Server\Deckster.Server.csproj" />
     </ItemGroup>
 
-    <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-      <Exec Command="dotnet $(OutDir)Deckster.Generated.Client.dll $(ProjectDir)" />
-    </Target>
-
 </Project>

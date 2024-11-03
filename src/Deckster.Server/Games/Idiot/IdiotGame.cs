@@ -8,7 +8,7 @@ namespace Deckster.Server.Games.Idiot;
 
 public class IdiotGame : GameObject
 {
-    public event NotifyAll<ItsTimeToSwapCards> ItsTimeToSwapCards; 
+    public event NotifyAll<ItsTimeToSwapCardsNotification> ItsTimeToSwapCards; 
     public event NotifyAll<PlayerIsReadyNotification> PlayerIsReady;
     public event NotifyAll<GameStartedNotification> GameHasStarted; 
     public event NotifyAll<GameEndedNotification>? GameEnded;
@@ -686,6 +686,6 @@ public class IdiotGame : GameObject
     {
         return HasStarted
             ? Task.CompletedTask
-            : ItsTimeToSwapCards.InvokeOrDefault(new ItsTimeToSwapCards());
+            : ItsTimeToSwapCards.InvokeOrDefault(new ItsTimeToSwapCardsNotification());
     }
 }

@@ -1,5 +1,4 @@
-﻿using Deckster.Client.Games;
-using Deckster.Client.Protocol;
+﻿using Deckster.Client.Protocol;
 using Deckster.Server.CodeGeneration;
 using Deckster.Server.CodeGeneration.Meta;
 using Deckster.Server.Games;
@@ -23,7 +22,7 @@ public class Program
                 .Where(t => t.IsClass && !t.IsAbstract && baseType.IsAssignableFrom(t))
                 .ToArray();
 
-            await GenerateKotlinCodeAsync(Path.Combine(projectPath, "kotlin"), types);
+            await GenerateClientsAsync(projectPath, types);
             
             return 0;
         }
@@ -50,7 +49,30 @@ public class Program
         return directory?.FullName ?? throw new InvalidOperationException("Could not find project path for Deckster.Generated.Client.csproj");
     }
 
-    private static async Task GenerateKotlinCodeAsync(string basePath, Type[] types)
+    private static async Task GenerateClientsAsync(string projectPath, Type[] types)
+    {
+        foreach (var type in types)
+        {
+            if (GameMeta.TryGetFor(type, out var game))
+            {
+                var path = Path.Combine(projectPath, "..", "src", "Deckster.Client", "Games", game.Name);
+                await GenerateCsharpAsync(path, type, game);
+                await GenerateKotlinAsync(Path.Combine(projectPath, "kotlin"), type, game);
+            }
+        }
+    }
+
+    private static async Task GenerateCsharpAsync(string basePath, Type type, GameMeta game)
+    {
+        var ns = type.Namespace?.Split('.').LastOrDefault() ?? throw new Exception($"OMG CANT HAZ NAEMSPAZE OF ITZ TAYP '{type.Name}'");
+        var path = Path.Combine(basePath, "Generated", $"{game.Name}GeneratedClient.cs");
+                
+        Console.WriteLine(path);
+        var kotlin = new CsharpGenerator(game, $"Deckster.Client.Games.{ns}");
+        await kotlin.WriteToAsync(path);
+    }
+
+    private static async Task GenerateKotlinAsync(string basePath, Type type, GameMeta game)
     {
         if (Directory.Exists(basePath))
         {
@@ -59,17 +81,11 @@ public class Program
 
         Directory.CreateDirectory(basePath);
         
-        foreach (var type in types)
-        {
-            if (GameMeta.TryGetFor(type, out var game))
-            {
-                var ns = type.Namespace?.Split('.').LastOrDefault()?.ToLowerInvariant() ?? throw new Exception($"OMG CANT HAZ NAEMSPAZE OF ITZ TAYP '{type.Name}'");
-                var path = Path.Combine(basePath, "no.forse.decksterlib",  ns, $"{game.Name}Client.kt");
+        var ns = type.Namespace?.Split('.').LastOrDefault()?.ToLowerInvariant() ?? throw new Exception($"OMG CANT HAZ NAEMSPAZE OF ITZ TAYP '{type.Name}'");
+        var path = Path.Combine(basePath, "no.forse.decksterlib",  ns, $"{game.Name}Client.kt");
                 
-                Console.WriteLine(path);
-                var kotlin = new KotlinGenerator(game, $"no.forse.decksterlib.{ns}");
-                await kotlin.WriteToAsync(path);    
-            }
-        }
+        Console.WriteLine(path);
+        var kotlin = new KotlinGenerator(game, $"no.forse.decksterlib.{ns}");
+        await kotlin.WriteToAsync(path);
     }
 }
