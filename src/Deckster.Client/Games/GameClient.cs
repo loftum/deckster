@@ -1,6 +1,9 @@
 using Deckster.Client.Communication;
+using Deckster.Client.Games.Common;
+using Deckster.Client.Logging;
 using Deckster.Client.Protocol;
 using Deckster.Client.Serialization;
+using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Games;
 
@@ -8,6 +11,7 @@ public interface IGameClient : IDisposable, IAsyncDisposable;
 
 public abstract class GameClient : IGameClient
 {
+    protected readonly ILogger Logger;
     protected readonly IClientChannel Channel;
     public event Action<string>? Disconnected;
 
@@ -16,7 +20,10 @@ public abstract class GameClient : IGameClient
         Channel = channel;
         channel.OnDisconnected += reason => Disconnected?.Invoke(reason);
         channel.StartReadNotifications<DecksterNotification>(OnNotification, DecksterJson.Options);
+        Logger = Log.Factory.CreateLogger(GetType().Name);
     }
+
+    public PlayerData PlayerData => Channel.Player;
 
     protected abstract void OnNotification(DecksterNotification notification);
 

@@ -10,8 +10,6 @@ namespace Deckster.Client.Games.CrazyEights;
 [DebuggerDisplay("CrazyEightsClient {PlayerData}")]
 public class CrazyEightsClient : GameClient
 {
-    private readonly ILogger _logger;
-    
     public event Action<PlayerPutCardNotification>? PlayerPutCard;
     public event Action<PlayerPutEightNotification>? PlayerPutEight;
     public event Action<PlayerDrewCardNotification>? PlayerDrewCard;
@@ -20,11 +18,9 @@ public class CrazyEightsClient : GameClient
     public event Action<GameStartedNotification>? GameStarted;
     public event Action<GameEndedNotification>? GameEnded;
 
-    public PlayerData PlayerData => Channel.Player;
-
     public CrazyEightsClient(IClientChannel channel) : base(channel)
     {
-        _logger = Log.Factory.CreateLogger(channel.Player.Name);
+        
     }
 
     public Task<PlayerViewOfGame> PutCardAsync(Card card, CancellationToken cancellationToken = default)
@@ -48,9 +44,9 @@ public class CrazyEightsClient : GameClient
 
     public async Task<Card> DrawCardAsync(CancellationToken cancellationToken = default)
     {
-        _logger.LogTrace("Draw card");
+        Logger.LogTrace("Draw card");
         var result = await GetAsync<CardResponse>(new DrawCardRequest(), cancellationToken);
-        _logger.LogTrace("Draw card: {result}", result.Card);
+        Logger.LogTrace("Draw card: {result}", result.Card);
         return result.Card;
     }
 
