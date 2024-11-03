@@ -1,4 +1,4 @@
-namespace Deckster.Server.CodeGeneration.Code;
+namespace Deckster.Generated.Client.Code;
 
 public readonly struct Indenter : IDisposable
 {

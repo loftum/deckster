@@ -1,4 +1,4 @@
-using Deckster.Server.CodeGeneration.Code;
+using Deckster.Generated.Client.Code;
 
 namespace Deckster.Generated.Client;
 

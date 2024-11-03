@@ -5,7 +5,6 @@ namespace Deckster.Client.Games.Idiot;
 
 public abstract class IdiotRequest : DecksterRequest;
 
-
 public class PlayerViewOfGame : IdiotResponse
 {
     public List<Card> CardsOnHand { get; init; } = [];
@@ -24,8 +23,6 @@ public class OtherIdiotPlayer
     public List<Card> VisibleTableCards { get; init; } = [];
     public int HiddenTableCardsCount { get; init; }
 }
-
-
 
 public class IamReadyRequest : DecksterRequest;
 

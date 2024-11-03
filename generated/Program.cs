@@ -68,7 +68,7 @@ public class Program
         var path = Path.Combine(basePath, "Generated", $"{game.Name}GeneratedClient.cs");
                 
         Console.WriteLine(path);
-        var kotlin = new CsharpGenerator(game, $"Deckster.Client.Games.{ns}");
+        var kotlin = new CsharpClientGenerator(game, $"Deckster.Client.Games.{ns}");
         await kotlin.WriteToAsync(path);
     }
 
@@ -85,7 +85,7 @@ public class Program
         var path = Path.Combine(basePath, "no.forse.decksterlib",  ns, $"{game.Name}Client.kt");
                 
         Console.WriteLine(path);
-        var kotlin = new KotlinGenerator(game, $"no.forse.decksterlib.{ns}");
+        var kotlin = new KotlinClientGenerator(game, $"no.forse.decksterlib.{ns}");
         await kotlin.WriteToAsync(path);
     }
 }

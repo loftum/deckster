@@ -3,9 +3,9 @@ using StringExtensions = Deckster.Client.Sugar.StringExtensions;
 
 namespace Deckster.Generated.Client;
 
-public class KotlinGenerator : ClientGenerator
+public class KotlinClientGenerator : ClientGenerator
 {
-    public KotlinGenerator(GameMeta meta, string ns)
+    public KotlinClientGenerator(GameMeta meta, string ns)
     {
         SourceCode
             .AppendLine("/**")

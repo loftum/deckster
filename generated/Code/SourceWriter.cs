@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace Deckster.Server.CodeGeneration.Code;
+namespace Deckster.Generated.Client.Code;
 
 public class SourceWriterOptions
 {
