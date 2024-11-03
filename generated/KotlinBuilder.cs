@@ -1,13 +1,10 @@
-using Deckster.Server.CodeGeneration.Code;
 using Deckster.Server.CodeGeneration.Meta;
 using StringExtensions = Deckster.Client.Sugar.StringExtensions;
 
-namespace Deckster.Server.CodeGeneration;
+namespace Deckster.Generated.Client;
 
-public class KotlinGenerator
+public class KotlinGenerator : ClientGenerator
 {
-    private readonly SourceWriter _sourceCode = new();
-
     public KotlinGenerator(GameMeta meta, string ns)
     {
         _sourceCode
@@ -39,19 +36,6 @@ public class KotlinGenerator
         _sourceCode.AppendLine("}");
     }
 
-    public async Task WriteToAsync(string path)
-    {
-        var file = new FileInfo(path);
-        if (file.Directory is { Exists: false })
-        {
-            file.Directory.Create();
-        }
-        await using var fileStream = file.Exists ? file.Open(FileMode.Truncate) : file.Open(FileMode.CreateNew);
-        await using var writer = new StreamWriter(fileStream);
-        await writer.WriteAsync(_sourceCode.ToString());
-        await writer.FlushAsync();
-    }
-    
     private static string FormatParameter(ParameterMeta parameter)
     {
         return $"{parameter.Name}: {parameter.Type}";
