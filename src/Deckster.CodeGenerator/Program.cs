@@ -1,10 +1,9 @@
-﻿using System.Reflection;
-using Deckster.CodeGenerator.Generators;
+﻿using Deckster.CodeGenerator.Generators;
 using Deckster.CodeGenerator.IO;
 using Deckster.Core.Protocol;
-using Deckster.Server.CodeGeneration;
-using Deckster.Server.CodeGeneration.Meta;
-using Deckster.Server.Games;
+using Deckster.Games;
+using Deckster.Games.CodeGeneration;
+using Deckster.Games.CodeGeneration.Meta;
 
 namespace Deckster.CodeGenerator;
 

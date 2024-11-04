@@ -1,4 +1,5 @@
-using Deckster.Server.CodeGeneration.Meta;
+using Deckster.Core;
+using Deckster.Games.CodeGeneration.Meta;
 
 namespace Deckster.CodeGenerator.Generators;
 

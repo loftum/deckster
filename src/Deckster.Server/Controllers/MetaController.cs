@@ -1,5 +1,5 @@
 using Deckster.Core.Protocol;
-using Deckster.Server.CodeGeneration;
+using Deckster.Games.CodeGeneration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;
 

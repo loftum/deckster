@@ -2,9 +2,9 @@ using System.Diagnostics.CodeAnalysis;
 using Deckster.Core.Games.ChatRoom;
 using Deckster.Core.Protocol;
 using Deckster.Core.Serialization;
+using Deckster.Games;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
-using Deckster.Server.Games.Common;
 
 namespace Deckster.Server.Games.ChatRoom;
 
@@ -13,15 +13,15 @@ public class ChatRoomHost : GameHost
     public override string GameType => "ChatRoom";
     public override GameState State => GameState.Running;
     private readonly IRepo _repo;
-    private readonly IEventQueue<ChatRoom> _events;
+    private readonly IEventQueue<Deckster.Games.ChatRoom.ChatRoom> _events;
     private readonly ChatRoomProjection _projection = new();
-    private readonly ChatRoom _chatRoom;
+    private readonly Deckster.Games.ChatRoom.ChatRoom _chatRoom;
 
     public ChatRoomHost(IRepo repo) : base(null)
     {
         _repo = repo;
         (_chatRoom, var startEvent) = _projection.Create(this);
-        _events = repo.StartEventQueue<ChatRoom>(_chatRoom.Id, startEvent);
+        _events = repo.StartEventQueue<Deckster.Games.ChatRoom.ChatRoom>(_chatRoom.Id, startEvent);
         _events.Append(startEvent);
     }
 
