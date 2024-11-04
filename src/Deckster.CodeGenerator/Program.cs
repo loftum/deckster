@@ -1,4 +1,5 @@
-﻿using Deckster.CodeGenerator.Generators;
+﻿using System.Reflection;
+using Deckster.CodeGenerator.Generators;
 using Deckster.CodeGenerator.IO;
 using Deckster.Core.Protocol;
 using Deckster.Server.CodeGeneration;
@@ -23,9 +24,7 @@ public class Program
             gitDirectory.GetFile("generated", "deckster.opeanpi.json");
             await openapi.WriteAsJsonAsync(gitDirectory.GetFile("generated", "deckster.opeanpi.json"));
             await openapi.WriteAsYamlAsync(gitDirectory.GetFile("generated", "deckster.opeanpi.json"));
-            
-            
-            
+
             var baseType = typeof(GameObject);
             var types = baseType.Assembly.GetTypes()
                 .Where(t => t is {IsClass: true, IsAbstract: false} && baseType.IsAssignableFrom(t))
