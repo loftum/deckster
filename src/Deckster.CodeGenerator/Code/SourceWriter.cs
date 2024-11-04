@@ -31,7 +31,7 @@ public class SourceWriter
         return new Indenter(DecreaseIndent);
     }
     
-    public Indenter StartBlock()
+    public Indenter CodeBlock()
     {
         AppendLine("{");
         IncreaseIndent();

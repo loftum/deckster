@@ -1,8 +1,8 @@
 using Deckster.Core.Games.CrazyEights;
+using Deckster.Core.Games.Common;
 using System.Diagnostics;
 using Deckster.Client.Communication;
 using Deckster.Core.Protocol;
-using Deckster.Core.Games.Common;
 
 namespace Deckster.Client.Games.CrazyEights;
 
@@ -20,6 +20,26 @@ public class CrazyEightsGeneratedClient(IClientChannel channel) : GameClient(cha
     public event Action<PlayerPutCardNotification>? PlayerPutCard;
     public event Action<GameEndedNotification>? GameEnded;
     public event Action<PlayerIsDoneNotification>? PlayerIsDone;
+
+    public Task<PlayerViewOfGame> PutCard(PutCardRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+    }
+
+    public Task<PlayerViewOfGame> PutEight(PutEightRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+    }
+
+    public Task<CardResponse> DrawCard(DrawCardRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<CardResponse>(request, cancellationToken);
+    }
+
+    public Task<EmptyResponse> Pass(PassRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<EmptyResponse>(request, cancellationToken);
+    }
 
     protected override void OnNotification(DecksterNotification notification)
     {
@@ -59,8 +79,28 @@ public class CrazyEightsGeneratedClient(IClientChannel channel) : GameClient(cha
     }
 }
 
-public static class CrazyEightsGeneratedClientExtensions
+public static class CrazyEightsGeneratedClientConveniences
 {
+    public static Task<PlayerViewOfGame> PutCard(this CrazyEightsGeneratedClient self, Card card, CancellationToken cancellationToken = default)
+    {
+        var request = new PutCardRequest{ Card = card };
+        return self.PutCard(request, cancellationToken);
+    }
+    public static Task<PlayerViewOfGame> PutEight(this CrazyEightsGeneratedClient self, Card card, Suit newSuit, CancellationToken cancellationToken = default)
+    {
+        var request = new PutEightRequest{ Card = card, NewSuit = newSuit };
+        return self.PutEight(request, cancellationToken);
+    }
+    public static Task<CardResponse> DrawCard(this CrazyEightsGeneratedClient self, CancellationToken cancellationToken = default)
+    {
+        var request = new DrawCardRequest{  };
+        return self.DrawCard(request, cancellationToken);
+    }
+    public static Task<EmptyResponse> Pass(this CrazyEightsGeneratedClient self, CancellationToken cancellationToken = default)
+    {
+        var request = new PassRequest{  };
+        return self.Pass(request, cancellationToken);
+    }
 }
 
 public static class CrazyEightsGeneratedClientDecksterClientExtensions

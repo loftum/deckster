@@ -1,4 +1,5 @@
 using Deckster.Core.Games.ChatRoom;
+using System;
 using System.Diagnostics;
 using Deckster.Client.Communication;
 using Deckster.Core.Protocol;
@@ -14,6 +15,11 @@ namespace Deckster.Client.Games.ChatRoom;
 public class ChatRoomGeneratedClient(IClientChannel channel) : GameClient(channel)
 {
     public event Action<ChatNotification>? PlayerSaid;
+
+    public Task<ChatResponse> ChatAsync(SendChatRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<ChatResponse>(request, cancellationToken);
+    }
 
     protected override void OnNotification(DecksterNotification notification)
     {
@@ -35,8 +41,13 @@ public class ChatRoomGeneratedClient(IClientChannel channel) : GameClient(channe
     }
 }
 
-public static class ChatRoomGeneratedClientExtensions
+public static class ChatRoomGeneratedClientConveniences
 {
+    public static Task<ChatResponse> ChatAsync(this ChatRoomGeneratedClient self, String message, CancellationToken cancellationToken = default)
+    {
+        var request = new SendChatRequest{ Message = message };
+        return self.ChatAsync(request, cancellationToken);
+    }
 }
 
 public static class ChatRoomGeneratedClientDecksterClientExtensions

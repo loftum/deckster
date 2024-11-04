@@ -1,8 +1,8 @@
 using Deckster.Core.Games.Uno;
+using Deckster.Core.Games.Common;
 using System.Diagnostics;
 using Deckster.Client.Communication;
 using Deckster.Core.Protocol;
-using Deckster.Core.Games.Common;
 
 namespace Deckster.Client.Games.Uno;
 
@@ -20,6 +20,26 @@ public class UnoGeneratedClient(IClientChannel channel) : GameClient(channel)
     public event Action<PlayerPassedNotification>? PlayerPassed;
     public event Action<GameEndedNotification>? GameEnded;
     public event Action<ItsYourTurnNotification>? ItsYourTurn;
+
+    public Task<PlayerViewOfGame> PutCard(PutCardRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+    }
+
+    public Task<PlayerViewOfGame> PutWild(PutWildRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+    }
+
+    public Task<UnoCardResponse> DrawCard(DrawCardRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<UnoCardResponse>(request, cancellationToken);
+    }
+
+    public Task<EmptyResponse> Pass(PassRequest request, CancellationToken cancellationToken = default)
+    {
+        return SendAsync<EmptyResponse>(request, cancellationToken);
+    }
 
     protected override void OnNotification(DecksterNotification notification)
     {
@@ -59,8 +79,28 @@ public class UnoGeneratedClient(IClientChannel channel) : GameClient(channel)
     }
 }
 
-public static class UnoGeneratedClientExtensions
+public static class UnoGeneratedClientConveniences
 {
+    public static Task<PlayerViewOfGame> PutCard(this UnoGeneratedClient self, UnoCard card, CancellationToken cancellationToken = default)
+    {
+        var request = new PutCardRequest{ Card = card };
+        return self.PutCard(request, cancellationToken);
+    }
+    public static Task<PlayerViewOfGame> PutWild(this UnoGeneratedClient self, UnoCard card, UnoColor newColor, CancellationToken cancellationToken = default)
+    {
+        var request = new PutWildRequest{ Card = card, NewColor = newColor };
+        return self.PutWild(request, cancellationToken);
+    }
+    public static Task<UnoCardResponse> DrawCard(this UnoGeneratedClient self, CancellationToken cancellationToken = default)
+    {
+        var request = new DrawCardRequest{  };
+        return self.DrawCard(request, cancellationToken);
+    }
+    public static Task<EmptyResponse> Pass(this UnoGeneratedClient self, CancellationToken cancellationToken = default)
+    {
+        var request = new PassRequest{  };
+        return self.Pass(request, cancellationToken);
+    }
 }
 
 public static class UnoGeneratedClientDecksterClientExtensions

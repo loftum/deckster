@@ -21,10 +21,10 @@ public class CsharpClientGenerator : ClientGenerator
 
         foreach (var u in usings)
         {
-            SourceCode.AppendLine($"using {u};");
+            Source.AppendLine($"using {u};");
         }
         
-        SourceCode
+        Source
             .AppendLine()
             .AppendLine($"namespace {ns};")
             .AppendLine()
@@ -35,85 +35,99 @@ public class CsharpClientGenerator : ClientGenerator
             .AppendLine($"[DebuggerDisplay(\"{meta.Name}Client {{PlayerData}}\")]")
             .AppendLine($"public class {ClientName}(IClientChannel channel) : GameClient(channel)");
 
-        using (SourceCode.StartBlock())
+        using (Source.CodeBlock())
         {
             foreach (var notification in meta.Notifications)
             {
-                SourceCode.AppendLine($"public event Action<{notification.Message.Name}>? {notification.Name};");
+                Source.AppendLine($"public event Action<{notification.MessageType.Name}>? {notification.Name};");
             }
             
-            SourceCode.AppendLine();
+            Source.AppendLine();
 
             foreach (var method in meta.Methods)
             {
-                var parameters = new []{$"{method.Parameter.ParameterType} {method.Parameter.Name}", "CancellationToken cancellationToken = default"}
+                var parameters = new []{$"{method.Request.ParameterType.Name} {method.Request.Name}", "CancellationToken cancellationToken = default"}
                     .StringJoined(", ");
-                SourceCode.AppendLine($"public Task<{method.ReturnType.Name}> {method.Name}({parameters})");
-                using (SourceCode.StartBlock())
+                Source.AppendLine($"public Task<{method.ResponseType.Name}> {method.Name}({parameters})");
+                using (Source.CodeBlock())
                 {
-                    var p = new[] {$"{method.Parameter.Name}", "cancellationToken"};
-                    SourceCode.AppendLine($"return SendAsync<{method.ReturnType.Name}>({p});");
+                    var p = new[] {$"{method.Request.Name}", "cancellationToken"}.StringJoined(", ");
+                    Source.AppendLine($"return SendAsync<{method.ResponseType.Name}>({p});");
                 }
 
-                SourceCode.AppendLine();
+                Source.AppendLine();
             }
 
-            SourceCode.AppendLine("protected override void OnNotification(DecksterNotification notification)");
-            using (SourceCode.StartBlock())
+            Source.AppendLine("protected override void OnNotification(DecksterNotification notification)");
+            using (Source.CodeBlock())
             {
-                SourceCode.AppendLine("try");
-                using (SourceCode.StartBlock())
+                Source.AppendLine("try");
+                using (Source.CodeBlock())
                 {
-                    SourceCode.AppendLine("switch (notification)");
-                    using (SourceCode.StartBlock())
+                    Source.AppendLine("switch (notification)");
+                    using (Source.CodeBlock())
                     {
                         foreach (var notification in meta.Notifications)
                         {
-                            SourceCode.AppendLine($"case {notification.Message.Name} m:");
-                            using (SourceCode.Indent())
+                            Source.AppendLine($"case {notification.MessageType.Name} m:");
+                            using (Source.Indent())
                             {
-                                SourceCode
+                                Source
                                     .AppendLine($"{notification.Name}?.Invoke(m);")
                                     .AppendLine("return;");
                             }
                         }
 
-                        SourceCode.AppendLine("default:");
-                        using (SourceCode.Indent())
+                        Source.AppendLine("default:");
+                        using (Source.Indent())
                         {
-                            SourceCode.AppendLine("return;");
+                            Source.AppendLine("return;");
                         }
                     }
                 }
 
-                SourceCode.AppendLine("catch (Exception e)");
-                using (SourceCode.StartBlock())
+                Source.AppendLine("catch (Exception e)");
+                using (Source.CodeBlock())
                 {
-                    SourceCode.AppendLine("Console.WriteLine(e);");
+                    Source.AppendLine("Console.WriteLine(e);");
                 }
             }
         }
 
-        SourceCode.AppendLine();
+        Source.AppendLine();
 
-        SourceCode.AppendLine($"public static class {ClientName}Extensions");
-        using (SourceCode.StartBlock())
+        Source.AppendLine($"public static class {ClientName}Conveniences");
+        using (Source.CodeBlock())
         {
-            
-        }
-        
-
-        SourceCode.AppendLine();
-
-        SourceCode.AppendLine($"public static class {ClientName}DecksterClientExtensions");
-        using (SourceCode.StartBlock())
-        {
-            SourceCode.AppendLine($"public static GameApi<{ClientName}> {meta.Name}(this DecksterClient client)");
-            using (SourceCode.StartBlock())
+            foreach (var extension in meta.ExtensionMethods)
             {
-                SourceCode.AppendLine($"return new GameApi<{ClientName}>(client.BaseUri.Append(\"{meta.Name.ToLowerInvariant()}\"), client.Token, c => new {ClientName}(c));");
+                var parameters = extension.Parameters.Select(p => $"{p.ParameterType.Name} {p.Name}")
+                    .Append("CancellationToken cancellationToken = default")
+                    .StringJoined(", ");
+                Source.AppendLine($"public static Task<{extension.ReturnType.Name}> {extension.Name}(this {ClientName} self, {parameters})");
+                using(Source.CodeBlock())
+                {
+                    var properties = extension.Parameters.Select(p => $"{p.Name.ToPascalCase()} = {p.Name}").StringJoined(", ");
+                    Source.AppendLine($"var request = new {extension.Method.Request.ParameterType.Name}{{ {properties} }};");
+                    
+                    
+                    
+                    
+                    Source.AppendLine($"return self.{extension.Method.Name}(request, cancellationToken);");
+                }
             }
         }
 
+        Source.AppendLine();
+
+        Source.AppendLine($"public static class {ClientName}DecksterClientExtensions");
+        using (Source.CodeBlock())
+        {
+            Source.AppendLine($"public static GameApi<{ClientName}> {meta.Name}(this DecksterClient client)");
+            using (Source.CodeBlock())
+            {
+                Source.AppendLine($"return new GameApi<{ClientName}>(client.BaseUri.Append(\"{meta.Name.ToLowerInvariant()}\"), client.Token, c => new {ClientName}(c));");
+            }
+        }
     }
 }

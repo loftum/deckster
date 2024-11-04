@@ -1,6 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Deckster.Core.Protocol;
 using Deckster.Games;
 using Deckster.Games.CodeGeneration.Meta;
 
@@ -11,6 +10,7 @@ public class CSharpGameMeta
     public string Name { get; }
     public NotificationInfo[] Notifications { get; }
     public GameMethodInfo[] Methods { get; }
+    public GameExtensionMethodInfo[] ExtensionMethods { get; }
     public string[] Usings { get; }
     
     public CSharpGameMeta(Type gameType)
@@ -20,26 +20,33 @@ public class CSharpGameMeta
         Methods = gameType.GetGameMethods().ToArray();
 
         var usings = new HashSet<string>();
-        foreach (var ns in Notifications.Select(n => n.Message.Namespace))
+        foreach (var ns in Notifications.Select(n => n.MessageType.Namespace))
         {
-            if (ns != null)
-            {
-                usings.Add(ns);
-            }
+            usings.AddIfNotNull(ns);
         }
 
+        var extensionMethods = new List<GameExtensionMethodInfo>();
         foreach (var method in Methods)
         {
-            if (method.Parameter.ParameterType.Namespace != null)
+            if (method.Request.ParameterType.Namespace != null)
             {
-                usings.Add(method.Parameter.ParameterType.Namespace);
+                usings.Add(method.Request.ParameterType.Namespace);
             }
 
-            if (method.ReturnType.Namespace != null)
+            if (method.ResponseType.Namespace != null)
             {
-                usings.Add(method.ReturnType.Namespace);
+                usings.Add(method.ResponseType.Namespace);
+            }
+
+            if (method.TryGetExtensionMethod(out var extensionMethod))
+            {
+                extensionMethods.Add(extensionMethod);
+                usings.AddIfNotNull(extensionMethod.ReturnType.Namespace);
+                usings.AddRangeIfNotNull(extensionMethod.Parameters.Select(p => p.ParameterType.Namespace));
             }
         }
+
+        ExtensionMethods = extensionMethods.ToArray();
 
         Usings = usings.ToArray();
     }
@@ -57,93 +64,29 @@ public class CSharpGameMeta
     }
 }
 
-public class NotificationInfo
+public record NotificationInfo(string Name, Type MessageType);
+
+public record GameMethodInfo(string Name, ParameterInfo Request, Type ResponseType);
+
+public record GameExtensionMethodInfo(string Name, GameParameterInfo[] Parameters, GameMethodInfo Method, Type ReturnType);
+
+public record GameParameterInfo(string Name, Type ParameterType);
+
+public static class HashSetExtensions
 {
-    public string Name { get; }
-    public EventInfo Event { get; }
-    public Type Message { get; }
-    
-    public NotificationInfo(EventInfo e, Type message)
+    public static void AddIfNotNull<T>(this HashSet<T> set, T? item) where T : class
     {
-        Name = e.Name;
-        Event = e;
-        Message = message;
-    }
-}
-
-public class GameMethodInfo
-{
-    public string Name { get; }
-    public ParameterInfo Parameter { get; }
-    public Type ReturnType { get; }
-
-    public GameMethodInfo(string name, ParameterInfo parameter, Type returnType)
-    {
-        Name = name;
-        Parameter = parameter;
-        ReturnType = returnType;
-    }
-}
-
-
-public static class GameReflectionExtensions
-{
-    public static IEnumerable<NotificationInfo> GetNotifications(this Type type)
-    {
-        foreach (var e in type.GetEvents())
+        if (item != null)
         {
-            if (e.IsNotifyAll(out var argument) || e.IsNotifyPlayer(out argument))
-            {
-                yield return new NotificationInfo(e, argument);
-            }
+            set.Add(item);
         }
     }
 
-    public static IEnumerable<GameMethodInfo> GetGameMethods(this Type type)
+    public static void AddRangeIfNotNull<T>(this HashSet<T> set, IEnumerable<T?> items) where T : class
     {
-        foreach (var method in type.GetMethods(BindingFlags.Public | BindingFlags.Instance))
+        foreach (var item in items)
         {
-            if (method.IsGameMethod(out var info))
-            {
-                yield return info;
-            }
+            set.AddIfNotNull(item);
         }
-    }
-
-    private static bool IsGameMethod(this MethodInfo method, [MaybeNullWhen(false)] out GameMethodInfo gameMethod)
-    {
-        if (method.TryGetRequestParameter(out var parameter) && method.ReturnType.IsTaskOfDecksterResponse(out var responseType))
-        {
-            gameMethod = new GameMethodInfo(method.Name, parameter, responseType);
-            return true;
-        }
-
-        gameMethod = default;
-        return false;
-    }
-
-    private static bool TryGetRequestParameter(this MethodInfo info, [MaybeNullWhen(false)] out ParameterInfo parameter)
-    {
-        var parameters = info.GetParameters();
-        if (parameters.Length == 1 && parameters[0].ParameterType.InheritsFrom<DecksterResponse>())
-        {
-            parameter = parameters[0];
-            return true;
-        }
-
-        parameter = default;
-        return false;
-    }
-
-    private static bool IsTaskOfDecksterResponse(this Type type, [MaybeNullWhen(false)] out Type responseType)
-    {
-        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Task<>) && type.GenericTypeArguments[0].InheritsFrom<DecksterResponse>())
-        {
-            responseType = type.GenericTypeArguments[0];
-            return true;
-        }
-
-        responseType = default;
-        return false;
     }
 }

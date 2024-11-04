@@ -4,7 +4,7 @@ namespace Deckster.CodeGenerator.Generators;
 
 public abstract class ClientGenerator
 {
-    protected readonly SourceWriter SourceCode = new();
+    protected readonly SourceWriter Source = new();
 
     public async Task WriteToAsync(FileInfo file)
     {
@@ -14,7 +14,7 @@ public abstract class ClientGenerator
         }
         await using var fileStream = file.Exists ? file.Open(FileMode.Truncate) : file.Open(FileMode.CreateNew);
         await using var writer = new StreamWriter(fileStream);
-        await writer.WriteAsync(SourceCode.ToString());
+        await writer.WriteAsync(Source.ToString());
         await writer.FlushAsync();
     }
 }

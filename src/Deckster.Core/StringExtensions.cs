@@ -18,4 +18,16 @@ public static class StringExtensions
         chars[0] = char.ToLowerInvariant(chars[0]);
         return new string(chars);
     }
+    
+    public static string ToPascalCase(this string input)
+    {
+        if (char.IsUpper(input[0]))
+        {
+            return input;
+        }
+
+        var chars = input.ToCharArray();
+        chars[0] = char.ToUpperInvariant(chars[0]);
+        return new string(chars);
+    }
 }
