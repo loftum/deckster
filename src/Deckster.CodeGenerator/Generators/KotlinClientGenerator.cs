@@ -1,6 +1,6 @@
 using Deckster.Server.CodeGeneration.Meta;
 
-namespace Deckster.CodeGenerator;
+namespace Deckster.CodeGenerator.Generators;
 
 public class KotlinClientGenerator : ClientGenerator
 {

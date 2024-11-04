@@ -1,6 +1,6 @@
 using Deckster.CodeGenerator.Code;
 
-namespace Deckster.CodeGenerator;
+namespace Deckster.CodeGenerator.Generators;
 
 public abstract class ClientGenerator
 {

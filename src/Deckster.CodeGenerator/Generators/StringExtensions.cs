@@ -1,4 +1,4 @@
-namespace Deckster.CodeGenerator;
+namespace Deckster.CodeGenerator.Generators;
 
 public static class StringExtensions
 {

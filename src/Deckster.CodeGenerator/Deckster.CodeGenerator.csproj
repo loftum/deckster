@@ -13,8 +13,4 @@
       <ProjectReference Include="..\Deckster.Server\Deckster.Server.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Generators\Csharp\" />
-    </ItemGroup>
-
 </Project>
