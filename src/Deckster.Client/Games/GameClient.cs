@@ -14,6 +14,8 @@ public abstract class GameClient : IGameClient
     protected readonly ILogger Logger;
     protected readonly IClientChannel Channel;
     public event Action<string>? Disconnected;
+    
+    public PlayerData PlayerData => Channel.Player;
 
     protected GameClient(IClientChannel channel)
     {
@@ -23,16 +25,17 @@ public abstract class GameClient : IGameClient
         Logger = Log.Factory.CreateLogger(GetType().Name);
     }
 
-    public PlayerData PlayerData => Channel.Player;
-
     protected abstract void OnNotification(DecksterNotification notification);
 
     public async Task<TResponse> SendAsync<TResponse>(DecksterRequest request, bool throwOnError, CancellationToken cancellationToken = default)
     {
+        Logger.LogTrace($"Sending {request.Pretty()}");
         var response = await Channel.SendAsync<DecksterResponse>(request, DecksterJson.Options, cancellationToken);
+        Logger.LogTrace($"Got response {response.Pretty()}");
+        
         if (response is {HasError: true} && throwOnError)
         {
-            throw new Exception(response.Error);
+            throw new RottenTomato(response.Error);
         }
         return response switch
         {
@@ -46,17 +49,7 @@ public abstract class GameClient : IGameClient
     {
         await Channel.DisconnectAsync();
     }
-    
-    protected async Task<TWanted> GetAsync<TWanted>(DecksterRequest request, CancellationToken cancellationToken = default) where TWanted : DecksterResponse
-    {
-        var response = await SendAsync<TWanted>(request, false, cancellationToken);
-        return response switch
-        {
-            TWanted r => r,
-            _ => throw new Exception($"Unexpected response '{response.GetType().Name}'")
-        };
-    }
-    
+
     public void Dispose()
     {
         Channel.Dispose();
@@ -65,5 +58,13 @@ public abstract class GameClient : IGameClient
     public async ValueTask DisposeAsync()
     {
         await Channel.DisposeAsync();
+    }
+}
+
+public class RottenTomato : Exception
+{
+    public RottenTomato(string? message) : base(message)
+    {
+        
     }
 }
