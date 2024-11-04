@@ -51,8 +51,7 @@ public class CsharpClientGenerator : ClientGenerator
                 Source.AppendLine($"public Task<{method.ResponseType.Name}> {method.Name}({parameters})");
                 using (Source.CodeBlock())
                 {
-                    var p = new[] {$"{method.Request.Name}", "cancellationToken"}.StringJoined(", ");
-                    Source.AppendLine($"return SendAsync<{method.ResponseType.Name}>({p});");
+                    Source.AppendLine($"return SendAsync<{method.ResponseType.Name}>({method.Request.Name}, false, cancellationToken);");
                 }
 
                 Source.AppendLine();
@@ -104,16 +103,53 @@ public class CsharpClientGenerator : ClientGenerator
                 var parameters = extension.Parameters.Select(p => $"{p.ParameterType.Name} {p.Name}")
                     .Append("CancellationToken cancellationToken = default")
                     .StringJoined(", ");
-                Source.AppendLine($"public static Task<{extension.ReturnType.Name}> {extension.Name}(this {ClientName} self, {parameters})");
-                using(Source.CodeBlock())
+
+
+                if (extension.ReturnParameters == null)
                 {
-                    var properties = extension.Parameters.Select(p => $"{p.Name.ToPascalCase()} = {p.Name}").StringJoined(", ");
-                    Source.AppendLine($"var request = new {extension.Method.Request.ParameterType.Name}{{ {properties} }};");
-                    
-                    
-                    
-                    
-                    Source.AppendLine($"return self.{extension.Method.Name}(request, cancellationToken);");
+                    Source.AppendLine($"public static Task<{extension.ReturnType.Name}> {extension.Name}(this {ClientName} self, {parameters})");
+                    using(Source.CodeBlock())
+                    {
+                        var properties = extension.Parameters.Select(p => $"{p.Name.ToPascalCase()} = {p.Name}").StringJoined(", ");
+                        Source.AppendLine($"var request = new {extension.Method.Request.ParameterType.Name}{{ {properties} }};");
+                        Source.AppendLine($"return self.SendAsync<{extension.ReturnType.Name}>(request, true, cancellationToken);");
+                    }    
+                }
+                else
+                {
+                    switch (extension.ReturnParameters.Length)
+                    {
+                        case 0:
+                            Source.AppendLine($"public static async Task {extension.Name}(this {ClientName} self, {parameters})");
+                            break;
+                        case 1:
+                            Source.AppendLine($"public static async Task<{extension.ReturnParameters[0].ParameterType.Name}> {extension.Name}(this {ClientName} self, {parameters})");
+                            break;
+                        default:
+                            var returnTuple = extension.ReturnParameters.Select(p => $"{p.ParameterType.ToDisplayString()} {p.Name}").StringJoined(", ");
+                            Source.AppendLine($"public static async Task<({returnTuple})> {extension.Name}(this {ClientName} self, {parameters})");
+                            break;
+                    }
+
+                    using (Source.CodeBlock())
+                    {
+                        var properties = extension.Parameters.Select(p => $"{p.Name.ToPascalCase()} = {p.Name}").StringJoined(", ");
+                        Source.AppendLine($"var request = new {extension.Method.Request.ParameterType.Name}{{ {properties} }};");
+                        Source.AppendLine($"var response = await self.SendAsync<{extension.Method.ResponseType.Name}>(request, true, cancellationToken);");
+
+                        switch (extension.ReturnParameters.Length)
+                        {
+                            case 0:
+                                break;
+                            case 1:
+                                Source.AppendLine($"return response.{extension.ReturnParameters[0].Name.ToPascalCase()};");
+                                break;
+                            default:
+                                var returnTuple = extension.ReturnParameters.Select(p => $"response.{p.Name.ToPascalCase()}").StringJoined(", ");
+                                Source.AppendLine($"return ({returnTuple});");
+                                break;
+                        }
+                    }
                 }
             }
         }

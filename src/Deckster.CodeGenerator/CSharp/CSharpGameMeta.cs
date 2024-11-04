@@ -68,25 +68,22 @@ public record NotificationInfo(string Name, Type MessageType);
 
 public record GameMethodInfo(string Name, ParameterInfo Request, Type ResponseType);
 
-public record GameExtensionMethodInfo(string Name, GameParameterInfo[] Parameters, GameMethodInfo Method, Type ReturnType);
-
-public record GameParameterInfo(string Name, Type ParameterType);
-
-public static class HashSetExtensions
+public class GameExtensionMethodInfo(string Name, GameParameterInfo[] Parameters, GameMethodInfo Method, Type ReturnType, GameParameterInfo[]? ReturnParameters)
 {
-    public static void AddIfNotNull<T>(this HashSet<T> set, T? item) where T : class
-    {
-        if (item != null)
-        {
-            set.Add(item);
-        }
-    }
+    public string Name { get; init; } = Name;
+    public GameParameterInfo[] Parameters { get; init; } = Parameters;
+    public GameMethodInfo Method { get; init; } = Method;
+    public Type ReturnType { get; init; } = ReturnType;
+    public GameParameterInfo[]? ReturnParameters { get; init; } = ReturnParameters;
 
-    public static void AddRangeIfNotNull<T>(this HashSet<T> set, IEnumerable<T?> items) where T : class
+    public void Deconstruct(out string Name, out GameParameterInfo[] Parameters, out GameMethodInfo Method, out Type ReturnType, out GameParameterInfo[]? ReturnParameters)
     {
-        foreach (var item in items)
-        {
-            set.AddIfNotNull(item);
-        }
+        Name = this.Name;
+        Parameters = this.Parameters;
+        Method = this.Method;
+        ReturnType = this.ReturnType;
+        ReturnParameters = this.ReturnParameters;
     }
 }
+
+public record GameParameterInfo(string Name, Type ParameterType);

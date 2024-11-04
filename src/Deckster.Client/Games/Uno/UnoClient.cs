@@ -34,7 +34,7 @@ public class UnoClient : GameClient
         {
             Card = card
         };
-        return SendAsync<PlayerViewOfGame>(command, cancellationToken);
+        return SendAsync<PlayerViewOfGame>(command, false, cancellationToken);
     }
 
     public Task<PlayerViewOfGame> PutWildAsync(UnoCard card, UnoColor newColor, CancellationToken cancellationToken = default)
@@ -44,7 +44,7 @@ public class UnoClient : GameClient
             Card = card,
             NewColor = newColor
         };
-        return SendAsync<PlayerViewOfGame>(command, cancellationToken);
+        return SendAsync<PlayerViewOfGame>(command, false, cancellationToken);
     }
 
     public async Task<UnoCard> DrawCardAsync(CancellationToken cancellationToken = default)
@@ -57,7 +57,7 @@ public class UnoClient : GameClient
 
     public Task<EmptyResponse> PassAsync(CancellationToken cancellationToken = default)
     {
-        return SendAsync<EmptyResponse>(new PassRequest(), cancellationToken);
+        return SendAsync<EmptyResponse>(new PassRequest(), false, cancellationToken);
     }
 
     protected override void OnNotification(DecksterNotification notification)

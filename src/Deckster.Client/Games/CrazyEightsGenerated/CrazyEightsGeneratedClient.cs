@@ -23,22 +23,22 @@ public class CrazyEightsGeneratedClient(IClientChannel channel) : GameClient(cha
 
     public Task<PlayerViewOfGame> PutCard(PutCardRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+        return SendAsync<PlayerViewOfGame>(request, false, cancellationToken);
     }
 
     public Task<PlayerViewOfGame> PutEight(PutEightRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+        return SendAsync<PlayerViewOfGame>(request, false, cancellationToken);
     }
 
     public Task<CardResponse> DrawCard(DrawCardRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<CardResponse>(request, cancellationToken);
+        return SendAsync<CardResponse>(request, false, cancellationToken);
     }
 
     public Task<EmptyResponse> Pass(PassRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<EmptyResponse>(request, cancellationToken);
+        return SendAsync<EmptyResponse>(request, false, cancellationToken);
     }
 
     protected override void OnNotification(DecksterNotification notification)
@@ -81,25 +81,28 @@ public class CrazyEightsGeneratedClient(IClientChannel channel) : GameClient(cha
 
 public static class CrazyEightsGeneratedClientConveniences
 {
-    public static Task<PlayerViewOfGame> PutCard(this CrazyEightsGeneratedClient self, Card card, CancellationToken cancellationToken = default)
+    public static async Task<(List<Card> cards, Card topOfPile, Suit currentSuit, int stockPileCount, int discardPileCount, List<OtherCrazyEightsPlayer> otherPlayers)> PutCard(this CrazyEightsGeneratedClient self, Card card, CancellationToken cancellationToken = default)
     {
         var request = new PutCardRequest{ Card = card };
-        return self.PutCard(request, cancellationToken);
+        var response = await self.SendAsync<PlayerViewOfGame>(request, true, cancellationToken);
+        return (response.Cards, response.TopOfPile, response.CurrentSuit, response.StockPileCount, response.DiscardPileCount, response.OtherPlayers);
     }
-    public static Task<PlayerViewOfGame> PutEight(this CrazyEightsGeneratedClient self, Card card, Suit newSuit, CancellationToken cancellationToken = default)
+    public static async Task<(List<Card> cards, Card topOfPile, Suit currentSuit, int stockPileCount, int discardPileCount, List<OtherCrazyEightsPlayer> otherPlayers)> PutEight(this CrazyEightsGeneratedClient self, Card card, Suit newSuit, CancellationToken cancellationToken = default)
     {
         var request = new PutEightRequest{ Card = card, NewSuit = newSuit };
-        return self.PutEight(request, cancellationToken);
+        var response = await self.SendAsync<PlayerViewOfGame>(request, true, cancellationToken);
+        return (response.Cards, response.TopOfPile, response.CurrentSuit, response.StockPileCount, response.DiscardPileCount, response.OtherPlayers);
     }
-    public static Task<CardResponse> DrawCard(this CrazyEightsGeneratedClient self, CancellationToken cancellationToken = default)
+    public static async Task<Card> DrawCard(this CrazyEightsGeneratedClient self, CancellationToken cancellationToken = default)
     {
         var request = new DrawCardRequest{  };
-        return self.DrawCard(request, cancellationToken);
+        var response = await self.SendAsync<CardResponse>(request, true, cancellationToken);
+        return response.Card;
     }
-    public static Task<EmptyResponse> Pass(this CrazyEightsGeneratedClient self, CancellationToken cancellationToken = default)
+    public static async Task Pass(this CrazyEightsGeneratedClient self, CancellationToken cancellationToken = default)
     {
         var request = new PassRequest{  };
-        return self.Pass(request, cancellationToken);
+        var response = await self.SendAsync<EmptyResponse>(request, true, cancellationToken);
     }
 }
 

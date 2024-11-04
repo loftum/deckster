@@ -23,22 +23,22 @@ public class UnoGeneratedClient(IClientChannel channel) : GameClient(channel)
 
     public Task<PlayerViewOfGame> PutCard(PutCardRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+        return SendAsync<PlayerViewOfGame>(request, false, cancellationToken);
     }
 
     public Task<PlayerViewOfGame> PutWild(PutWildRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+        return SendAsync<PlayerViewOfGame>(request, false, cancellationToken);
     }
 
     public Task<UnoCardResponse> DrawCard(DrawCardRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<UnoCardResponse>(request, cancellationToken);
+        return SendAsync<UnoCardResponse>(request, false, cancellationToken);
     }
 
     public Task<EmptyResponse> Pass(PassRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<EmptyResponse>(request, cancellationToken);
+        return SendAsync<EmptyResponse>(request, false, cancellationToken);
     }
 
     protected override void OnNotification(DecksterNotification notification)
@@ -81,25 +81,28 @@ public class UnoGeneratedClient(IClientChannel channel) : GameClient(channel)
 
 public static class UnoGeneratedClientConveniences
 {
-    public static Task<PlayerViewOfGame> PutCard(this UnoGeneratedClient self, UnoCard card, CancellationToken cancellationToken = default)
+    public static async Task<(List<UnoCard> cards, UnoCard topOfPile, UnoColor currentColor, int stockPileCount, int discardPileCount, List<OtherUnoPlayer> otherPlayers)> PutCard(this UnoGeneratedClient self, UnoCard card, CancellationToken cancellationToken = default)
     {
         var request = new PutCardRequest{ Card = card };
-        return self.PutCard(request, cancellationToken);
+        var response = await self.SendAsync<PlayerViewOfGame>(request, true, cancellationToken);
+        return (response.Cards, response.TopOfPile, response.CurrentColor, response.StockPileCount, response.DiscardPileCount, response.OtherPlayers);
     }
-    public static Task<PlayerViewOfGame> PutWild(this UnoGeneratedClient self, UnoCard card, UnoColor newColor, CancellationToken cancellationToken = default)
+    public static async Task<(List<UnoCard> cards, UnoCard topOfPile, UnoColor currentColor, int stockPileCount, int discardPileCount, List<OtherUnoPlayer> otherPlayers)> PutWild(this UnoGeneratedClient self, UnoCard card, UnoColor newColor, CancellationToken cancellationToken = default)
     {
         var request = new PutWildRequest{ Card = card, NewColor = newColor };
-        return self.PutWild(request, cancellationToken);
+        var response = await self.SendAsync<PlayerViewOfGame>(request, true, cancellationToken);
+        return (response.Cards, response.TopOfPile, response.CurrentColor, response.StockPileCount, response.DiscardPileCount, response.OtherPlayers);
     }
-    public static Task<UnoCardResponse> DrawCard(this UnoGeneratedClient self, CancellationToken cancellationToken = default)
+    public static async Task<UnoCard> DrawCard(this UnoGeneratedClient self, CancellationToken cancellationToken = default)
     {
         var request = new DrawCardRequest{  };
-        return self.DrawCard(request, cancellationToken);
+        var response = await self.SendAsync<UnoCardResponse>(request, true, cancellationToken);
+        return response.Card;
     }
-    public static Task<EmptyResponse> Pass(this UnoGeneratedClient self, CancellationToken cancellationToken = default)
+    public static async Task Pass(this UnoGeneratedClient self, CancellationToken cancellationToken = default)
     {
         var request = new PassRequest{  };
-        return self.Pass(request, cancellationToken);
+        var response = await self.SendAsync<EmptyResponse>(request, true, cancellationToken);
     }
 }
 

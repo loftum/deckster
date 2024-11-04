@@ -32,9 +32,15 @@ public static class GameReflectionExtensions
 
     public static bool TryGetExtensionMethod(this GameMethodInfo method, [MaybeNullWhen(false)] out GameExtensionMethodInfo extension)
     {
-        if (method.Request.ParameterType.TryDecomposeToSimpleProperties(out var parameters))
+        if (method.Request.ParameterType.TryDecomposeToParameters(out var parameters))
         {
-            extension = new GameExtensionMethodInfo(method.Name, parameters, method, method.ResponseType);
+            if (method.ResponseType.TryDecomposeToParameters(out var returnParameters))
+            {
+                extension = new GameExtensionMethodInfo(method.Name, parameters, method, method.ResponseType, returnParameters);
+                return true;
+            }
+            
+            extension = new GameExtensionMethodInfo(method.Name, parameters, method, method.ResponseType, null);
             return true;
         }
 
@@ -42,12 +48,31 @@ public static class GameReflectionExtensions
         return false;
     }
 
-    private static bool TryDecomposeToSimpleProperties(this Type type, [MaybeNullWhen(false)] out GameParameterInfo[] parameters)
+    private static bool TryDecomposeToParameters(this Type type, [MaybeNullWhen(false)] out GameParameterInfo[] parameters)
     {
-        var properties = type.GetProperties()
-            .Where(p => p.GetSetMethod() != null && p.Name != "PlayerId");
-        parameters = properties.Select(p => new GameParameterInfo(p.Name.ToCamelCase(), p.PropertyType)).ToArray();
-        return true;
+        if (type.InheritsFrom<DecksterRequest>())
+        {
+            var properties = type.GetProperties()
+                .Where(p => p.GetSetMethod() != null &&
+                            p.Name != nameof(DecksterRequest.PlayerId) &&
+                            p.Name != nameof(DecksterRequest.Type));
+            parameters = properties.Select(p => new GameParameterInfo(p.Name.ToCamelCase(), p.PropertyType)).ToArray();
+            return true;    
+        }
+
+        if (type.InheritsFrom<DecksterResponse>())
+        {
+            var properties = type.GetProperties()
+                .Where(p => p.Name != nameof(DecksterResponse.Error) &&
+                            p.Name != nameof(DecksterResponse.HasError) &&
+                            p.Name != nameof(DecksterResponse.Type));
+            parameters = properties.Select(p => new GameParameterInfo(p.Name.ToCamelCase(), p.PropertyType)).ToArray();
+            return true;
+        }
+
+        parameters = default;
+        return false;
+
     }
 
     private static bool IsGameMethod(this MethodInfo method, [MaybeNullWhen(false)] out GameMethodInfo gameMethod)

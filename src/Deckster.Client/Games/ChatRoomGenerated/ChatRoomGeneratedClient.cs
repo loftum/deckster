@@ -18,7 +18,7 @@ public class ChatRoomGeneratedClient(IClientChannel channel) : GameClient(channe
 
     public Task<ChatResponse> ChatAsync(SendChatRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<ChatResponse>(request, cancellationToken);
+        return SendAsync<ChatResponse>(request, false, cancellationToken);
     }
 
     protected override void OnNotification(DecksterNotification notification)
@@ -43,10 +43,10 @@ public class ChatRoomGeneratedClient(IClientChannel channel) : GameClient(channe
 
 public static class ChatRoomGeneratedClientConveniences
 {
-    public static Task<ChatResponse> ChatAsync(this ChatRoomGeneratedClient self, String message, CancellationToken cancellationToken = default)
+    public static async Task ChatAsync(this ChatRoomGeneratedClient self, String message, CancellationToken cancellationToken = default)
     {
         var request = new SendChatRequest{ Message = message };
-        return self.ChatAsync(request, cancellationToken);
+        var response = await self.SendAsync<ChatResponse>(request, true, cancellationToken);
     }
 }
 

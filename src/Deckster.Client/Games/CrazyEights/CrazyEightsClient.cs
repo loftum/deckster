@@ -30,7 +30,7 @@ public class CrazyEightsClient : GameClient
         {
             Card = card
         };
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+        return SendAsync<PlayerViewOfGame>(request, false, cancellationToken);
     }
 
     public Task<PlayerViewOfGame> PutEightAsync(Card card, Suit newSuit, CancellationToken cancellationToken = default)
@@ -40,7 +40,7 @@ public class CrazyEightsClient : GameClient
             Card = card,
             NewSuit = newSuit
         };
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
+        return SendAsync<PlayerViewOfGame>(request, false, cancellationToken);
     }
 
     public async Task<Card> DrawCardAsync(CancellationToken cancellationToken = default)
@@ -53,7 +53,7 @@ public class CrazyEightsClient : GameClient
 
     public Task<EmptyResponse> PassAsync(CancellationToken cancellationToken = default)
     {
-        return SendAsync<EmptyResponse>(new PassRequest(), cancellationToken);
+        return SendAsync<EmptyResponse>(new PassRequest(), false, cancellationToken);
     }
 
     protected override async void OnNotification(DecksterNotification notification)

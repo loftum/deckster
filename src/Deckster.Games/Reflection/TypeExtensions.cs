@@ -55,12 +55,6 @@ public static class TypeExtensions
         return type.IsArray || typeof(ICollection).IsAssignableFrom(type);
     }
 
-    public static bool IsComplexType(this Type type)
-    {
-        return !type.IsSimpleType() &&
-               !type.IsCollectionType();
-    }
-
     public static Type? GetCollectionElementType(this Type type)
     {
         if (type is {IsArray: true, HasElementType: true})

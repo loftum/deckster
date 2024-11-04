@@ -26,6 +26,6 @@ public class ChatRoomClient : GameClient
 
     public Task<ChatResponse> ChatAsync(SendChatRequest request, CancellationToken cancellationToken = default)
     {
-        return SendAsync<ChatResponse>(request, cancellationToken);
+        return SendAsync<ChatResponse>(request, false, cancellationToken);
     }
 }

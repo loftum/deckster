@@ -27,13 +27,16 @@ public abstract class GameClient : IGameClient
 
     protected abstract void OnNotification(DecksterNotification notification);
 
-    protected async Task<TResponse> SendAsync<TResponse>(DecksterRequest request, CancellationToken cancellationToken = default)
+    public async Task<TResponse> SendAsync<TResponse>(DecksterRequest request, bool throwOnError, CancellationToken cancellationToken = default)
     {
         var response = await Channel.SendAsync<DecksterResponse>(request, DecksterJson.Options, cancellationToken);
+        if (response is {HasError: true} && throwOnError)
+        {
+            throw new Exception(response.Error);
+        }
         return response switch
         {
             null => throw new Exception("OMG RESPAWNS IZ NULLZ"),
-            { HasError: true } => throw new Exception(response.Error), 
             TResponse expected => expected,
             _ => throw new Exception($"Unknown result '{response.GetType().Name}'")
         };
@@ -46,7 +49,7 @@ public abstract class GameClient : IGameClient
     
     protected async Task<TWanted> GetAsync<TWanted>(DecksterRequest request, CancellationToken cancellationToken = default) where TWanted : DecksterResponse
     {
-        var response = await SendAsync<TWanted>(request, cancellationToken);
+        var response = await SendAsync<TWanted>(request, false, cancellationToken);
         return response switch
         {
             TWanted r => r,
