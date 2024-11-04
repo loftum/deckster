@@ -1,6 +1,6 @@
 using Deckster.Server.CodeGeneration.Meta;
 
-namespace Deckster.Generated.Client;
+namespace Deckster.CodeGenerator;
 
 public class CsharpClientGenerator : ClientGenerator
 {

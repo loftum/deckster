@@ -26,20 +26,20 @@ public class OpenApiDocumentGenerator
         };
     }
 
-    public Task WriteAsYamlAsync(string path) => WriteAsync(path, OpenApiFormat.Yaml);
-    public Task WriteAsJsonAsync(string path) => WriteAsync(path, OpenApiFormat.Json);
+    public Task WriteAsYamlAsync(FileInfo file) => WriteAsync(file, OpenApiFormat.Yaml);
+    public Task WriteAsJsonAsync(FileInfo file) => WriteAsync(file, OpenApiFormat.Json);
 
-    private async Task WriteAsync(string path, OpenApiFormat format)
+    private async Task WriteAsync(FileInfo file, OpenApiFormat format)
     {
         using var stream = new MemoryStream();
         _document.Serialize(stream, OpenApiSpecVersion.OpenApi3_0, format);
         stream.Position = 0;
 
-        if (File.Exists(path))
+        if (file.Exists)
         {
-            File.Delete(path);
+            file.Delete();
         }
-        await using var fileStream = File.Open(path, FileMode.CreateNew);
+        await using var fileStream = file.Open(FileMode.CreateNew);
         await stream.CopyToAsync(fileStream);
         await fileStream.FlushAsync();
     }

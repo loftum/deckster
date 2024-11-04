@@ -1,7 +1,6 @@
 using Deckster.Server.CodeGeneration.Meta;
-using StringExtensions = Deckster.Uno.SampleClient.StringExtensions;
 
-namespace Deckster.Generated.Client;
+namespace Deckster.CodeGenerator;
 
 public class KotlinClientGenerator : ClientGenerator
 {
@@ -23,7 +22,7 @@ public class KotlinClientGenerator : ClientGenerator
         {
             foreach (var method in meta.Methods)
             {
-                SourceCode.Append($"suspend fun {StringExtensions.ToCamelCase(method.Name)}({string.Join(", ", method.Parameters.Select(FormatParameter))})");
+                SourceCode.Append($"suspend fun {method.Name.ToCamelCase()}({string.Join(", ", method.Parameters.Select(FormatParameter))})");
                 if (method.ReturnType.Name != "void")
                 {
                     SourceCode.Append($": {method.ReturnType}");

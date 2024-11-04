@@ -36,7 +36,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="CodeGeneration\Code\" />
       <Folder Include="Views\CrazyEights\" />
     </ItemGroup>
 

@@ -1,14 +1,13 @@
-using Deckster.Generated.Client.Code;
+using Deckster.CodeGenerator.Code;
 
-namespace Deckster.Generated.Client;
+namespace Deckster.CodeGenerator;
 
 public abstract class ClientGenerator
 {
     protected readonly SourceWriter SourceCode = new();
 
-    public async Task WriteToAsync(string path)
+    public async Task WriteToAsync(FileInfo file)
     {
-        var file = new FileInfo(path);
         if (file.Directory is { Exists: false })
         {
             file.Directory.Create();
