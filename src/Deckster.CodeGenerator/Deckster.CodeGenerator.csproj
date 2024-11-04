@@ -10,6 +10,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\Deckster.Core\Deckster.Core.csproj" />
+      <ProjectReference Include="..\Deckster.Games\Deckster.Games.csproj" />
       <ProjectReference Include="..\Deckster.Server\Deckster.Server.csproj" />
     </ItemGroup>
 
