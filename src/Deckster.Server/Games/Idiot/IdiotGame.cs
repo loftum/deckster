@@ -1,5 +1,4 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Games.Idiot;
 using Deckster.Core.Games.Common;
 using Deckster.Core.Games.Idiot;
 using Deckster.Server.Collections;
