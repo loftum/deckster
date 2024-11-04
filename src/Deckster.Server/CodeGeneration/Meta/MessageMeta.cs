@@ -1,4 +1,4 @@
-using Deckster.Client.Serialization;
+using Deckster.Core.Serialization;
 
 namespace Deckster.Server.CodeGeneration.Meta;
 

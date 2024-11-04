@@ -1,4 +1,5 @@
 using Deckster.Client.Games.Idiot;
+using Deckster.Core.Games.Idiot;
 
 namespace Deckster.Server.Games.Idiot;
 

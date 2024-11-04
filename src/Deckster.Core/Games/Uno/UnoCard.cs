@@ -1,4 +1,4 @@
-namespace Deckster.Client.Games.Uno;
+namespace Deckster.Core.Games.Uno;
 
 public class UnoCard
 {

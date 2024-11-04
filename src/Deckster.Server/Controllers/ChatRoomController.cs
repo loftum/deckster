@@ -7,4 +7,4 @@ namespace Deckster.Server.Controllers;
 
 [Route("chatroom")]
 public class ChatRoomController(GameHostRegistry hostRegistry, IRepo repo)
-    : GameController<ChatRoomHost, Chat>(hostRegistry, repo);
+    : GameController<ChatRoomHost, ChatRoom>(hostRegistry, repo);

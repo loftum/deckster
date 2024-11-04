@@ -1,6 +1,6 @@
-using Deckster.Client.Serialization;
+using Deckster.Core.Serialization;
 
-namespace Deckster.Client.Protocol;
+namespace Deckster.Core.Protocol;
 
 public abstract class DecksterMessage
 {

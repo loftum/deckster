@@ -1,5 +1,5 @@
 using Deckster.Server.CodeGeneration.Meta;
-using StringExtensions = Deckster.Client.Sugar.StringExtensions;
+using StringExtensions = Deckster.Uno.SampleClient.StringExtensions;
 
 namespace Deckster.Generated.Client;
 

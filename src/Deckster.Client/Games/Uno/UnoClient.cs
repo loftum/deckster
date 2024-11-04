@@ -1,7 +1,8 @@
 using Deckster.Client.Communication;
-using Deckster.Client.Games.Common;
 using Deckster.Client.Logging;
-using Deckster.Client.Protocol;
+using Deckster.Core.Games.Common;
+using Deckster.Core.Games.Uno;
+using Deckster.Core.Protocol;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Games.Uno;

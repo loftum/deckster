@@ -1,8 +1,8 @@
 using Deckster.Client.Communication;
-using Deckster.Client.Games.Common;
 using Deckster.Client.Logging;
-using Deckster.Client.Protocol;
-using Deckster.Client.Serialization;
+using Deckster.Core.Games.Common;
+using Deckster.Core.Protocol;
+using Deckster.Core.Serialization;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.Client.Games;

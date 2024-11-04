@@ -1,6 +1,6 @@
-using Deckster.Client.Protocol;
+using Deckster.Core.Protocol;
 
-namespace Deckster.Client.Games.Uno;
+namespace Deckster.Core.Games.Uno;
 
 public class PutCardRequest : DecksterRequest
 {

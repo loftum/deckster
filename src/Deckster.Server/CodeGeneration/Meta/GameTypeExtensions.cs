@@ -1,6 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
-using Deckster.Client.Protocol;
+using Deckster.Core.Protocol;
 using Deckster.Server.Games;
 
 namespace Deckster.Server.CodeGeneration.Meta;

@@ -1,4 +1,4 @@
-namespace Deckster.Client.Games.Common;
+namespace Deckster.Core.Games.Common;
 
 public readonly struct Card
 {

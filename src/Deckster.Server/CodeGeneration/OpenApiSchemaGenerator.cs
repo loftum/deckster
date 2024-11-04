@@ -1,7 +1,7 @@
-using Deckster.Client.Serialization;
-using Deckster.Client.Sugar;
+using Deckster.Core.Serialization;
 using Deckster.Server.CodeGeneration.Meta;
 using Deckster.Server.Reflection;
+using Deckster.Uno.SampleClient;
 using Microsoft.OpenApi.Extensions;
 using Microsoft.OpenApi.Models;
 

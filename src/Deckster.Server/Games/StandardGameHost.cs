@@ -1,5 +1,5 @@
-using Deckster.Client.Games.Common;
-using Deckster.Client.Protocol;
+using Deckster.Core.Games.Common;
+using Deckster.Core.Protocol;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;

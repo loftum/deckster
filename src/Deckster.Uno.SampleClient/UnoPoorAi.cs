@@ -1,5 +1,6 @@
 using Deckster.Client.Games.Uno;
 using Deckster.Client.Logging;
+using Deckster.Core.Games.Uno;
 using Microsoft.Extensions.Logging;
 
 namespace Deckster.Uno.SampleClient;

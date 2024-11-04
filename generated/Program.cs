@@ -1,4 +1,4 @@
-﻿using Deckster.Client.Protocol;
+﻿using Deckster.Core.Protocol;
 using Deckster.Server.CodeGeneration;
 using Deckster.Server.CodeGeneration.Meta;
 using Deckster.Server.Games;

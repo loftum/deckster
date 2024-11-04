@@ -1,7 +1,8 @@
 using System.Collections.Concurrent;
-using Deckster.Client.Games.Common;
 using Deckster.Client.Games.Idiot;
-using Deckster.Client.Protocol;
+using Deckster.Core.Games.Common;
+using Deckster.Core.Games.Idiot;
+using Deckster.Core.Protocol;
 using Deckster.Server.Collections;
 using Deckster.Server.Games;
 using Deckster.Server.Games.Idiot;

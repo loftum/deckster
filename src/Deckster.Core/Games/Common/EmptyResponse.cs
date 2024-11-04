@@ -1,6 +1,6 @@
-using Deckster.Client.Protocol;
+using Deckster.Core.Protocol;
 
-namespace Deckster.Client.Games.Common;
+namespace Deckster.Core.Games.Common;
 
 public class EmptyResponse : DecksterResponse
 {

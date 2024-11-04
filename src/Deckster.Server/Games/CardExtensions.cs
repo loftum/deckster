@@ -1,4 +1,4 @@
-using Deckster.Client.Games.Common;
+using Deckster.Core.Games.Common;
 using JasperFx.CodeGeneration.Frames;
 
 namespace Deckster.Server.Games;

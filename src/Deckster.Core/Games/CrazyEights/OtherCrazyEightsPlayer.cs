@@ -1,4 +1,4 @@
-namespace Deckster.Client.Games.CrazyEights;
+namespace Deckster.Core.Games.CrazyEights;
 
 public class OtherCrazyEightsPlayer
 {

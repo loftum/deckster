@@ -1,9 +1,9 @@
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Deckster.Client.Protocol;
+using Deckster.Core.Protocol;
 
-namespace Deckster.Client.Serialization;
+namespace Deckster.Core.Serialization;
 
 public static class DecksterJson
 {

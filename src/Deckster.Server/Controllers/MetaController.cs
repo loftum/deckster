@@ -1,4 +1,4 @@
-using Deckster.Client.Protocol;
+using Deckster.Core.Protocol;
 using Deckster.Server.CodeGeneration;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OpenApi.Models;

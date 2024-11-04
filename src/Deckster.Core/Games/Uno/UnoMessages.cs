@@ -1,7 +1,7 @@
-using Deckster.Client.Games.Common;
-using Deckster.Client.Protocol;
+using Deckster.Core.Games.Common;
+using Deckster.Core.Protocol;
 
-namespace Deckster.Client.Games.Uno;
+namespace Deckster.Core.Games.Uno;
 
 public abstract class UnoGameNotification: DecksterNotification;
 

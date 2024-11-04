@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
-using Deckster.Client.Protocol;
+using Deckster.Core.Protocol;
 
-namespace Deckster.Client.Serialization;
+namespace Deckster.Core.Serialization;
 
 public class DecksterMessageConverterBuilder
 {

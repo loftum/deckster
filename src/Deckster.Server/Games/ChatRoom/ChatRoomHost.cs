@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
-using Deckster.Client.Games.ChatRoom;
-using Deckster.Client.Protocol;
-using Deckster.Client.Serialization;
+using Deckster.Core.Games.ChatRoom;
+using Deckster.Core.Protocol;
+using Deckster.Core.Serialization;
 using Deckster.Server.Communication;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Common;
@@ -13,15 +13,15 @@ public class ChatRoomHost : GameHost
     public override string GameType => "ChatRoom";
     public override GameState State => GameState.Running;
     private readonly IRepo _repo;
-    private readonly IEventQueue<Chat> _events;
-    private readonly ChatProjection _projection = new();
-    private readonly Chat _chat;
+    private readonly IEventQueue<ChatRoom> _events;
+    private readonly ChatRoomProjection _projection = new();
+    private readonly ChatRoom _chatRoom;
 
     public ChatRoomHost(IRepo repo) : base(null)
     {
         _repo = repo;
-        (_chat, var startEvent) = _projection.Create(this);
-        _events = repo.StartEventQueue<Chat>(_chat.Id, startEvent);
+        (_chatRoom, var startEvent) = _projection.Create(this);
+        _events = repo.StartEventQueue<ChatRoom>(_chatRoom.Id, startEvent);
         _events.Append(startEvent);
     }
 
@@ -37,7 +37,7 @@ public class ChatRoomHost : GameHost
         switch (request)
         {
             case SendChatRequest message:
-                await _chat.ChatAsync(message);
+                await _chatRoom.ChatAsync(message);
                 _events.Append(message);
                 await _events.FlushAsync();
                 return;

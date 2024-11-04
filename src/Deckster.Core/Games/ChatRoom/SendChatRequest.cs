@@ -1,6 +1,6 @@
-using Deckster.Client.Protocol;
+using Deckster.Core.Protocol;
 
-namespace Deckster.Client.Games.ChatRoom;
+namespace Deckster.Core.Games.ChatRoom;
 
 public class SendChatRequest : DecksterRequest
 {

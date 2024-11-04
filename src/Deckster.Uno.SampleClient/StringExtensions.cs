@@ -1,4 +1,4 @@
-namespace Deckster.Client.Sugar;
+namespace Deckster.Uno.SampleClient;
 
 public static class StringExtensions
 {

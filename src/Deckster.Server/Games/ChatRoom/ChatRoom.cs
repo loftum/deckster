@@ -1,9 +1,9 @@
-using Deckster.Client.Games.ChatRoom;
+using Deckster.Core.Games.ChatRoom;
 using Deckster.Server.Games.Common;
 
 namespace Deckster.Server.Games.ChatRoom;
 
-public class Chat : GameObject
+public class ChatRoom : GameObject
 {
     public event NotifyAll<ChatNotification>? PlayerSaid; 
     
@@ -11,9 +11,9 @@ public class Chat : GameObject
 
     public List<SendChatRequest> Transcript { get; init; } = [];
 
-    public static Chat Create(ChatCreatedEvent e)
+    public static ChatRoom Create(ChatCreatedEvent e)
     {
-        return new Chat
+        return new ChatRoom
         {
             Id = e.Id,
             StartedTime = e.StartedTime,

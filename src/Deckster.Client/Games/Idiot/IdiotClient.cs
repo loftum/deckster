@@ -1,5 +1,5 @@
 using Deckster.Client.Communication;
-using Deckster.Client.Protocol;
+using Deckster.Core.Protocol;
 
 namespace Deckster.Client.Games.Idiot;
 

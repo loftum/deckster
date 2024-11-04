@@ -1,7 +1,7 @@
-using Deckster.Client.Games.Common;
-using Deckster.Client.Protocol;
+using Deckster.Core.Games.Common;
+using Deckster.Core.Protocol;
 
-namespace Deckster.Client.Games.CrazyEights;
+namespace Deckster.Core.Games.CrazyEights;
 
 public class PlayerPutCardNotification : DecksterNotification
 {

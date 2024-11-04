@@ -1,6 +1,7 @@
 ﻿using Deckster.Client;
 using Deckster.Client.Games.ChatRoom;
-using Deckster.Client.Serialization;
+using Deckster.Core.Games.ChatRoom;
+using Deckster.Core.Serialization;
 
 namespace Deckster.ChatRoom.SampleClient;
 
