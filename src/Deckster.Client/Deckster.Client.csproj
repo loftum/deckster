@@ -15,4 +15,11 @@
       <ProjectReference Include="..\Deckster.Core\Deckster.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Games\ChatRoom\" />
+      <Folder Include="Games\CrazyEights\" />
+      <Folder Include="Games\Idiot\" />
+      <Folder Include="Games\Uno\" />
+    </ItemGroup>
+
 </Project>

@@ -71,7 +71,7 @@ public class Program
 
     private static async Task GenerateCsharpAsync(DirectoryInfo gitDirectory, Type gameType, CSharpGameMeta game)
     {
-        var directory = gitDirectory.GetSubDirectory("src", "Deckster.Client", "Games", game.Name + "Generated");
+        var directory = gitDirectory.GetSubDirectory("src", "Deckster.Client", "Games", game.Name);
 
         if (directory.Exists)
         {
@@ -82,7 +82,7 @@ public class Program
         
         var ns = gameType.Namespace?.Split('.').LastOrDefault() ?? throw new Exception($"OMG CANT HAZ NAEMSPAZE OF ITZ TAYP '{gameType.Name}'");
         
-        var file = directory.GetFile($"{game.Name}GeneratedClient.cs");
+        var file = directory.GetFile($"{game.Name}Client.cs");
         
         var kotlin = new CsharpClientGenerator(game, $"Deckster.Client.Games.{ns}");
         await kotlin.WriteToAsync(file);

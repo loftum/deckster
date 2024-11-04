@@ -12,6 +12,7 @@ public class CrazyEightsGame : GameObject
     public event NotifyPlayer<ItsYourTurnNotification>? ItsYourTurn;
     public event NotifyAll<PlayerPassedNotification>? PlayerPassed;
     public event NotifyAll<PlayerPutCardNotification>? PlayerPutCard;
+    public event NotifyAll<PlayerPutEightNotification>? PlayerPutEight;
     public event NotifyAll<GameEndedNotification>? GameEnded;
     public event NotifyAll<PlayerIsDoneNotification>? PlayerIsDone;
     
@@ -185,12 +186,19 @@ public class CrazyEightsGame : GameObject
         
         response = GetPlayerViewOfGame(player);
         await RespondAsync(playerId, response);
+
+        await PlayerPutEight.InvokeOrDefault(new PlayerPutEightNotification
+        {
+            PlayerId = player.Id,
+            Card = request.Card,
+            NewSuit = request.NewSuit
+        });
         
         if (!player.Cards.Any())
         {
             DonePlayers.Add(player);
             
-            await EventExtensions.InvokeOrDefault(PlayerIsDone, new PlayerIsDoneNotification
+            await PlayerIsDone.InvokeOrDefault(new PlayerIsDoneNotification
             {
                 PlayerId = playerId
             });

@@ -14,6 +14,8 @@ public class UnoGame : GameObject
     public event NotifyAll<PlayerPassedNotification>? PlayerPassed;
     public event NotifyAll<GameEndedNotification>? GameEnded;
     public event NotifyPlayer<ItsYourTurnNotification>? ItsYourTurn;
+    public event NotifyPlayer<RoundStartedNotification>? RoundStarted;
+    public event NotifyPlayer<RoundEndedNotification>? RoundEnded; 
     
     private readonly int _initialCardsPerPlayer = 7;
 

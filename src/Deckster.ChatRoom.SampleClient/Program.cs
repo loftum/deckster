@@ -16,7 +16,7 @@ class Program
             await using var chatRoom = await deckster.ChatRoom().CreateAndJoinAsync("my-room", cts.Token);
             
             Console.WriteLine("Connected");
-            chatRoom.OnMessage += m => Console.WriteLine($"Got message {m.Pretty()}");
+            chatRoom.PlayerSaid += m => Console.WriteLine($"Got message {m.Pretty()}");
             
             Console.CancelKeyPress += (s, e) =>
             {
@@ -24,7 +24,7 @@ class Program
                 cts.Cancel();
             };
           
-            chatRoom.OnDisconnected += s =>
+            chatRoom.Disconnected += s =>
             {
                 Console.WriteLine($"Disconnected: '{s}'");
                 cts.Cancel();
@@ -49,7 +49,7 @@ class Program
                         }, cts.Token);
                 
                         Console.WriteLine("Response:");
-                        Console.WriteLine(response.Pretty() ?? "null");
+                        Console.WriteLine(response.Pretty());
                         break;
                 }
             }

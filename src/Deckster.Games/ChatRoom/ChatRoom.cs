@@ -24,7 +24,7 @@ public class ChatRoom : GameObject
         Transcript.Add(request);
         var response = new ChatResponse();
         await RespondAsync(request.PlayerId, response);
-        await EventExtensions.InvokeOrDefault(PlayerSaid, () => new ChatNotification
+        await PlayerSaid.InvokeOrDefault(() => new ChatNotification
         {
             Sender = request.PlayerId.ToString(),
             Message = request.Message

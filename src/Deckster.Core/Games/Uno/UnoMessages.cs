@@ -44,12 +44,12 @@ public class GameEndedNotification : UnoGameNotification
     public List<PlayerData> Players { get; init; }
 }
 
-public class RoundStartedMessage
+public class RoundStartedNotification : DecksterNotification
 {
     public PlayerViewOfGame PlayerViewOfGame { get; init; }
 }
 
-public class RoundEndedMessage
+public class RoundEndedNotification : DecksterNotification
 {
     public List<PlayerData> Players { get; init; }
 }

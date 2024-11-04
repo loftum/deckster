@@ -24,6 +24,8 @@ components:
           Uno.PutWildRequest: '#/components/schemas/Uno.PutWildRequest'
           Uno.DrawCardRequest: '#/components/schemas/Uno.DrawCardRequest'
           Uno.PassRequest: '#/components/schemas/Uno.PassRequest'
+          Uno.RoundStartedNotification: '#/components/schemas/Uno.RoundStartedNotification'
+          Uno.RoundEndedNotification: '#/components/schemas/Uno.RoundEndedNotification'
           Idiot.PlayerViewOfGame: '#/components/schemas/Idiot.PlayerViewOfGame'
           Idiot.IamReadyRequest: '#/components/schemas/Idiot.IamReadyRequest'
           Idiot.SwapCardsRequest: '#/components/schemas/Idiot.SwapCardsRequest'
@@ -113,6 +115,8 @@ components:
         propertyName: type
         mapping:
           Uno.UnoGameNotification: '#/components/schemas/Uno.UnoGameNotification'
+          Uno.RoundStartedNotification: '#/components/schemas/Uno.RoundStartedNotification'
+          Uno.RoundEndedNotification: '#/components/schemas/Uno.RoundEndedNotification'
           Idiot.PlayerSwappedCardsNotification: '#/components/schemas/Idiot.PlayerSwappedCardsNotification'
           Idiot.PlayerPutCardsNotification: '#/components/schemas/Idiot.PlayerPutCardsNotification'
           Idiot.PlayerIsReadyNotification: '#/components/schemas/Idiot.PlayerIsReadyNotification'
@@ -279,6 +283,59 @@ components:
       allOf:
         - $ref: '#/components/schemas/Protocol.DecksterRequest'
         - type: object
+    Uno.RoundStartedNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterNotification'
+        - type: object
+          properties:
+            playerViewOfGame:
+              type: object
+              allOf:
+                - $ref: '#/components/schemas/Protocol.DecksterResponse'
+                - type: object
+                  properties:
+                    cards:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Uno.UnoCard'
+                    topOfPile:
+                      type: object
+                      properties:
+                        color:
+                          type: string
+                        value:
+                          type: string
+                    currentColor:
+                      type: string
+                    stockPileCount:
+                      type: integer
+                      format: int32
+                    discardPileCount:
+                      type: integer
+                      format: int32
+                    otherPlayers:
+                      type: array
+                      items:
+                        $ref: '#/components/schemas/Uno.OtherUnoPlayer'
+    Uno.RoundEndedNotification:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Protocol.DecksterNotification'
+        - type: object
+          properties:
+            players:
+              type: array
+              items:
+                $ref: '#/components/schemas/Common.PlayerData'
+    Common.PlayerData:
+      type: object
+      properties:
+        name:
+          type: string
+        id:
+          type: string
+          format: uuid
     Idiot.PlayerViewOfGame:
       type: object
       allOf:
@@ -873,14 +930,6 @@ components:
               type: array
               items:
                 $ref: '#/components/schemas/Common.PlayerData'
-    Common.PlayerData:
-      type: object
-      properties:
-        name:
-          type: string
-        id:
-          type: string
-          format: uuid
     CrazyEights.YouAreDoneNotification:
       type: object
       allOf:

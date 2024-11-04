@@ -9,7 +9,7 @@ public class CsharpClientGenerator : ClientGenerator
     
     public CsharpClientGenerator(CSharpGameMeta meta, string ns)
     {
-        ClientName = $"{meta.Name}GeneratedClient";
+        ClientName = $"{meta.Name}Client";
 
         var usings = new HashSet<string>(meta.Usings.Concat([
             "System.Diagnostics",

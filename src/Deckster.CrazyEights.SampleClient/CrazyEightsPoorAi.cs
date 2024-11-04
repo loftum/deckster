@@ -100,8 +100,7 @@ public class CrazyEightsPoorAi
             }
 
             _logger.LogInformation("Passing ({turn})", turn);
-            var passResponse = await _client.PassAsync();
-            var p = passResponse;
+            await _client.PassAsync();
         }
         catch (Exception e)
         {
