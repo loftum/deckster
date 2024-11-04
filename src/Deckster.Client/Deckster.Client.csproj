@@ -15,4 +15,8 @@
       <Folder Include="Games\Chat\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\Deckster.Core\Deckster.Core.csproj" />
+    </ItemGroup>
+
 </Project>
