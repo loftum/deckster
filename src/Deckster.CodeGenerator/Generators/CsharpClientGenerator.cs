@@ -1,5 +1,5 @@
+using Deckster.CodeGenerator.CSharp;
 using Deckster.Core;
-using Deckster.Games.CodeGeneration.Meta;
 
 namespace Deckster.CodeGenerator.Generators;
 
@@ -7,14 +7,25 @@ public class CsharpClientGenerator : ClientGenerator
 {
     public string ClientName { get; }
     
-    public CsharpClientGenerator(GameMeta meta, string ns)
+    public CsharpClientGenerator(CSharpGameMeta meta, string ns)
     {
         ClientName = $"{meta.Name}GeneratedClient";
+
+        var usings = new HashSet<string>(meta.Usings.Concat([
+            "System.Diagnostics",
+            "Deckster.Client.Communication",
+            "Deckster.Core.Protocol",
+            "Deckster.Core.Games.Common",
+            $"Deckster.Core.Games.{meta.Name}"
+        ]));
+
+        foreach (var u in usings)
+        {
+            SourceCode.AppendLine($"using {u};");
+        }
+        
         SourceCode
-            .AppendLine("using System.Diagnostics;")
-            .AppendLine("using Deckster.Client.Communication;")
-            .AppendLine("using Deckster.Client.Protocol;")
-            .AppendLine("using Deckster.Client.Games.Common;")
+            .AppendLine()
             .AppendLine($"namespace {ns};")
             .AppendLine()
             .AppendLine("/**")
@@ -35,14 +46,12 @@ public class CsharpClientGenerator : ClientGenerator
 
             foreach (var method in meta.Methods)
             {
-                var parameters = method.Parameters
-                    .Select(p => $"{p.Type.Name} {p.Name}")
-                    .Append("CancellationToken cancellationToken = default")
+                var parameters = new []{$"{method.Parameter.ParameterType} {method.Parameter.Name}", "CancellationToken cancellationToken = default"}
                     .StringJoined(", ");
                 SourceCode.AppendLine($"public Task<{method.ReturnType.Name}> {method.Name}({parameters})");
                 using (SourceCode.StartBlock())
                 {
-                    var p = method.Parameters.Select(p => p.Name).Append("cancellationToken").StringJoined(", ");
+                    var p = new[] {$"{method.Parameter.Name}", "cancellationToken"};
                     SourceCode.AppendLine($"return SendAsync<{method.ReturnType.Name}>({p});");
                 }
 
@@ -84,6 +93,15 @@ public class CsharpClientGenerator : ClientGenerator
                 }
             }
         }
+
+        SourceCode.AppendLine();
+
+        SourceCode.AppendLine($"public static class {ClientName}Extensions");
+        using (SourceCode.StartBlock())
+        {
+            
+        }
+        
 
         SourceCode.AppendLine();
 

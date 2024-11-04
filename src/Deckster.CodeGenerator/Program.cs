@@ -1,4 +1,5 @@
-﻿using Deckster.CodeGenerator.Generators;
+﻿using Deckster.CodeGenerator.CSharp;
+using Deckster.CodeGenerator.Generators;
 using Deckster.CodeGenerator.IO;
 using Deckster.Core.Protocol;
 using Deckster.Games;
@@ -55,21 +56,26 @@ public class Program
     {
         foreach (var type in types)
         {
+            if (CSharpGameMeta.TryGetFor(type, out var gameMeta))
+            {
+                await GenerateCsharpAsync(gitDirectory, type, gameMeta);    
+            }
+            
             if (GameMeta.TryGetFor(type, out var game))
             {
-                await GenerateCsharpAsync(gitDirectory, type, game);
+                
                 await GenerateKotlinAsync(gitDirectory, type, game);
             }
         }
     }
 
-    private static async Task GenerateCsharpAsync(DirectoryInfo gitDirectory, Type gameType, GameMeta game)
+    private static async Task GenerateCsharpAsync(DirectoryInfo gitDirectory, Type gameType, CSharpGameMeta game)
     {
         var directory = gitDirectory.GetSubDirectory("src", "Deckster.Client", "Games", game.Name + "Generated");
 
         if (directory.Exists)
         {
-            directory.Delete();
+            directory.Delete(true);
         }
         directory.Create();
         Console.WriteLine(directory);

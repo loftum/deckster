@@ -4,7 +4,7 @@ using Deckster.Core.Protocol;
 
 namespace Deckster.Games.CodeGeneration.Meta;
 
-internal static class GameTypeExtensions
+public static class GameTypeExtensions
 {
     public static bool InheritsFrom<T>(this Type type)
     {
@@ -33,7 +33,19 @@ internal static class GameTypeExtensions
         return false;
     }
 
-    private static bool IsNotifyAll(this Type type, [MaybeNullWhen(false)] out Type argument)
+    public static bool IsNotifyAll(this EventInfo e, [MaybeNullWhen(false)] out Type argument)
+    {
+        argument = default;
+        return e.EventHandlerType != null && e.EventHandlerType.IsNotifyAll(out argument);
+    }
+    
+    public static bool IsNotifyPlayer(this EventInfo e, [MaybeNullWhen(false)] out Type argument)
+    {
+        argument = default;
+        return e.EventHandlerType != null && e.EventHandlerType.IsNotifyPlayer(out argument);
+    }
+
+    public static bool IsNotifyAll(this Type type, [MaybeNullWhen(false)] out Type argument)
     {
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NotifyAll<>))
         {
@@ -45,7 +57,7 @@ internal static class GameTypeExtensions
         return false;
     }
 
-    private static bool IsNotifyPlayer(this Type type, [MaybeNullWhen(false)] out Type argument)
+    public static bool IsNotifyPlayer(this Type type, [MaybeNullWhen(false)] out Type argument)
     {
         if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(NotifyPlayer<>))
         {

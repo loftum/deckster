@@ -7,6 +7,6 @@
 */
 package no.forse.decksterlib.chatroom
 
-interface ChatClient {
+interface ChatRoomClient {
     suspend fun chatAsync(request: SendChatRequest): ChatResponse
 }
