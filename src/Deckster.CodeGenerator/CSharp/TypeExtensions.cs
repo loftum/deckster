@@ -9,6 +9,7 @@ public static class TypeExtensions
         [typeof(int)] = "int",
         [typeof(bool)] = "bool",
         [typeof(double)] = "double",
+        [typeof(string)] = "string",
     };
     
     public static string ToDisplayString(this Type type)

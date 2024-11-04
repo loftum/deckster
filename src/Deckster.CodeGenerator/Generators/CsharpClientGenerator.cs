@@ -46,12 +46,12 @@ public class CsharpClientGenerator : ClientGenerator
 
             foreach (var method in meta.Methods)
             {
-                var parameters = new []{$"{method.Request.ParameterType.Name} {method.Request.Name}", "CancellationToken cancellationToken = default"}
+                var parameters = new []{$"{method.Request.ParameterType.ToDisplayString()} {method.Request.Name}", "CancellationToken cancellationToken = default"}
                     .StringJoined(", ");
-                Source.AppendLine($"public Task<{method.ResponseType.Name}> {method.Name}({parameters})");
+                Source.AppendLine($"public Task<{method.ResponseType.ToDisplayString()}> {method.Name}({parameters})");
                 using (Source.CodeBlock())
                 {
-                    Source.AppendLine($"return SendAsync<{method.ResponseType.Name}>({method.Request.Name}, false, cancellationToken);");
+                    Source.AppendLine($"return SendAsync<{method.ResponseType.ToDisplayString()}>({method.Request.Name}, false, cancellationToken);");
                 }
 
                 Source.AppendLine();
@@ -68,7 +68,7 @@ public class CsharpClientGenerator : ClientGenerator
                     {
                         foreach (var notification in meta.Notifications)
                         {
-                            Source.AppendLine($"case {notification.MessageType.Name} m:");
+                            Source.AppendLine($"case {notification.MessageType.ToDisplayString()} m:");
                             using (Source.Indent())
                             {
                                 Source
@@ -100,19 +100,19 @@ public class CsharpClientGenerator : ClientGenerator
         {
             foreach (var extension in meta.ExtensionMethods)
             {
-                var parameters = extension.Parameters.Select(p => $"{p.ParameterType.Name} {p.Name}")
+                var parameters = extension.Parameters.Select(p => $"{p.ParameterType.ToDisplayString()} {p.Name}")
                     .Append("CancellationToken cancellationToken = default")
                     .StringJoined(", ");
 
 
                 if (extension.ReturnParameters == null)
                 {
-                    Source.AppendLine($"public static Task<{extension.ReturnType.Name}> {extension.Name}(this {ClientName} self, {parameters})");
+                    Source.AppendLine($"public static Task<{extension.ReturnType.ToDisplayString()}> {extension.Name}(this {ClientName} self, {parameters})");
                     using(Source.CodeBlock())
                     {
                         var properties = extension.Parameters.Select(p => $"{p.Name.ToPascalCase()} = {p.Name}").StringJoined(", ");
-                        Source.AppendLine($"var request = new {extension.Method.Request.ParameterType.Name}{{ {properties} }};");
-                        Source.AppendLine($"return self.SendAsync<{extension.ReturnType.Name}>(request, true, cancellationToken);");
+                        Source.AppendLine($"var request = new {extension.Method.Request.ParameterType.ToDisplayString()}{{ {properties} }};");
+                        Source.AppendLine($"return self.SendAsync<{extension.ReturnType.ToDisplayString()}>(request, true, cancellationToken);");
                     }    
                 }
                 else
@@ -134,8 +134,8 @@ public class CsharpClientGenerator : ClientGenerator
                     using (Source.CodeBlock())
                     {
                         var properties = extension.Parameters.Select(p => $"{p.Name.ToPascalCase()} = {p.Name}").StringJoined(", ");
-                        Source.AppendLine($"var request = new {extension.Method.Request.ParameterType.Name}{{ {properties} }};");
-                        Source.AppendLine($"var response = await self.SendAsync<{extension.Method.ResponseType.Name}>(request, true, cancellationToken);");
+                        Source.AppendLine($"var request = new {extension.Method.Request.ParameterType.ToDisplayString()}{{ {properties} }};");
+                        Source.AppendLine($"var response = await self.SendAsync<{extension.Method.ResponseType.ToDisplayString()}>(request, true, cancellationToken);");
 
                         switch (extension.ReturnParameters.Length)
                         {

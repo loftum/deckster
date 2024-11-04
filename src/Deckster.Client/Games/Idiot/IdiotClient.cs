@@ -143,7 +143,7 @@ public static class IdiotClientConveniences
         var request = new PutCardsFacingUpRequest{ Cards = cards };
         var response = await self.SendAsync<EmptyResponse>(request, true, cancellationToken);
     }
-    public static async Task<(Card attemptedCard, Card[] pullInCards)> PutCardFacingDownAsync(this IdiotClient self, Int32 index, CancellationToken cancellationToken = default)
+    public static async Task<(Card attemptedCard, Card[] pullInCards)> PutCardFacingDownAsync(this IdiotClient self, int index, CancellationToken cancellationToken = default)
     {
         var request = new PutCardFacingDownRequest{ Index = index };
         var response = await self.SendAsync<PutBlindCardResponse>(request, true, cancellationToken);
@@ -161,7 +161,7 @@ public static class IdiotClientConveniences
         var response = await self.SendAsync<PullInResponse>(request, true, cancellationToken);
         return response.Cards;
     }
-    public static async Task<Card[]> DrawCardsAsync(this IdiotClient self, Int32 numberOfCards, CancellationToken cancellationToken = default)
+    public static async Task<Card[]> DrawCardsAsync(this IdiotClient self, int numberOfCards, CancellationToken cancellationToken = default)
     {
         var request = new DrawCardsRequest{ NumberOfCards = numberOfCards };
         var response = await self.SendAsync<DrawCardsResponse>(request, true, cancellationToken);
