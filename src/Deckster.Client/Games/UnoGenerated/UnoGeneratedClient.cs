@@ -1,8 +1,8 @@
+using Deckster.Core.Games.Uno;
 using System.Diagnostics;
 using Deckster.Client.Communication;
 using Deckster.Core.Protocol;
 using Deckster.Core.Games.Common;
-using Deckster.Core.Games.Uno;
 
 namespace Deckster.Client.Games.Uno;
 
@@ -20,26 +20,6 @@ public class UnoGeneratedClient(IClientChannel channel) : GameClient(channel)
     public event Action<PlayerPassedNotification>? PlayerPassed;
     public event Action<GameEndedNotification>? GameEnded;
     public event Action<ItsYourTurnNotification>? ItsYourTurn;
-
-    public Task<PlayerViewOfGame> PutCard(PutCardRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
-    }
-
-    public Task<PlayerViewOfGame> PutWild(PutWildRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
-    }
-
-    public Task<UnoCardResponse> DrawCard(DrawCardRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<UnoCardResponse>(request, cancellationToken);
-    }
-
-    public Task<EmptyResponse> Pass(PassRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<EmptyResponse>(request, cancellationToken);
-    }
 
     protected override void OnNotification(DecksterNotification notification)
     {
@@ -77,6 +57,10 @@ public class UnoGeneratedClient(IClientChannel channel) : GameClient(channel)
             Console.WriteLine(e);
         }
     }
+}
+
+public static class UnoGeneratedClientExtensions
+{
 }
 
 public static class UnoGeneratedClientDecksterClientExtensions

@@ -1,8 +1,8 @@
+using Deckster.Core.Games.Idiot;
 using System.Diagnostics;
 using Deckster.Client.Communication;
 using Deckster.Core.Protocol;
 using Deckster.Core.Games.Common;
-using Deckster.Core.Games.Idiot;
 
 namespace Deckster.Client.Games.Idiot;
 
@@ -25,46 +25,6 @@ public class IdiotGeneratedClient(IClientChannel channel) : GameClient(channel)
     public event Action<PlayerAttemptedPuttingCardNotification>? PlayerAttemptedPuttingCard;
     public event Action<PlayerPulledInDiscardPileNotification>? PlayerPulledInDiscardPile;
     public event Action<PlayerSwappedCardsNotification>? PlayerSwappedCards;
-
-    public Task<EmptyResponse> IamReady(IamReadyRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<EmptyResponse>(request, cancellationToken);
-    }
-
-    public Task<SwapCardsResponse> SwapCards(SwapCardsRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<SwapCardsResponse>(request, cancellationToken);
-    }
-
-    public Task<EmptyResponse> PutCardsFromHand(PutCardsFromHandRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<EmptyResponse>(request, cancellationToken);
-    }
-
-    public Task<EmptyResponse> PutCardsFacingUp(PutCardsFacingUpRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<EmptyResponse>(request, cancellationToken);
-    }
-
-    public Task<PutBlindCardResponse> PutCardFacingDown(PutCardFacingDownRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<PutBlindCardResponse>(request, cancellationToken);
-    }
-
-    public Task<PutBlindCardResponse> PutChanceCard(PutChanceCardRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<PutBlindCardResponse>(request, cancellationToken);
-    }
-
-    public Task<PullInResponse> PullInDiscardPile(PullInDiscardPileRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<PullInResponse>(request, cancellationToken);
-    }
-
-    public Task<DrawCardsResponse> DrawCards(DrawCardsRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<DrawCardsResponse>(request, cancellationToken);
-    }
 
     protected override void OnNotification(DecksterNotification notification)
     {
@@ -117,6 +77,10 @@ public class IdiotGeneratedClient(IClientChannel channel) : GameClient(channel)
             Console.WriteLine(e);
         }
     }
+}
+
+public static class IdiotGeneratedClientExtensions
+{
 }
 
 public static class IdiotGeneratedClientDecksterClientExtensions

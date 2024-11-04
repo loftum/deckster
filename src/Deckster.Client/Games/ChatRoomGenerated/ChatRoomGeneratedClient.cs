@@ -35,6 +35,10 @@ public class ChatRoomGeneratedClient(IClientChannel channel) : GameClient(channe
     }
 }
 
+public static class ChatRoomGeneratedClientExtensions
+{
+}
+
 public static class ChatRoomGeneratedClientDecksterClientExtensions
 {
     public static GameApi<ChatRoomGeneratedClient> ChatRoom(this DecksterClient client)

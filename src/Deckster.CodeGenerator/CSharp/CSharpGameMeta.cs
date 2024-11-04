@@ -15,7 +15,7 @@ public class CSharpGameMeta
     
     public CSharpGameMeta(Type gameType)
     {
-        Name = gameType.Name;
+        Name = gameType.Name.Replace("Game", "");
         Notifications = gameType.GetNotifications().ToArray();
         Methods = gameType.GetGameMethods().ToArray();
 
@@ -24,7 +24,7 @@ public class CSharpGameMeta
         {
             if (ns != null)
             {
-                usings.Add(ns);    
+                usings.Add(ns);
             }
         }
 

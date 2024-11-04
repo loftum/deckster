@@ -1,8 +1,8 @@
+using Deckster.Core.Games.CrazyEights;
 using System.Diagnostics;
 using Deckster.Client.Communication;
 using Deckster.Core.Protocol;
 using Deckster.Core.Games.Common;
-using Deckster.Core.Games.CrazyEights;
 
 namespace Deckster.Client.Games.CrazyEights;
 
@@ -20,26 +20,6 @@ public class CrazyEightsGeneratedClient(IClientChannel channel) : GameClient(cha
     public event Action<PlayerPutCardNotification>? PlayerPutCard;
     public event Action<GameEndedNotification>? GameEnded;
     public event Action<PlayerIsDoneNotification>? PlayerIsDone;
-
-    public Task<PlayerViewOfGame> PutCard(PutCardRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
-    }
-
-    public Task<PlayerViewOfGame> PutEight(PutEightRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<PlayerViewOfGame>(request, cancellationToken);
-    }
-
-    public Task<CardResponse> DrawCard(DrawCardRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<CardResponse>(request, cancellationToken);
-    }
-
-    public Task<EmptyResponse> Pass(PassRequest request, CancellationToken cancellationToken = default)
-    {
-        return SendAsync<EmptyResponse>(request, cancellationToken);
-    }
 
     protected override void OnNotification(DecksterNotification notification)
     {
@@ -77,6 +57,10 @@ public class CrazyEightsGeneratedClient(IClientChannel channel) : GameClient(cha
             Console.WriteLine(e);
         }
     }
+}
+
+public static class CrazyEightsGeneratedClientExtensions
+{
 }
 
 public static class CrazyEightsGeneratedClientDecksterClientExtensions
