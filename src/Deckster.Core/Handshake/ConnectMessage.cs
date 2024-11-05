@@ -1,7 +1,7 @@
 using Deckster.Core.Games.Common;
 using Deckster.Core.Protocol;
 
-namespace Deckster.Client.Communication.Handshake;
+namespace Deckster.Core.Handshake;
 
 public abstract class ConnectMessage : DecksterMessage;
 

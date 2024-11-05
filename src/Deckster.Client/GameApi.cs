@@ -2,6 +2,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using Deckster.Client.Communication.WebSockets;
+using Deckster.Client.Logging;
+using Deckster.Core;
 using Deckster.Core.Serialization;
 
 namespace Deckster.Client;
@@ -28,7 +30,7 @@ public class GameApi<TClient>
     
     public async Task<TClient> JoinAsync(string gameName, CancellationToken cancellationToken = default)
     {
-        var channel = await WebSocketClientChannel.ConnectAsync(_baseUri, gameName, _token, cancellationToken);
+        var channel = await WebSocketClientChannel.ConnectAsync(_baseUri, gameName, _token, Log.Factory, cancellationToken);
         return _createClient(channel);
     }
 
