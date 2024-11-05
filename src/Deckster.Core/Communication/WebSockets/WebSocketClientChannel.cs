@@ -1,12 +1,12 @@
 using System.Net.WebSockets;
 using System.Text.Json;
-using Deckster.Client.Logging;
+using Deckster.Core.Communication.Handshake;
+using Deckster.Core.Extensions;
 using Deckster.Core.Games.Common;
-using Deckster.Core.Handshake;
 using Deckster.Core.Serialization;
 using Microsoft.Extensions.Logging;
 
-namespace Deckster.Client.Communication.WebSockets;
+namespace Deckster.Core.Communication.WebSockets;
 
 public class WebSocketClientChannel : IClientChannel
 {

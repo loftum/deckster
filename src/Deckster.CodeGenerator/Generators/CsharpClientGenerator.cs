@@ -1,5 +1,6 @@
 using Deckster.CodeGenerator.CSharp;
 using Deckster.Core;
+using Deckster.Core.Extensions;
 
 namespace Deckster.CodeGenerator.Generators;
 
@@ -13,9 +14,10 @@ public class CsharpClientGenerator : ClientGenerator
 
         var usings = new HashSet<string>(meta.Usings.Concat([
             "System.Diagnostics",
-            "Deckster.Client.Communication",
+            "Deckster.Core.Communication",
             "Deckster.Core.Protocol",
             "Deckster.Core.Games.Common",
+            "Deckster.Core.Extensions",
             $"Deckster.Core.Games.{meta.Name}"
         ]));
 

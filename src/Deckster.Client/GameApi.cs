@@ -1,9 +1,10 @@
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using Deckster.Client.Communication.WebSockets;
 using Deckster.Client.Logging;
 using Deckster.Core;
+using Deckster.Core.Communication.WebSockets;
+using Deckster.Core.Extensions;
 using Deckster.Core.Serialization;
 
 namespace Deckster.Client;
