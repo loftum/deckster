@@ -1,6 +1,9 @@
+using System.Dynamic;
+using System.Reflection;
 using System.Text.Json.Serialization;
 using Deckster.Client.Logging;
 using Deckster.Core;
+using Deckster.Core.Extensions;
 using Deckster.Core.Protocol;
 using Deckster.Core.Serialization;
 using Deckster.Games.CodeGeneration.Meta;
@@ -10,9 +13,12 @@ using Deckster.Server.Data;
 using Deckster.Server.Games;
 using Deckster.Server.Games.CrazyEights;
 using Deckster.Server.Middleware;
+using Deckster.Server.Swagger;
 using Marten;
 using Marten.Events.Projections;
 using Microsoft.AspNetCore.WebSockets;
+using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Weasel.Core;
 
 namespace Deckster.Server;
@@ -87,13 +93,15 @@ public static class Startup
         });
 
         services.AddEndpointsApiExplorer();
+        
+        services.AddTransient<ISchemaGenerator, DecksterSchemaGeneratorForDealingWithSwaggerImbecility>();
         services.AddSwaggerGen(o =>
         {
             o.DescribeAllParametersInCamelCase();
             o.UseAllOfForInheritance();
             o.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
             o.SchemaGeneratorOptions.NonNullableReferenceTypesAsRequired = true;
-            o.SchemaGeneratorOptions.DiscriminatorNameSelector = t => t.InheritsFrom<IHaveDiscriminator>() ? "type" : null;
+            o.SchemaGeneratorOptions.DiscriminatorNameSelector = t => t.GetProperty("Type")?.Name.ToCamelCase();
             o.SchemaGeneratorOptions.DiscriminatorValueSelector = t => t.GetGameNamespacedName();
             o.SchemaGeneratorOptions.SchemaIdSelector = t => t.GetGameNamespacedName();
                 //t => t.InheritsFrom<DecksterMessage>() ? t.GetGameNamespacedName() : t.Name;
@@ -106,7 +114,6 @@ public static class Startup
         app.UseSwagger();
         app.UseSwaggerUI(o =>
         {
-            // o.SwaggerEndpoint("/swagger/deckster/swagger.json", "deckster");
             o.DocumentTitle = "Deckster";
             o.RoutePrefix = "swagger";
         });

@@ -3,43 +3,41 @@ using Deckster.Core.Protocol;
 
 namespace Deckster.Core.Games.Gabong;
 
-public abstract class GabongGameNotification: DecksterNotification;
-
-public class PlayerPutCardNotification : GabongGameNotification
+public class PlayerPutCardNotification : DecksterNotification
 {
     public Guid PlayerId { get; init; }
     public Card Card { get; init; }
 }
 
-public class PlayerPutWildNotification : GabongGameNotification
+public class PlayerPutWildNotification : DecksterNotification
 {
     public Guid PlayerId { get; init; }
     public Card Card { get; init; }
     public Suit NewSuit { get; init; }
 }
 
-public class PlayerDrewCardNotification : GabongGameNotification
+public class PlayerDrewCardNotification : DecksterNotification
 {
     public Guid PlayerId { get; init; }
 }
 
-public class PlayerPassedNotification : GabongGameNotification
+public class PlayerPassedNotification : DecksterNotification
 {
     public Guid PlayerId { get; init; }
 }
 
-public class ItsYourTurnNotification : GabongGameNotification
+public class ItsYourTurnNotification : DecksterNotification
 {
     public PlayerViewOfGame PlayerViewOfGame { get; init; }
 }
 
-public class GameStartedNotification : GabongGameNotification
+public class GameStartedNotification : DecksterNotification
 {
     public Guid GameId { get; init; }
     public PlayerViewOfGame PlayerViewOfGame { get; init; }
 }
 
-public class GameEndedNotification : GabongGameNotification
+public class GameEndedNotification : DecksterNotification
 {
     public List<PlayerData> Players { get; init; }
 }
