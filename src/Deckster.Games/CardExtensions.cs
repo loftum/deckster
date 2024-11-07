@@ -18,4 +18,16 @@ public static class CardExtensions
             _ => card.Rank
         };
     }
+
+    public static bool IsStraight(this IList<Card> cards, ValueCaluclation caluclation)
+    {
+        var previousRank = -1;
+        foreach (var card in cards)
+        {
+            if (previousRank == -1)
+            {
+                previousRank = card.GetValue(caluclation);
+            }
+        }
+    }
 }

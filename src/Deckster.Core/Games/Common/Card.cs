@@ -67,4 +67,6 @@ public readonly struct Card
             _ => throw new ArgumentOutOfRangeException(nameof(rank), "Invalid rank '{rank}'")
         };
     }
+
+    public bool IsJoker() => Rank == 0;
 }
