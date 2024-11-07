@@ -41,6 +41,7 @@ public static class Startup
                 
                 services.AddMarten(o =>
                 {
+                    
                     o.Projections.Add<CrazyEightsProjection>(ProjectionLifecycle.Inline);
                     o.Connection(config.Repo.Marten.ConnectionString);
                     o.UseSystemTextJsonForSerialization(DecksterJson.Options, EnumStorage.AsString, Casing.CamelCase);
