@@ -1,23 +1,18 @@
-using System.Dynamic;
-using System.Reflection;
 using System.Text.Json.Serialization;
 using Deckster.Client.Logging;
 using Deckster.Core;
-using Deckster.Core.Extensions;
-using Deckster.Core.Protocol;
 using Deckster.Core.Serialization;
 using Deckster.Games.CodeGeneration.Meta;
 using Deckster.Server.Authentication;
 using Deckster.Server.Configuration;
 using Deckster.Server.Data;
+using Deckster.Server.DrMartens;
 using Deckster.Server.Games;
-using Deckster.Server.Games.CrazyEights;
 using Deckster.Server.Middleware;
 using Deckster.Server.Swagger;
 using Marten;
 using Marten.Events.Projections;
 using Microsoft.AspNetCore.WebSockets;
-using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Weasel.Core;
 
@@ -47,7 +42,14 @@ public static class Startup
                 
                 services.AddMarten(o =>
                 {
-                    o.Projections.Add<CrazyEightsProjection>(ProjectionLifecycle.Inline);
+                    foreach (var projectionType in AppDomain.CurrentDomain.GetAssemblies()
+                                 .SelectMany(a => a.GetTypes())
+                                 .Where(t => t is {IsClass: true, IsAbstract: false} && typeof(IGameProjection).IsAssignableFrom(t) && typeof(GeneratedProjection).IsAssignableFrom(t)))
+                    {
+                        logger.LogInformation("Adding {type}", projectionType.Name);
+                        o.Projections.AddType(projectionType, ProjectionLifecycle.Inline);
+                    }
+                    
                     o.Connection(config.Repo.Marten.ConnectionString);
                     o.UseSystemTextJsonForSerialization(DecksterJson.Options, EnumStorage.AsString, Casing.CamelCase);
                     o.AutoCreateSchemaObjects = AutoCreate.All;
@@ -93,7 +95,6 @@ public static class Startup
         });
 
         services.AddEndpointsApiExplorer();
-        
         services.AddTransient<ISchemaGenerator, DecksterSchemaGeneratorForDealingWithSwaggerImbecility>();
         services.AddSwaggerGen(o =>
         {
@@ -101,7 +102,7 @@ public static class Startup
             o.UseAllOfForInheritance();
             o.SchemaGeneratorOptions.SupportNonNullableReferenceTypes = true;
             o.SchemaGeneratorOptions.NonNullableReferenceTypesAsRequired = true;
-            o.SchemaGeneratorOptions.DiscriminatorNameSelector = t => t.GetProperty("Type")?.Name.ToCamelCase();
+            o.SchemaGeneratorOptions.DiscriminatorNameSelector = t => t.InheritsFrom<IHaveDiscriminator>() ? "type" : null;
             o.SchemaGeneratorOptions.DiscriminatorValueSelector = t => t.GetGameNamespacedName();
             o.SchemaGeneratorOptions.SchemaIdSelector = t => t.GetGameNamespacedName();
                 //t => t.InheritsFrom<DecksterMessage>() ? t.GetGameNamespacedName() : t.Name;
@@ -114,6 +115,7 @@ public static class Startup
         app.UseSwagger();
         app.UseSwaggerUI(o =>
         {
+            // o.SwaggerEndpoint("/swagger/deckster/swagger.json", "deckster");
             o.DocumentTitle = "Deckster";
             o.RoutePrefix = "swagger";
         });
