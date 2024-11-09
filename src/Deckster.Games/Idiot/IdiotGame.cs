@@ -17,6 +17,7 @@ public class IdiotGame : GameObject
     public event NotifyAll<PlayerPutCardsNotification>? PlayerPutCards;
     public event NotifyAll<DiscardPileFlushedNotification>? DiscardPileFlushed;
     public event NotifyAll<PlayerIsDoneNotification>? PlayerIsDone;
+    public event NotifyAll<PlayerSwappedCardsNotification> PlayerSwappedCards;
     
     public event NotifyAll<PlayerAttemptedPuttingCardNotification> PlayerAttemptedPuttingCard;
     public event NotifyAll<PlayerPulledInDiscardPileNotification> PlayerPulledInDiscardPile;
@@ -195,7 +196,7 @@ public class IdiotGame : GameObject
         return response;
     }
 
-    public event NotifyAll<PlayerSwappedCardsNotification> PlayerSwappedCards; 
+     
 
     public async Task<EmptyResponse> PutCardsFromHand(PutCardsFromHandRequest request)
     {
