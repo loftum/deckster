@@ -33,10 +33,14 @@ public class YanivProjection : GameProjection<YanivGame>
     {
         var createdEvent = new YanivGameCreatedEvent
         {
-            Deck = Decks.Standard().PushRange(Decks.Jokers(2)).KnuthShuffle(new Random().Next(0, int.MaxValue))
+            Deck = Decks.Standard().PushRange(Decks.Jokers(2)).KnuthShuffle(new Random().Next(0, int.MaxValue)),
+            Players = host.GetPlayers()
         };
         var game = YanivGame.Create(createdEvent);
         game.Deal();
         return (game, createdEvent);
     }
+
+    public Task Apply(PutCardsRequest @event, YanivGame game) => game.PutCards(@event);
+    public Task Apply(CallYanivRequest @event, YanivGame game) => game.CallYaniv(@event);
 }
