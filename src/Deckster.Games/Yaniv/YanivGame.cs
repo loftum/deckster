@@ -15,7 +15,7 @@ public class YanivGame : GameObject
     public event NotifyAll<RoundEndedNotification> RoundEnded;
     public event NotifyAll<GameEndedNotification> GameEnded;
 
-    public override GameState State => GameOver ? GameState.Finished : GameState.Running;
+    protected override GameState GetState() => GameOver ? GameState.Finished : GameState.Running;
     
     public bool GameOver { get; set; }
     

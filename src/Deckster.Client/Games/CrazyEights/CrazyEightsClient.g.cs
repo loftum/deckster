@@ -89,7 +89,7 @@ public static class CrazyEightsClientConveniences
     public static async Task<(List<Card> cards, Card topOfPile, Suit currentSuit, int stockPileCount, int discardPileCount, List<OtherCrazyEightsPlayer> otherPlayers)> PutCardAsync(this CrazyEightsClient self, Card card, CancellationToken cancellationToken = default)
     {
         var request = new PutCardRequest{ Card = card };
-        var response = await self.SendAsync<P                                                                                                                                                                                                                                                                                                                                                                        layerViewOfGame>(request, true, cancellationToken);
+        var response = await self.SendAsync<PlayerViewOfGame>(request, true, cancellationToken);
         return (response.Cards, response.TopOfPile, response.CurrentSuit, response.StockPileCount, response.DiscardPileCount, response.OtherPlayers);
     }
     public static async Task<(List<Card> cards, Card topOfPile, Suit currentSuit, int stockPileCount, int discardPileCount, List<OtherCrazyEightsPlayer> otherPlayers)> PutEightAsync(this CrazyEightsClient self, Card card, Suit newSuit, CancellationToken cancellationToken = default)
