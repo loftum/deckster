@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using Deckster.Core.Games.Yaniv;
 using Deckster.Games;
 using Deckster.Games.Collections;
 using Deckster.Games.Yaniv;

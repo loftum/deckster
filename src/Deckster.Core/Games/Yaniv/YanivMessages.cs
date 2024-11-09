@@ -1,7 +1,7 @@
 using Deckster.Core.Games.Common;
 using Deckster.Core.Protocol;
 
-namespace Deckster.Games.Yaniv;
+namespace Deckster.Core.Games.Yaniv;
 
 public class PutCardsRequest : DecksterRequest
 {

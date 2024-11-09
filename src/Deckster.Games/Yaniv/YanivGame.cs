@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Deckster.Core.Games.Common;
+using Deckster.Core.Games.Yaniv;
 using Deckster.Games.Collections;
 
 namespace Deckster.Games.Yaniv;
