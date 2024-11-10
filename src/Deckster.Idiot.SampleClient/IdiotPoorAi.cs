@@ -60,7 +60,12 @@ public class IdiotState
             return PlayFrom.FacingUp;
         }
 
-        return PlayFrom.FacingDown;
+        if (CardsFacingDownCount > 0)
+        {
+            return PlayFrom.FacingDown;
+        }
+
+        return PlayFrom.Nothing;
     }
 }
 
@@ -68,7 +73,8 @@ public enum PlayFrom
 {
     Hand,
     FacingUp,
-    FacingDown
+    FacingDown,
+    Nothing
 }
 
 public class OtherPlayer
@@ -139,7 +145,7 @@ public class IdiotPoorAi
     {
         var turn = 0;
         
-        while (true)
+        while (!_tcs.Task.IsCompleted)
         {
             turn++;
             switch (_state.GetPlayFrom())
@@ -180,8 +186,6 @@ public class IdiotPoorAi
                         {
                             return;
                         }
-
-                        var hest = true;
                     }
                     else
                     {
@@ -193,7 +197,7 @@ public class IdiotPoorAi
 
                     break;
                 }
-                default:
+                case PlayFrom.FacingDown:
                 {
                     var r = await _client.PutCardFacingDownAsync(0);
                     _state.CardsFacingDownCount--;
@@ -210,8 +214,12 @@ public class IdiotPoorAi
                     {
                         return;
                     }
+                    break;
                 }
-                break;
+                
+                case PlayFrom.Nothing:
+                default:
+                    return;
             }
         }
     }

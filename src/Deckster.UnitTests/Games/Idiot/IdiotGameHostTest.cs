@@ -1,4 +1,5 @@
 using Deckster.Core.Serialization;
+using Deckster.Games.Idiot;
 using Deckster.Games.Uno;
 using Deckster.Server.Data;
 using Deckster.Server.Games.Idiot;
@@ -11,6 +12,16 @@ public class IdiotGameHostTest
 {
     [Test]
     public async ValueTask RunGame()
+    {
+        for (var ii = 0; ii < 500; ii++)
+        {
+            await DoRunGameAsync();
+        }
+        
+    }
+
+    [Test]
+    public async Task DoRunGameAsync()
     {
         var repo = new InMemoryRepo();
         var host = new IdiotGameHost(repo, new NullLoggerFactory());
@@ -25,16 +36,20 @@ public class IdiotGameHostTest
         
         try
         {
-            Console.WriteLine("Starting");
-            await host.RunAsync();
+            var timeout = Task.Delay(20000);
+            var game = host.RunAsync();
+            if (await Task.WhenAny(timeout, game) == timeout)
+            {
+                await host.EndAsync();
+                throw new Exception("Timeout!");
+            }
         }
         catch (Exception e)
         {
-            Console.WriteLine(e);
-            var thing = repo.EventThings.Values.Cast<InMemoryEventQueue<UnoGame>>().SingleOrDefault();
+            var thing = repo.EventThings.Values.Cast<InMemoryEventQueue<IdiotGame>>().SingleOrDefault();
             if (thing != null)
             {
-                foreach (var evt in thing.Events)
+                foreach (var evt in thing.Events.ToList())
                 {
                     Console.WriteLine(evt.Pretty());
                 }

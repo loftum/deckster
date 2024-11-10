@@ -278,11 +278,14 @@ public class IdiotGame : GameObject
         response = EmptyResponse.Ok;
         await RespondAsync(player.Id, response);
         await NotifyPlayerPutCardAsync(player, request.Cards, discardPileFlushed);
-        if (!discardPileFlushed)
+        if (player.IsStillPlaying() && discardPileFlushed)
         {
-            await MoveToNextPlayerOrFinishAsync();    
+            return response;
+                
         }
 
+        await MoveToNextPlayerOrFinishAsync();
+        
         return response;
     }
     
@@ -304,6 +307,13 @@ public class IdiotGame : GameObject
         if (player.CardsOnHand.Any())
         {
             response = new PutBlindCardResponse{ Error = "You still have cards on hand" };
+            await RespondAsync(playerId, response);
+            return response;
+        }
+        
+        if (player.CardsFacingUp.Any())
+        {
+            response = new PutBlindCardResponse{ Error = "You still have cards facing up" };
             await RespondAsync(playerId, response);
             return response;
         }
@@ -368,10 +378,12 @@ public class IdiotGame : GameObject
             await RespondAsync(player.Id, response);
 
             await NotifyPlayerPutCardAsync(player, [card], discardPileFlushed);
-            if (!discardPileFlushed)
+            if (player.IsStillPlaying() && discardPileFlushed)
             {
-                await MoveToNextPlayerOrFinishAsync();    
+                return response;
             }
+            
+            await MoveToNextPlayerOrFinishAsync();
 
             return response;
         }
