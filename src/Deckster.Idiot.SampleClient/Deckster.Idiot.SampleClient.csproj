@@ -12,4 +12,8 @@
       <ProjectReference Include="..\Deckster.Core\Deckster.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="Microsoft.Extensions.Logging.Abstractions" />
+    </ItemGroup>
+
 </Project>

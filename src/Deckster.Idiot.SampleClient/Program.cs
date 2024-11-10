@@ -1,6 +1,7 @@
 ﻿using Deckster.Client;
 using Deckster.Client.Games.Idiot;
 using Deckster.Client.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Deckster.Idiot.SampleClient;
 
