@@ -182,13 +182,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfChatRoom'
+                $ref: '#/components/schemas/Data.HistoricChatRoom'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfChatRoom'
+                $ref: '#/components/schemas/Data.HistoricChatRoom'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfChatRoom'
+                $ref: '#/components/schemas/Data.HistoricChatRoom'
   '/chatroom/previousgames/{id}/{version}':
     get:
       tags:
@@ -212,13 +212,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfChatRoom'
+                $ref: '#/components/schemas/Data.HistoricChatRoom'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfChatRoom'
+                $ref: '#/components/schemas/Data.HistoricChatRoom'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfChatRoom'
+                $ref: '#/components/schemas/Data.HistoricChatRoom'
   '/chatroom/create/{name}':
     post:
       tags:
@@ -524,13 +524,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfCrazyEightsGame'
+                $ref: '#/components/schemas/Data.HistoricCrazyEightsGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfCrazyEightsGame'
+                $ref: '#/components/schemas/Data.HistoricCrazyEightsGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfCrazyEightsGame'
+                $ref: '#/components/schemas/Data.HistoricCrazyEightsGame'
   '/crazyeights/previousgames/{id}/{version}':
     get:
       tags:
@@ -554,13 +554,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfCrazyEightsGame'
+                $ref: '#/components/schemas/Data.HistoricCrazyEightsGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfCrazyEightsGame'
+                $ref: '#/components/schemas/Data.HistoricCrazyEightsGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfCrazyEightsGame'
+                $ref: '#/components/schemas/Data.HistoricCrazyEightsGame'
   '/crazyeights/create/{name}':
     post:
       tags:
@@ -866,13 +866,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
   '/gabong/previousgames/{id}/{version}':
     get:
       tags:
@@ -896,13 +896,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
   '/gabong/create/{name}':
     post:
       tags:
@@ -1239,13 +1239,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfIdiotGame'
+                $ref: '#/components/schemas/Data.HistoricIdiotGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfIdiotGame'
+                $ref: '#/components/schemas/Data.HistoricIdiotGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfIdiotGame'
+                $ref: '#/components/schemas/Data.HistoricIdiotGame'
   '/idiot/previousgames/{id}/{version}':
     get:
       tags:
@@ -1269,13 +1269,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfIdiotGame'
+                $ref: '#/components/schemas/Data.HistoricIdiotGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfIdiotGame'
+                $ref: '#/components/schemas/Data.HistoricIdiotGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfIdiotGame'
+                $ref: '#/components/schemas/Data.HistoricIdiotGame'
   '/idiot/create/{name}':
     post:
       tags:
@@ -1588,13 +1588,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
   '/uno/previousgames/{id}/{version}':
     get:
       tags:
@@ -1618,13 +1618,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfUnoGame'
+                $ref: '#/components/schemas/Data.HistoricUnoGame'
   '/uno/create/{name}':
     post:
       tags:
@@ -1937,13 +1937,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfYanivGame'
+                $ref: '#/components/schemas/Data.HistoricYanivGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfYanivGame'
+                $ref: '#/components/schemas/Data.HistoricYanivGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfYanivGame'
+                $ref: '#/components/schemas/Data.HistoricYanivGame'
   '/yaniv/previousgames/{id}/{version}':
     get:
       tags:
@@ -1967,13 +1967,13 @@ paths:
           content:
             text/plain:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfYanivGame'
+                $ref: '#/components/schemas/Data.HistoricYanivGame'
             application/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfYanivGame'
+                $ref: '#/components/schemas/Data.HistoricYanivGame'
             text/json:
               schema:
-                $ref: '#/components/schemas/Data.HistoricOfYanivGame'
+                $ref: '#/components/schemas/Data.HistoricYanivGame'
   '/yaniv/create/{name}':
     post:
       tags:
@@ -2522,7 +2522,7 @@ components:
           Gabong.GabongGame: '#/components/schemas/Gabong.GabongGame'
           CrazyEights.CrazyEightsGame: '#/components/schemas/CrazyEights.CrazyEightsGame'
           ChatRoom.ChatRoom: '#/components/schemas/ChatRoom.ChatRoom'
-    Data.HistoricOfChatRoom:
+    Data.HistoricChatRoom:
       required:
         - events
       type: object
@@ -2533,7 +2533,7 @@ components:
           type: array
           items: { }
       additionalProperties: false
-    Data.HistoricOfCrazyEightsGame:
+    Data.HistoricCrazyEightsGame:
       required:
         - events
       type: object
@@ -2544,7 +2544,7 @@ components:
           type: array
           items: { }
       additionalProperties: false
-    Data.HistoricOfIdiotGame:
+    Data.HistoricIdiotGame:
       required:
         - events
       type: object
@@ -2555,7 +2555,7 @@ components:
           type: array
           items: { }
       additionalProperties: false
-    Data.HistoricOfUnoGame:
+    Data.HistoricUnoGame:
       required:
         - events
       type: object
@@ -2566,7 +2566,7 @@ components:
           type: array
           items: { }
       additionalProperties: false
-    Data.HistoricOfYanivGame:
+    Data.HistoricYanivGame:
       required:
         - events
       type: object

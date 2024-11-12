@@ -299,17 +299,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfChatRoom"
+                  "$ref": "#/components/schemas/Data.HistoricChatRoom"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfChatRoom"
+                  "$ref": "#/components/schemas/Data.HistoricChatRoom"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfChatRoom"
+                  "$ref": "#/components/schemas/Data.HistoricChatRoom"
                 }
               }
             }
@@ -348,17 +348,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfChatRoom"
+                  "$ref": "#/components/schemas/Data.HistoricChatRoom"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfChatRoom"
+                  "$ref": "#/components/schemas/Data.HistoricChatRoom"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfChatRoom"
+                  "$ref": "#/components/schemas/Data.HistoricChatRoom"
                 }
               }
             }
@@ -872,17 +872,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfCrazyEightsGame"
+                  "$ref": "#/components/schemas/Data.HistoricCrazyEightsGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfCrazyEightsGame"
+                  "$ref": "#/components/schemas/Data.HistoricCrazyEightsGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfCrazyEightsGame"
+                  "$ref": "#/components/schemas/Data.HistoricCrazyEightsGame"
                 }
               }
             }
@@ -921,17 +921,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfCrazyEightsGame"
+                  "$ref": "#/components/schemas/Data.HistoricCrazyEightsGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfCrazyEightsGame"
+                  "$ref": "#/components/schemas/Data.HistoricCrazyEightsGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfCrazyEightsGame"
+                  "$ref": "#/components/schemas/Data.HistoricCrazyEightsGame"
                 }
               }
             }
@@ -1445,17 +1445,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               }
             }
@@ -1494,17 +1494,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               }
             }
@@ -2071,17 +2071,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfIdiotGame"
+                  "$ref": "#/components/schemas/Data.HistoricIdiotGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfIdiotGame"
+                  "$ref": "#/components/schemas/Data.HistoricIdiotGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfIdiotGame"
+                  "$ref": "#/components/schemas/Data.HistoricIdiotGame"
                 }
               }
             }
@@ -2120,17 +2120,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfIdiotGame"
+                  "$ref": "#/components/schemas/Data.HistoricIdiotGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfIdiotGame"
+                  "$ref": "#/components/schemas/Data.HistoricIdiotGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfIdiotGame"
+                  "$ref": "#/components/schemas/Data.HistoricIdiotGame"
                 }
               }
             }
@@ -2656,17 +2656,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               }
             }
@@ -2705,17 +2705,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfUnoGame"
+                  "$ref": "#/components/schemas/Data.HistoricUnoGame"
                 }
               }
             }
@@ -3241,17 +3241,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfYanivGame"
+                  "$ref": "#/components/schemas/Data.HistoricYanivGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfYanivGame"
+                  "$ref": "#/components/schemas/Data.HistoricYanivGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfYanivGame"
+                  "$ref": "#/components/schemas/Data.HistoricYanivGame"
                 }
               }
             }
@@ -3290,17 +3290,17 @@
             "content": {
               "text/plain": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfYanivGame"
+                  "$ref": "#/components/schemas/Data.HistoricYanivGame"
                 }
               },
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfYanivGame"
+                  "$ref": "#/components/schemas/Data.HistoricYanivGame"
                 }
               },
               "text/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Data.HistoricOfYanivGame"
+                  "$ref": "#/components/schemas/Data.HistoricYanivGame"
                 }
               }
             }
@@ -4202,7 +4202,7 @@
           }
         }
       },
-      "Data.HistoricOfChatRoom": {
+      "Data.HistoricChatRoom": {
         "required": [
           "events"
         ],
@@ -4218,7 +4218,7 @@
         },
         "additionalProperties": false
       },
-      "Data.HistoricOfCrazyEightsGame": {
+      "Data.HistoricCrazyEightsGame": {
         "required": [
           "events"
         ],
@@ -4234,7 +4234,7 @@
         },
         "additionalProperties": false
       },
-      "Data.HistoricOfIdiotGame": {
+      "Data.HistoricIdiotGame": {
         "required": [
           "events"
         ],
@@ -4250,7 +4250,7 @@
         },
         "additionalProperties": false
       },
-      "Data.HistoricOfUnoGame": {
+      "Data.HistoricUnoGame": {
         "required": [
           "events"
         ],
@@ -4266,7 +4266,7 @@
         },
         "additionalProperties": false
       },
-      "Data.HistoricOfYanivGame": {
+      "Data.HistoricYanivGame": {
         "required": [
           "events"
         ],
