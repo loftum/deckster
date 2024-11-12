@@ -53,28 +53,26 @@ public static class TypeExtensions
         {
             type = inner;
         }
-        if (type.FullName == null)
-        {
-            return type.Name;
-        }
+        
+        var fullName = string.Join('.',type.Namespace, type.ToOpenApiFriendlyName());
 
         var periodCount = 0;
         var start = 0;
-        for (var ii = type.FullName.Length - 1; ii >= 0; ii--)
+        for (var ii = fullName.Length - 1; ii >= 0; ii--)
         {
-            switch (type.FullName[ii])
+            switch (fullName[ii])
             {
                 case '.':
                     if (periodCount > 0)
                     {
-                        return type.FullName[start..];
+                        return fullName[start..];
                     }
                     periodCount++;
                     break;
             }
             start = ii;
         }
-        return type.FullName[start..];
+        return fullName[start..];
     }
 
     public static bool IsNullable(this Type type, out Type inner)
@@ -87,5 +85,63 @@ public static class TypeExtensions
 
         inner = default;
         return false;
+    }
+
+    private static readonly Dictionary<Type, string> Simple = new()
+    {
+        [typeof(int)] = "int",
+        [typeof(bool)] = "bool",
+        [typeof(double)] = "double",
+        [typeof(string)] = "string",
+    };
+
+    public static string ToOpenApiFriendlyName(this Type type)
+    {
+        if (!type.IsGenericType)
+        {
+            if (Simple.TryGetValue(type, out var friendly))
+            {
+                return friendly;
+            }
+            if (type.IsNullable(out var inner))
+            {
+                return Simple.TryGetValue(inner, out friendly)
+                    ? $"{friendly}?"
+                    : $"{type.Name}?";
+            }
+            
+            return type.Name;
+        }
+
+        var arguments = type.GetGenericArguments();
+        
+        var index = type.Name.IndexOf('`');
+        var b = type.Name[..index];
+        return $"{b}Of{string.Join(',', arguments.Select(ToDisplayString))}";
+    }
+
+    public static string ToDisplayString(this Type type)
+    {
+        if (!type.IsGenericType)
+        {
+            if (Simple.TryGetValue(type, out var friendly))
+            {
+                return friendly;
+            }
+            if (type.IsNullable(out var inner))
+            {
+                return Simple.TryGetValue(inner, out friendly)
+                    ? $"{friendly}?"
+                    : $"{type.Name}?";
+            }
+            
+            return type.Name;
+        }
+
+        var arguments = type.GetGenericArguments();
+        
+        var index = type.Name.IndexOf('`');
+        var b = type.Name[..index];
+        return $"{b}<{string.Join(',', arguments.Select(ToDisplayString))}>";
     }
 }
