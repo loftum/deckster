@@ -68,6 +68,7 @@ public abstract class GameController<TGameHost, TGame> : Controller, IGameContro
         var vm = new GameVm
         {
             Name = host.Name,
+            State = host.State,
             Players = host.GetPlayers()
         };
 

@@ -42,6 +42,7 @@ public static class Startup
                 
                 services.AddMarten(o =>
                 {
+                    o.DisableNpgsqlLogging = !config.Repo.Marten.EnableNpsqlLogging;
                     foreach (var projectionType in AppDomain.CurrentDomain.GetAssemblies()
                                  .SelectMany(a => a.GetTypes())
                                  .Where(t => t is {IsClass: true, IsAbstract: false} && typeof(IGameProjection).IsAssignableFrom(t) && typeof(GeneratedProjection).IsAssignableFrom(t)))
