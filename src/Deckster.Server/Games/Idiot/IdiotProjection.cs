@@ -8,7 +8,7 @@ public class IdiotProjection : GameProjection<IdiotGame>
 {
     public IdiotGame Create(IdiotGameCreatedEvent created)
     {
-        var game = IdiotGame.Make(created);
+        var game = IdiotGame.Instantiate(created);
         game.Deal();
         return game;
     }
