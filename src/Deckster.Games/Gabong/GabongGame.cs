@@ -69,7 +69,7 @@ public class GabongGame : GameObject
     public List<GabongPlayer> Players { get; init; } = [];
 
     public Suit? NewSuit { get; set; }
-    public Card TopOfPile => DiscardPile.Peek();
+    public Card TopOfPile => DiscardPile.PeekOrDefault();
     private GabongPlay LastPlay { get; set; } = GabongPlay.RoundStarted;
     public Suit CurrentSuit => NewSuit ?? TopOfPile.Suit;
 
