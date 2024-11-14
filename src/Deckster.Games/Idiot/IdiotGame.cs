@@ -61,7 +61,12 @@ public class IdiotGame : GameObject
     /// </summary>
     public List<IdiotPlayer> Players { get; init; } = [];
 
-    public static IdiotGame Create(IdiotGameCreatedEvent created)
+    public IdiotGame()
+    {
+        
+    }
+    
+    public static IdiotGame Make(IdiotGameCreatedEvent created)
     {
         var game = new IdiotGame
         {
