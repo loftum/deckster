@@ -1,9 +1,9 @@
 import Foundation
 
-extension Uno {
+extension CrazyEights {
     public enum Action: Encodable {
-        case putCard(card: UnoCard)
-        case putWild(card: UnoCard, newColor: UnoCard.Color)
+        case putCard(card: Card)
+        case putEight(card: Card, newSuit: Card.Suit)
         case drawCard
         case pass
 
@@ -12,8 +12,8 @@ extension Uno {
             switch self {
             case .putCard(let card):
                 try container.encode(PutCard(card: card))
-            case .putWild(let card, let newColor):
-                try container.encode(PutWild(card: card, newColor: newColor))
+            case .putEight(let card, let newSuit):
+                try container.encode(PutEight(card: card, newSuit: newSuit))
             case .drawCard:
                 try container.encode(DrawCard())
             case .pass:
@@ -25,23 +25,23 @@ extension Uno {
 
 // MARK: - Models
 
-extension Uno.Action {
+extension CrazyEights.Action {
     struct PutCard: Encodable {
-        let type = "Uno.PutCardRequest"
-        let card: UnoCard
+        let type = "CrazyEights.PutCardRequest"
+        let card: Card
     }
 
-    struct PutWild: Encodable {
-        let type = "Uno.PutWildRequest"
-        let card: UnoCard
-        let newColor: UnoCard.Color
+    struct PutEight: Encodable {
+        let type = "CrazyEights.PutEightRequest"
+        let card: Card
+        let newSuit: Card.Suit
     }
 
     struct DrawCard: Encodable {
-        let type = "Uno.DrawCardRequest"
+        let type = "CrazyEights.DrawCardRequest"
     }
 
     struct Pass: Encodable {
-        let type = "Uno.PassRequest"
+        let type = "CrazyEights.PassRequest"
     }
 }
