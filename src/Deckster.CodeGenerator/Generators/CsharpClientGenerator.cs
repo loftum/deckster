@@ -106,6 +106,11 @@ public class CsharpClientGenerator : ClientGenerator
                     .Append("CancellationToken cancellationToken = default")
                     .StringJoined(", ");
                 
+                Source.AppendLines([
+                    "/// <summary>",
+                    "/// does not throw exception on error",
+                    "/// </summary>",
+                ]);
                 Source.AppendLine($"public static Task<{extension.ReturnType.ToDisplayString()}> {extension.Name}Async(this {ClientName} self, {parameters})");
                 using(Source.CodeBlock())
                 {
@@ -119,13 +124,28 @@ public class CsharpClientGenerator : ClientGenerator
                     switch (extension.ReturnParameters.Length)
                     {
                         case 0:
+                            Source.AppendLines([
+                                "/// <summary>",
+                                "/// throws exception on error",
+                                "/// </summary>",
+                            ]);
                             Source.AppendLine($"public static async Task {extension.Name}OrThrowAsync(this {ClientName} self, {parameters})");
                             break;
                         case 1:
+                            Source.AppendLines([
+                                "/// <summary>",
+                                "/// throws exception on error",
+                                "/// </summary>",
+                            ]);
                             Source.AppendLine($"public static async Task<{extension.ReturnParameters[0].ParameterType.Name}> {extension.Name}OrThrowAsync(this {ClientName} self, {parameters})");
                             break;
                         default:
                             var returnTuple = extension.ReturnParameters.Select(p => $"{p.ParameterType.ToDisplayString()} {p.Name}").StringJoined(", ");
+                            Source.AppendLines([
+                                "/// <summary>",
+                                "/// throws exception on error",
+                                "/// </summary>",
+                            ]);
                             Source.AppendLine($"public static async Task<({returnTuple})> {extension.Name}OrThrowAsync(this {ClientName} self, {parameters})");
                             break;
                     }
@@ -165,4 +185,9 @@ public class CsharpClientGenerator : ClientGenerator
             }
         }
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public void HEst(){}
 }

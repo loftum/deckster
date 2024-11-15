@@ -90,44 +90,68 @@ public class UnoClient(IClientChannel channel) : GameClient(channel)
 
 public static class UnoClientConveniences
 {
+    /// <summary>
+    /// does not throw exception on error
+    /// </summary>
     public static Task<PlayerViewOfGame> PutCardAsync(this UnoClient self, UnoCard card, CancellationToken cancellationToken = default)
     {
         var request = new PutCardRequest{ Card = card };
         return self.SendAsync<PlayerViewOfGame>(request, false, cancellationToken);
     }
+    /// <summary>
+    /// throws exception on error
+    /// </summary>
     public static async Task<(List<UnoCard> cards, UnoCard topOfPile, UnoColor currentColor, int stockPileCount, int discardPileCount, List<OtherUnoPlayer> otherPlayers)> PutCardOrThrowAsync(this UnoClient self, UnoCard card, CancellationToken cancellationToken = default)
     {
         var request = new PutCardRequest{ Card = card };
         var response = await self.SendAsync<PlayerViewOfGame>(request, true, cancellationToken);
         return (response.Cards, response.TopOfPile, response.CurrentColor, response.StockPileCount, response.DiscardPileCount, response.OtherPlayers);
     }
+    /// <summary>
+    /// does not throw exception on error
+    /// </summary>
     public static Task<PlayerViewOfGame> PutWildAsync(this UnoClient self, UnoCard card, UnoColor newColor, CancellationToken cancellationToken = default)
     {
         var request = new PutWildRequest{ Card = card, NewColor = newColor };
         return self.SendAsync<PlayerViewOfGame>(request, false, cancellationToken);
     }
+    /// <summary>
+    /// throws exception on error
+    /// </summary>
     public static async Task<(List<UnoCard> cards, UnoCard topOfPile, UnoColor currentColor, int stockPileCount, int discardPileCount, List<OtherUnoPlayer> otherPlayers)> PutWildOrThrowAsync(this UnoClient self, UnoCard card, UnoColor newColor, CancellationToken cancellationToken = default)
     {
         var request = new PutWildRequest{ Card = card, NewColor = newColor };
         var response = await self.SendAsync<PlayerViewOfGame>(request, true, cancellationToken);
         return (response.Cards, response.TopOfPile, response.CurrentColor, response.StockPileCount, response.DiscardPileCount, response.OtherPlayers);
     }
+    /// <summary>
+    /// does not throw exception on error
+    /// </summary>
     public static Task<UnoCardResponse> DrawCardAsync(this UnoClient self, CancellationToken cancellationToken = default)
     {
         var request = new DrawCardRequest{  };
         return self.SendAsync<UnoCardResponse>(request, false, cancellationToken);
     }
+    /// <summary>
+    /// throws exception on error
+    /// </summary>
     public static async Task<UnoCard> DrawCardOrThrowAsync(this UnoClient self, CancellationToken cancellationToken = default)
     {
         var request = new DrawCardRequest{  };
         var response = await self.SendAsync<UnoCardResponse>(request, true, cancellationToken);
         return response.Card;
     }
+    /// <summary>
+    /// does not throw exception on error
+    /// </summary>
     public static Task<EmptyResponse> PassAsync(this UnoClient self, CancellationToken cancellationToken = default)
     {
         var request = new PassRequest{  };
         return self.SendAsync<EmptyResponse>(request, false, cancellationToken);
     }
+    /// <summary>
+    /// throws exception on error
+    /// </summary>
     public static async Task PassOrThrowAsync(this UnoClient self, CancellationToken cancellationToken = default)
     {
         var request = new PassRequest{  };
