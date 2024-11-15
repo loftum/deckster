@@ -44,7 +44,12 @@ public class ChatRoomClient(IClientChannel channel) : GameClient(channel)
 
 public static class ChatRoomClientConveniences
 {
-    public static async Task ChatAsync(this ChatRoomClient self, string message, CancellationToken cancellationToken = default)
+    public static Task<ChatResponse> ChatAsync(this ChatRoomClient self, string message, CancellationToken cancellationToken = default)
+    {
+        var request = new SendChatRequest{ Message = message };
+        return self.SendAsync<ChatResponse>(request, false, cancellationToken);
+    }
+    public static async Task ChatOrThrowAsync(this ChatRoomClient self, string message, CancellationToken cancellationToken = default)
     {
         var request = new SendChatRequest{ Message = message };
         var response = await self.SendAsync<ChatResponse>(request, true, cancellationToken);

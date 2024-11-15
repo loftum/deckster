@@ -68,12 +68,22 @@ public class YanivClient(IClientChannel channel) : GameClient(channel)
 
 public static class YanivClientConveniences
 {
-    public static async Task CallYanivAsync(this YanivClient self, CancellationToken cancellationToken = default)
+    public static Task<EmptyResponse> CallYanivAsync(this YanivClient self, CancellationToken cancellationToken = default)
+    {
+        var request = new CallYanivRequest{  };
+        return self.SendAsync<EmptyResponse>(request, false, cancellationToken);
+    }
+    public static async Task CallYanivOrThrowAsync(this YanivClient self, CancellationToken cancellationToken = default)
     {
         var request = new CallYanivRequest{  };
         var response = await self.SendAsync<EmptyResponse>(request, true, cancellationToken);
     }
-    public static async Task<Card> PutCardsAsync(this YanivClient self, Card[] cards, DrawCardFrom drawCardFrom, CancellationToken cancellationToken = default)
+    public static Task<PutCardsResponse> PutCardsAsync(this YanivClient self, Card[] cards, DrawCardFrom drawCardFrom, CancellationToken cancellationToken = default)
+    {
+        var request = new PutCardsRequest{ Cards = cards, DrawCardFrom = drawCardFrom };
+        return self.SendAsync<PutCardsResponse>(request, false, cancellationToken);
+    }
+    public static async Task<Card> PutCardsOrThrowAsync(this YanivClient self, Card[] cards, DrawCardFrom drawCardFrom, CancellationToken cancellationToken = default)
     {
         var request = new PutCardsRequest{ Cards = cards, DrawCardFrom = drawCardFrom };
         var response = await self.SendAsync<PutCardsResponse>(request, true, cancellationToken);
