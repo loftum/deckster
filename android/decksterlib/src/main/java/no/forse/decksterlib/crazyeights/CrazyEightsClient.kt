@@ -6,12 +6,11 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import no.forse.decksterlib.DecksterServer
 import no.forse.decksterlib.game.GameClientBase
-import no.forse.decksterlib.model.common.Card
-import no.forse.decksterlib.model.common.EmptyResponse
-import no.forse.decksterlib.model.common.Suit
+import no.forse.decksterlib.model.common.*
 import no.forse.decksterlib.model.crazyeights.*
 import no.forse.decksterlib.model.protocol.DecksterNotification
 import no.forse.decksterlib.protocol.getType
+import no.forse.decksterlib.protocol.typeOf
 import threadpoolScope
 
 /**
@@ -75,15 +74,13 @@ class CrazyEightsClient(decksterServer: DecksterServer) :
 
     suspend fun drawCard(): CardResponse {
         val playerId = joinedGameOrThrow.userUuid
-        val passRequest = DrawCardRequest("", playerId)
-        val typedMessage = DrawCardRequest(passRequest.getType(), playerId)
+        val typedMessage = DrawCardRequest(typeOf(PassRequest::class), playerId)
         return sendAndReceive<CardResponse>(typedMessage)
     }
 
     suspend fun putCard(card: Card): PlayerViewOfGame {
         val playerId = joinedGameOrThrow.userUuid
-        val passRequest = PutCardRequest("", playerId, card)
-        val typedMessage = PutCardRequest(passRequest.getType(), playerId, card)
+        val typedMessage = PutCardRequest(typeOf(PutCardRequest::class), playerId, card)
         return sendAndReceive<PlayerViewOfGame>(typedMessage).also {
             this.currentState = it
         }
@@ -91,8 +88,7 @@ class CrazyEightsClient(decksterServer: DecksterServer) :
 
     suspend fun putEight(card: Card, suit: Suit): PlayerViewOfGame {
         val playerId = joinedGameOrThrow.userUuid
-        val passRequest = PutEightRequest("", playerId, card, suit)
-        val typedMessage = PutEightRequest(passRequest.type, playerId, card, suit)
+        val typedMessage = PutEightRequest(typeOf(PassRequest::class), playerId, card, suit)
         return sendAndReceive<PlayerViewOfGame>(typedMessage).also {
             this.currentState = it
         }
