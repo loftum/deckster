@@ -5,6 +5,9 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
         <LangVersion>default</LangVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Version>1.2.4</Version>
+        <Title>Deckster.Core</Title>
     </PropertyGroup>
 
     <ItemGroup>
